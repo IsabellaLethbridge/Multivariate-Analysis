@@ -13,6 +13,7 @@
 #Dimensionality
 (dims <- dim(X))
 (n <- dims[1])
+
 #or read directly from matrix
 (p <- ncol(X))
 
