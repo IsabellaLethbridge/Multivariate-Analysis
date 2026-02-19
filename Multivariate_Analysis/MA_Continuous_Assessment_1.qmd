@@ -1,0 +1,6 @@
+---
+title: "Multivariate: Continuous Assessment 1"
+format: pdf
+---
+
+## Question 1
