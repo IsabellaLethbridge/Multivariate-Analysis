@@ -1,9 +1,10 @@
 ---
-title: "Multivariate Analysis: Continuous Assessment 1"
-format: html
+title: "Multivariate Analysis: Assessment 1"
+format: pdf
 echo : false 
 warning : false
 author : "Isabella Lethbridge and Amelie Nieuwoudt"
+date: "19 February 2026"
 ---
 
 ## Setup
@@ -110,6 +111,7 @@ TP5_cor <- cor(TP5)
 Across the time periods, the correlation between basialveolar length of skull and nasal height of skull change from being weakly negatively correlated to weakly positively correlated. A similar trend is observed in the correlation between maximal breadth of skull and basilbregmatic height of skull, except these variables change from a weak, positive correlation to a weak negative correlation. 
 Most variable observed a change in correlation from positive to negative or negative to positive over the observed time periods.  This could be due to multicollinearity in the explanatory variables. 
 
+\newpage
 ## Question 3
 ```{r}
 #X1 vector 
@@ -147,19 +149,18 @@ r_cos_theta <- round(cos_theta, 2)
 angle <- round(acos(cos_theta), 3)
 
 ```
-$ \cos(\theta) = `r cos_theta` $  
+$\cos(\theta) = `r cos_theta`$  
 This values is expected to be the same as the correlation coefficient between X1 and X3 for Time period 1. As seen in Question 2, this value is 0.02. This is the same as cosine of the angle between the deviation vectors, D1 and D3, `r r_cos_theta` (rounded to 2 decimal places). 
 
+\newpage
 ## Question 4
 ```{r}
 mean_mat <- as.matrix(Q1)
 mean_mat <- mean_mat[,-1]
 
 b <- matrix(c(-1, 0, 0, 3))
-b
 
 Y <- t(b)%*%t(mean_mat)
-Y
 
 #Coveriance by Time Period 
 Y1_cov <- t(b)%*%TP1_cov%*%b
@@ -170,6 +171,38 @@ Y5_cov <- t(b)%*%TP5_cov%*%b
 
 #Covariance matrix 
 Y_mat <- diag(c(Y1_cov, Y2_cov, Y3_cov, Y4_cov, Y5_cov), nrow = 5)
-Y_mat
 ```
 
+Coefficient vector:
+$$
+\mathbf{b} =
+\begin{bmatrix}
+-1 \\
+0 \\
+0 \\
+3
+\end{bmatrix}
+$$
+Sample means:
+$$
+\mathbf{\bar{y_i}} =
+\begin{bmatrix}
+20.23333 \\
+18.3333 \\
+17.2333 \\
+20.4 \\
+17.9333
+\end{bmatrix}
+$$
+
+Covariance matrix:
+$$
+\mathbf{Y} =
+\begin{bmatrix}
+51.56437 & 0 & 0 & 0 & 0 \\
+0 & 90.71264 & 0 & 0 & 0 \\
+0 & 0 & 120.1161 & 0 & 0 \\
+0 & 0 & 0 & 74.73103 & 0 \\
+0 & 0 & 0 & 0 & 165.0299
+\end{bmatrix}
+$$
