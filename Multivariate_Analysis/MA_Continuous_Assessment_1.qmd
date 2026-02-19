@@ -1,6 +1,175 @@
 ---
-title: "Multivariate: Continuous Assessment 1"
-format: pdf
+title: "Multivariate Analysis: Continuous Assessment 1"
+format: html
+echo : false 
+warning : false
+author : "Isabella Lethbridge and Amelie Nieuwoudt"
 ---
 
+## Setup
+Load data and required packages into R. 
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggcorrplot)
+library(cowplot)
+dat <- read.csv("CA1.csv")
+```
+
 ## Question 1
+```{r}
+Q1 <- dat |>
+  group_by(TimePeriod) |>
+  summarise(
+    X1_mean = mean(MaxBreadth),
+    X2_mean = mean(BasHeight),
+    X3_mean = mean(BasLength),
+    X4_mean = mean(NasHeight),
+    .groups = "drop"
+  )
+
+knitr::kable(Q1,
+             caption = "Sample Means for Time Periods.   
+             X1 = Maximal Breadth of skull (mm), X2 = Basilbregmatic Height of Skull (mm), X3 = Basialveolar Length of Skull (mm), X4 = Nasal Height of Skull (mm)",
+             col.names = c("Time Period", "Average X1", "Average X2", "Average X3", "Average X4"))
+```
+
+## Question 2
+```{r}
+#Time Period 1
+TP1 <- dat |>
+  filter(TimePeriod == 1) |>
+  select(MaxBreadth, BasHeight, BasLength, NasHeight)
+TP1_cov <- cov(TP1)
+TP1_cor <- cor(TP1)
+
+#Time Period 1 correlation plot
+(P1 <- ggcorrplot(TP1_cor, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Plot for Time Period 1"))
+
+
+#Time Period 2
+TP2 <- dat |>
+  filter(TimePeriod == 2) |>
+  select(MaxBreadth, BasHeight, BasLength, NasHeight)
+TP2_cov <- cov(TP2)
+TP2_cor <- cor(TP2)
+
+#Time Period 2 correlation plot
+(P2 <- ggcorrplot(TP2_cor, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Plot for Time Period 2"))
+
+
+#Time Period 3
+TP3 <- dat |>
+  filter(TimePeriod == 3) |>
+  select(MaxBreadth, BasHeight, BasLength, NasHeight)
+TP3_cov <- cov(TP3)
+TP3_cor <- cor(TP3)
+
+#Time Period 3 correlation plot
+(P3 <- ggcorrplot(TP3_cor, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Plot for Time Period 3"))
+
+
+#Time Period 4
+TP4 <- dat |>
+  filter(TimePeriod == 4) |>
+  select(MaxBreadth, BasHeight, BasLength, NasHeight)
+TP4_cov <- cov(TP4)
+TP4_cor <- cor(TP4)
+
+#Time Period 4 correlation plot
+(P4 <- ggcorrplot(TP4_cor, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Plot for Time Period 4"))
+
+
+#Time Period 5
+TP5 <- dat |>
+  filter(TimePeriod == 5) |>
+  select(MaxBreadth, BasHeight, BasLength, NasHeight)
+TP5_cov <- cov(TP5)
+TP5_cor <- cor(TP5)
+
+#Time Period 5 correlation plot
+(P5 <- ggcorrplot(TP5_cor, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Plot for Time Period 5"))
+
+```
+
+Across the time periods, the correlation between basialveolar length of skull and nasal height of skull change from being weakly negatively correlated to weakly positively correlated. A similar trend is observed in the correlation between maximal breadth of skull and basilbregmatic height of skull, except these variables change from a weak, positive correlation to a weak negative correlation. 
+Most variable observed a change in correlation from positive to negative or negative to positive over the observed time periods.  This could be due to multicollinearity in the explanatory variables. 
+
+## Question 3
+```{r}
+#X1 vector 
+X1 <- TP1 |>
+  select(MaxBreadth)
+X1 <- as.matrix(X1)
+
+#X3 vector
+X3 <- TP1 |>
+  select(BasLength)
+X3 <- as.matrix(X3)
+
+#Matrix of 1's
+One <- matrix(1, nrow = length(X1))
+
+#X1 and X3 mean
+X1_mean <- as.numeric(Q1[1,2])
+X3_mean <- as.numeric(Q1[1,4])
+
+#Vector of X1 and X3 vector 
+X1_mean_vect <- One%*%X1_mean
+X3_mean_vect <- One%*%X3_mean
+
+#Deviation vectors for X1 and X2 
+D1 <- X1 - X1_mean_vect
+D3 <- X3 - X3_mean_vect
+
+#Length of deviation vectors 
+Len_D1 <- sqrt(t(D1)%*%D1)
+Len_D3 <- sqrt(t(D3)%*%D3)
+
+#cos(theta) 
+cos_theta <- (t(D1)%*%D3)/(Len_D1*Len_D3)
+r_cos_theta <- round(cos_theta, 2)
+angle <- round(acos(cos_theta), 3)
+
+```
+$ \cos(\theta) = `r cos_theta` $  
+This values is expected to be the same as the correlation coefficient between X1 and X3 for Time period 1. As seen in Question 2, this value is 0.02. This is the same as cosine of the angle between the deviation vectors, D1 and D3, `r r_cos_theta` (rounded to 2 decimal places). 
+
+## Question 4
+```{r}
+mean_mat <- as.matrix(Q1)
+mean_mat <- mean_mat[,-1]
+
+b <- matrix(c(-1, 0, 0, 3))
+b
+
+Y <- t(b)%*%t(mean_mat)
+Y
+
+#Coveriance by Time Period 
+Y1_cov <- t(b)%*%TP1_cov%*%b
+Y2_cov <- t(b)%*%TP2_cov%*%b
+Y3_cov <- t(b)%*%TP3_cov%*%b
+Y4_cov <- t(b)%*%TP4_cov%*%b
+Y5_cov <- t(b)%*%TP5_cov%*%b
+
+#Covariance matrix 
+Y_mat <- diag(c(Y1_cov, Y2_cov, Y3_cov, Y4_cov, Y5_cov), nrow = 5)
+Y_mat
+```
+
