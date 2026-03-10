@@ -1,0 +1,79 @@
+---
+title: "Multivariate Analysis: Lecture 4"
+format: html
+editor: visual
+---
+
+## Exercise 4.3
+
+### Question 1
+
+```{r}
+library(readr)
+Air_Pollution_Data <- read_csv("C:/Users/isabe/OneDrive - University of Cape Town/Documents/GitHub/Multivariate-Analysis/Multivariate_Analysis/Lecture_1/Air Pollution Data.csv")
+View(Air_Pollution_Data)
+
+#Construct a QQ-plot 
+sol <- na.omit(Air_Pollution_Data$Radiation)
+qqnorm(sol) ; qqline(sol, col = "red", lwd = 2)
+
+#Number of values to sum over
+n <- length(sol)
+
+#Ordered sample values
+x <- sort(sol)
+length(x)
+
+#Theoretical normal quantiles with approximation 
+q <- qnorm((1:n - 0.5)/n)
+length(q)
+
+#Determine correlation coefficient 
+rq_formula <- sum((x - mean(x))*(q - mean(q)))/(sqrt(sum((x - mean(x))^2))*sqrt(sum((q - mean(q))^2)))
+rq_formula <- round(rq_formula, 4)
+
+#Use built in R formula to check 
+rq <- cor(x,q)
+
+#Check sample size 
+length(sol)
+```
+There are 42 observations. The correlation coefficient from the above test is `r rq_formula`. The critical value in Table B.1 for a sample size of 40 is 0.9726 for alpha = 0.05. Since `r rq_forumala` is < the critical value of 0.9726 we reject the assumption of normality at a 5% level. The critical value for a smaple size of 45 is 0.9749 for alpha = 0.05. 
+
+At a 10% level our correlation coefficient is greater than both critcial values for a sample size of 40 and 45, 0.9599 and 0.9632, respectively. We would not reject the assumption of normality at a 10% level. 
+
+It would make sense to reject the assumption of normality after looking at the QQ-plot as the data points do not lie on the normal line.
+
+### Question 2
+```{r}
+#Extract covariates we are interested in 
+x5 <- Air_Pollution_Data$NO2
+x6 <- Air_Pollution_Data$O3
+x <- cbind(x5, x6)
+
+#S: covariance matrix 
+S <- cov(x)
+
+#n: number of observations 
+n <- nrow(x)
+
+#Calculate squared distances 
+d2 <- mahalanobis(x, colMeans(x), cov = S)
+
+#Order the squared distances
+d2_ord <- sort(d2)
+
+#Determine 50% cirtical value
+crit_val <- qchisq(0.5, df = 2)
+
+#determine how many d2 values are less than critical value 
+prop <- mean(d2_ord < crit_val)
+prop*100
+
+#Graph the pairs
+qcp <- qchisq((1:n - 0.5)/n, ncol(x))
+plot(qcp, d2_ord, main="Chi-square plot", pch = 16, 
+     ylab = '') ; title(ylab = expression(d[(j)]^2), line = 2) ; abline(a = 0, b = 1, col = 'red')
+
+
+```
