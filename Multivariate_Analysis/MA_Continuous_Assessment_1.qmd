@@ -148,7 +148,7 @@ cos_theta <- (t(D1)%*%D3)/(Len_D1*Len_D3)
 r_cos_theta <- round(cos_theta, 2)
 angle <- round(acos(cos_theta), 3)
 
-```
+ ```
 $\cos(\theta) = `r cos_theta`$  
 This values is expected to be the same as the correlation coefficient between X1 and X3 for Time period 1. As seen in Question 2, this value is 0.02. This is the same as cosine of the angle between the deviation vectors, D1 and D3, `r r_cos_theta` (rounded to 2 decimal places). 
 
@@ -162,7 +162,7 @@ b <- matrix(c(-1, 0, 0, 3))
 
 Y <- t(b)%*%t(mean_mat)
 
-#Coveriance by Time Period 
+#Covariance by Time Period 
 Y1_cov <- t(b)%*%TP1_cov%*%b
 Y2_cov <- t(b)%*%TP2_cov%*%b
 Y3_cov <- t(b)%*%TP3_cov%*%b
@@ -171,7 +171,7 @@ Y5_cov <- t(b)%*%TP5_cov%*%b
 
 #Covariance matrix 
 Y_mat <- diag(c(Y1_cov, Y2_cov, Y3_cov, Y4_cov, Y5_cov), nrow = 5)
-```
+ ```
 
 Coefficient vector:
 $$
