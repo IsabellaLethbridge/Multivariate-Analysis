@@ -59,12 +59,12 @@ kable(r4_mean_err,
 
 ## Question 2
 
-As see in @fig-corplot *insert interpretation here* 
+As see in @fig-corplot *insert interpretation here*
 
 ::: {#fig-corplot}
 ![](_figure/corplot.png)
 
-Correlation plots comparing X and the rank 2 approximation of X. 
+Correlation plots comparing X and the rank 2 approximation of X.
 :::
 
 ```{r}

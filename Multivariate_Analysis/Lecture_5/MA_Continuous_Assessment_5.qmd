@@ -1,0 +1,72 @@
+---
+title: "Multivariate Analysis: Assessment 5"
+format: html
+---
+
+## Question 1
+```{r}
+library(readr)
+library(tidyverse)
+# change backslahs to fwd 
+# CA1 <- read_csv("C:\Users\isabe\OneDrive - University of Cape Town\Documents\GitHub\Multivariate-Analysis\Multivariate_Analysis\Lecture_5\CA1.csv")
+View(CA1)
+
+Q1 <- CA1 |>
+  filter(TimePeriod == 1) |>
+  select(-TimePeriod)
+  
+Q1mean <- Q1 |>
+  summarise(
+    MB = mean(MaxBreadth),
+    BH = mean(BasHeight),
+    BL = mean(BasLength),
+    NH = mean(NasHeight)
+  )
+
+#Individual t
+n <- nrow(Q1)
+p <- ncol(Q1mean) 
+alpha <- 0.05
+tstat <- qt((1 - alpha/2), n - 1)
+fstat <- qf(1 - alpha, p, n-p)
+S <- cov(Q1)
+
+lower1 <- numeric(4)
+upper1 <- numeric(4)
+
+for (i in 1:4){
+  lower1[i] <- Q1mean[,i] - tstat*sqrt(S[i,i]/n)
+  upper1[i] <- Q1mean[,i] + tstat*sqrt(S[i,i]/n)
+}
+cbind(lower1, upper1)
+
+#Simultaneous T^2
+margin <- sqrt((p*(n-1)/(n-p))*fstat)
+
+lower2 <- numeric(4)
+upper2 <- numeric(4)
+
+for (i in 1:4){
+  lower2[i] <- Q1mean[,i] - margin*sqrt(S[i,i]/n)
+  upper2[i] <- Q1mean[,i] + margin*sqrt(S[i,i]/n)
+}
+cbind(lower2, upper2)
+
+#95% Bonferroni 
+margin3 <- qt(1 - (alpha/2*p), n - 1)
+
+lower3 <- numeric(4)
+upper3 <- numeric(4)
+
+for (i in 1:4){
+  lower3[i] <- Q1mean[,i] - margin3*sqrt(S[i,i]/n)
+  upper3[i] <- Q1mean[,i] + margin3*sqrt(S[i,i]/n)
+}
+cbind(lower3, upper3)
+```
+
+## Question 2
+```{r}
+weight <- read.table("Lecture_5/CA5.txt")
+view(weight)
+```

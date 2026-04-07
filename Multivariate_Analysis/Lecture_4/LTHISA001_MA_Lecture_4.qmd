@@ -38,13 +38,15 @@ rq <- cor(x,q)
 #Check sample size 
 length(sol)
 ```
-There are 42 observations. The correlation coefficient from the above test is `r rq_formula`. The critical value in Table B.1 for a sample size of 40 is 0.9726 for alpha = 0.05. Since `r rq_forumala` is < the critical value of 0.9726 we reject the assumption of normality at a 5% level. The critical value for a smaple size of 45 is 0.9749 for alpha = 0.05. 
 
-At a 10% level our correlation coefficient is greater than both critcial values for a sample size of 40 and 45, 0.9599 and 0.9632, respectively. We would not reject the assumption of normality at a 10% level. 
+There are 42 observations. The correlation coefficient from the above test is `r rq_formula`. The critical value in Table B.1 for a sample size of 40 is 0.9726 for alpha = 0.05. Since `r rq_forumala` is \< the critical value of 0.9726 we reject the assumption of normality at a 5% level. The critical value for a smaple size of 45 is 0.9749 for alpha = 0.05.
+
+At a 10% level our correlation coefficient is greater than both critcial values for a sample size of 40 and 45, 0.9599 and 0.9632, respectively. We would not reject the assumption of normality at a 10% level.
 
 It would make sense to reject the assumption of normality after looking at the QQ-plot as the data points do not lie on the normal line.
 
 ### Question 2
+
 ```{r}
 #Extract covariates we are interested in 
 x5 <- Air_Pollution_Data$NO2
