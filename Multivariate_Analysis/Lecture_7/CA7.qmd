@@ -1,0 +1,256 @@
+---
+title: "Continuous Assessment 7"
+author: "Roxy Campher (CMPROX001) and Isabella Lethbridge (LTHISA001)"
+format: pdf
+editor: visual
+echo: false
+warnings: false
+message: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+library(ggcorrplot)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(dplyr)
+
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+#be sure to install from `2024` branch (code below does this)
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+```
+
+## Question 1
+
+```{r}
+# Scatterplots
+p1 <- ggplot(data = data_tidy_mali,
+             mapping = aes(x = family, y = dist_rd)) +
+  geom_point(colour = "deeppink", size = 3) +
+  labs(
+    title = "Family vs distance",
+    x = "Total number of individuals in household",
+    y = "Distance to nearest road"
+  ) +
+  theme_cowplot() +
+  background_grid(major = 'xy')
+
+p2 <- ggplot(data = data_tidy_mali,
+             mapping = aes(x = dist_rd, y = cattle)) +
+  geom_point(colour = "purple", size = 3) +
+  labs(
+    title = "Distance vs cattle",
+    x = "Distance to nearest road",
+    y = "Total number of cattle"
+  ) +
+  theme_cowplot() +
+  background_grid(major = 'xy')
+
+# Remove outliers 
+new_dat <- data_tidy_mali |>
+  filter(family <= 100) |>
+  filter(dist_rd <= 200) |>
+  filter(cattle <= 40)
+
+p3 <- ggplot(data = new_dat,
+             mapping = aes(x = family, y = dist_rd)) +
+  geom_point(colour = "deeppink", size = 3) +
+  labs(
+    title = "Family vs distance without outliers",
+    x = "Total number of individuals in household",
+    y = "Distance to nearest road"
+  ) +
+  theme_cowplot() +
+  background_grid(major = 'xy')
+
+p4 <- ggplot(data = new_dat,
+             mapping = aes(x = dist_rd, y = cattle)) +
+  geom_point(colour = "purple", size = 3) +
+  labs(
+    title = "Distance vs cattle without outliers",
+    x = "Distance to nearest road",
+    y = "Total number of cattle"
+  ) +
+  theme_cowplot() +
+  background_grid(major = 'xy')
+
+
+#Combine plots
+combined_plot <- plot_grid(p1, p2, p3, p4, ncol = 2)
+combined_plot <- combined_plot +
+  theme(
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white")
+  )
+
+ggsave("_figure/scatterplot.png", plot = combined_plot, height = 8, width = 12)
+```
+
+::: {#fig-scatterplot}
+![](_figure/scatterplot.png)
+
+Scatterplots of family, distance and cattle variables before and after outliers are removed.
+:::
+
+\newpage
+
+## Question 2
+
+The variables are measured in different units. It would be suitable to standardize them for a clear analysis. Variables such as $family$ (measured in counts) and $dist\_rd$ (measured in km) are not comparable so standardizing is necessary.
+
+```{r}
+scaled_newdat <- scale(new_dat)
+```
+
+## Question 3
+
+```{r}
+# covariance mat
+cov_mat <- cor(new_dat)
+
+# Apply eigen decomposition
+eig_obj <- eigen(cov_mat)
+
+eig_vec_mat <- eig_obj$vectors
+rownames(eig_vec_mat) <- paste0("V", 1:9)
+colnames(eig_vec_mat) <- paste0("PC", 1:9)
+
+PCS <- eig_obj$values
+
+# Scree plot
+tot <- sum(PCS)
+props <- numeric(9)
+for (i in 1:9){
+  props[i] <- PCS[i]/tot
+}
+
+Indx <- seq(1,9,1)
+
+output <- cbind(props, Indx)
+
+scree_p <- ggplot(data = output, mapping = aes(x = Indx, y = props)) +
+  geom_point()+
+  scale_x_continuous(breaks = unique(Indx)) +
+  geom_line() +
+  labs(
+    title = "Scree plot",
+    x = "PCA Index",
+    y = "Proportion of Variance"
+  ) +
+  theme_cowplot() +
+  background_grid(major = 'xy')
+
+scree_p <- scree_p + 
+  theme(
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white")
+
+  )
+
+out <- eig_vec_mat |> signif(3)|> knitr::kable()
+out
+
+names <- paste0("PC", 1:9)
+PCS_out <- rbind(names,round(PCS,3))
+row.names(PCS_out) <- c(" ", " ")
+
+PCS_out <- PCS_out |> knitr::kable()
+PCS_out
+#ggsave("_figure/screeplot.png", plot = scree_p, height = 6, width = 10)
+```
+
+::: {#fig-screeplot}
+![](_figure/screeplot.png)
+
+Scatterplots of family, distance and cattle variables before and after outliers are removed.
+:::
+
+It is clear the the first principle component captures the highest proportion of variance $(0.467)$, the next two components also explain more than $10\%$ of variance. From component 4, the remaining principal components do not explain a large amount of the variance. Thus, the first three components effectively summarize the variability with the remaining components capturing the noise in the data.
+
+\newpage
+
+## Question 4
+
+```{r}
+dat_mat <- as.matrix(scaled_newdat)
+svd_dat <- svd(dat_mat)
+#svd_dat$d^2 |> signif(3)
+
+rownames(svd_dat$v) <- paste0("V", 1:9)
+colnames(svd_dat$v) <- paste0("PC", 1:9)
+
+
+#(dat_mat %*% svd_dat$v) |>
+#  head() |>
+#  signif(3)
+
+svd_dat$v |> signif(3)|> knitr::kable()
+
+#vals <- sqrt(svd_dat$d)
+
+#names <- paste0("PC", 1:9)
+#vals_out <- rbind(names,round(vals,3))
+#row.names(vals_out) <- c(" ", " ")
+
+#vals_out |> knitr::kable()
+```
+
+The results of both the eigen value decomposition and the SVD are the same.
+
+## Question 5
+
+```{r}
+par <- as.data.frame(eig_vec_mat[,1:2])
+names <- colnames(new_dat)
+rownames(par) <- names
+par
+```
+
+For PC1, the variables family, cotton, maize, bull and cattle are marked as the variables that explain most of the variance in the data. The largest contribution of explained variance in PC2 comes dist_rd, maize, sorg and millet. PC1 could relate to areas with a higher number of occupants (human or livestock) and PC2 could describe sparsely distributed observations.
+
+\newpage
+
+## Question 6
+
+```{r}
+# Compute the correlation matrix between original variables and principal components
+P <- eig_obj$vectors
+D <- diag(eig_obj$values)
+var_mat <- diag(diag(cov_mat))
+numerator <- P %*% sqrt(D)
+corr_mat <- var_mat %*% numerator
+rownames(corr_mat) <- paste0("V", 1:9)
+colnames(corr_mat) <- paste0("PC", 1:9)
+col1 <- as.data.frame(corr_mat[,1])
+colnames(col1) <- c("PC1")
+col1 |> signif(2) |> knitr::kable()
+
+# corr_mat |> signif(2) |> knitr::kable()
+```
+
+We observe greater loadings for more strongly correlated variables. $family$, for example, has a correlation of $0.890$ and a loading of $0.434$ and $dist\_rd$ has a correlation of $0.016$ and a loading value of $0.008$.
+
+\newpage
+
+## Question 7
+
+```{r}
+pca <- prcomp(new_dat, scale. = TRUE)
+#png("biplot.png", width = 800, height = 600)
+#biplot(pca)
+#dev.off()
+```
+
+::: {#fig-biplot}
+![](_figure/biplot.png)
+
+Scatterplots of family, distance and cattle variables before and after outliers are removed.
+:::
+
+As shown in the plot, there is strong correlation between family, cotton, bulls and goats as their vectors are close together. They are approximately uncorrelated to dist_rd because their vectors are almost orthogonal. We also observe correlation between cattle and maize, and sorg and millet. Sorg and millet are approximately uncorrelated with cattle and maize as their vectors are approximately orthogonal as well.
+
+Observations 54, 55 and 43 have approximately above average values for goats, cotton and bulls respectively. The large cluster of observations close to the center, have similar scores on component 1 and component 2. Which means that a lot of observations are similar with respect to component 1 and component 2, and that the variation in the data comes from a small subset of observations.
