@@ -1,0 +1,218 @@
+---
+title: "Canonical Correlation Analysis — Summary Sheet"
+format: pdf
+editor: visual
+---
+
+## What is CCA?
+
+We have two groups of variables, $\mathbf{X}^{(1)}$ ($p \times 1$) and $\mathbf{X}^{(2)}$ ($q \times 1$). CCA finds linear combinations of each group --- called **canonical variates** --- that are maximally correlated with each other.
+
+$$U_k = \mathbf{a}_k' \mathbf{X}^{(1)}, \qquad V_k = \mathbf{b}_k' \mathbf{X}^{(2)}$$
+
+The pairs $(U_k, V_k)$ are found sequentially, each uncorrelated with all previous pairs. The correlation between $U_k$ and $V_k$ is the $k$-th **canonical correlation** $\rho_k^*$.
+
+The maximum number of pairs is $\min(p, q)$, but in practice we only retain pairs with a meaningfully large $\rho_k^*$.
+
+------------------------------------------------------------------------
+
+## Partitioning the Covariance Matrix
+
+The full covariance matrix is partitioned according to the two groups:
+
+$$\boldsymbol{\Sigma} = \begin{pmatrix} \boldsymbol{\Sigma}_{11} & \boldsymbol{\Sigma}_{12} \\ \boldsymbol{\Sigma}_{21} & \boldsymbol{\Sigma}_{22} \end{pmatrix}$$
+
+where $\boldsymbol{\Sigma}_{11}$ is the within-group covariance of $\mathbf{X}^{(1)}$, $\boldsymbol{\Sigma}_{22}$ is for $\mathbf{X}^{(2)}$, and $\boldsymbol{\Sigma}_{12} = \boldsymbol{\Sigma}_{21}'$ captures between-group covariances. If working with standardised variables, $\boldsymbol{\Sigma}$ is replaced by the correlation matrix $\boldsymbol{\rho}$.
+
+For $U = \mathbf{a}'\mathbf{X}^{(1)}$ and $V = \mathbf{b}'\mathbf{X}^{(2)}$:
+
+$$\text{Var}(U) = \mathbf{a}'\boldsymbol{\Sigma}_{11}\mathbf{a}, \qquad \text{Var}(V) = \mathbf{b}'\boldsymbol{\Sigma}_{22}\mathbf{b}, \qquad \text{Cov}(U,V) = \mathbf{a}'\boldsymbol{\Sigma}_{12}\mathbf{b}$$
+
+We maximise:
+
+$$\text{Corr}(U, V) = \frac{\mathbf{a}'\boldsymbol{\Sigma}_{12}\mathbf{b}}{\sqrt{\mathbf{a}'\boldsymbol{\Sigma}_{11}\mathbf{a} \cdot \mathbf{b}'\boldsymbol{\Sigma}_{22}\mathbf{b}}}$$
+
+------------------------------------------------------------------------
+
+## The Key Matrix R and Why $\boldsymbol{\Sigma}_{11}^{-1/2}$ Appears
+
+To solve the maximisation problem we make the substitution $\mathbf{a}^* = \boldsymbol{\Sigma}_{11}^{1/2}\mathbf{a}$, so $\mathbf{a} = \boldsymbol{\Sigma}_{11}^{-1/2}\mathbf{a}^*$. This turns the unit variance constraint $\mathbf{a}'\boldsymbol{\Sigma}_{11}\mathbf{a} = 1$ into the simpler $\mathbf{a}^{*'}\mathbf{a}^* = 1$. The problem then reduces to a standard eigenvalue problem in $\mathbf{a}^*$, with solution given by the eigenvectors of:
+
+$$\mathbf{R} = \boldsymbol{\Sigma}_{11}^{-1/2} \boldsymbol{\Sigma}_{12} \boldsymbol{\Sigma}_{22}^{-1} \boldsymbol{\Sigma}_{21} \boldsymbol{\Sigma}_{11}^{-1/2}$$
+
+To get back the canonical coefficients in the original variable space we undo the substitution:
+
+$$\mathbf{a}_k = \boldsymbol{\Sigma}_{11}^{-1/2} \mathbf{e}_k$$
+
+where $\mathbf{e}_k$ is the $k$-th eigenvector of $\mathbf{R}$. So the $\boldsymbol{\Sigma}_{11}^{-1/2}$ rescales the eigenvector back into the original variable space, accounting for the variance structure of $\mathbf{X}^{(1)}$.
+
+The squared canonical correlations $\rho_1^{*2} \geq \rho_2^{*2} \geq \cdots$ are the eigenvalues of $\mathbf{R}$.
+
+------------------------------------------------------------------------
+
+## Properties of Canonical Variates
+
+$$\text{Var}(U_k) = \text{Var}(V_k) = 1$$
+
+$$\text{Cov}(U_k, U_l) = \text{Cov}(V_k, V_l) = 0 \quad (k \neq l)$$
+
+$$\text{Cov}(U_k, V_l) = 0 \quad (k \neq l)$$
+
+$$\text{Corr}(U_k, V_k) = \rho_k^* \quad \text{(this is what we maximise)}$$
+
+So within each group, different canonical variates are uncorrelated. Across groups, only matched pairs $(U_k, V_k)$ are correlated.
+
+------------------------------------------------------------------------
+
+## Canonical Loadings and Cross-Loadings
+
+The **canonical coefficients** $\mathbf{a}_k$ and $\mathbf{b}_k$ are the weights on the original variables and should be avoided for interpretation due to multicollinearity.
+
+Instead, use:
+
+**Canonical loadings** --- correlation between each original variable and its own group's canonical variate:
+
+$$\text{Corr}(X_j^{(1)}, U_k), \qquad \text{Corr}(X_j^{(2)}, V_k)$$
+
+These tell you how much information $U_k$ (or $V_k$) captures about each original variable.
+
+**Cross-loadings** --- correlation between original variables and the *other* group's canonical variate:
+
+$$\text{Corr}(X_j^{(1)}, V_k), \qquad \text{Corr}(X_j^{(2)}, U_k)$$
+
+These exist because $U_k$ and $V_k$ are maximally correlated, so information from one group bleeds into the other's variate. The stronger $\rho_k^*$, the more informative the cross-loadings.
+
+**Signs matter** --- a positive loading means as the canonical variate increases, so does the original variable; negative means the opposite. If $U_1$ has positive loadings on $X_1^{(1)}$ and $X_2^{(1)}$ but negative cross-loadings on $X_1^{(2)}$ and $X_2^{(2)}$, this tells you the two groups move in opposite directions.
+
+------------------------------------------------------------------------
+
+## R Code: CCA from First Principles (Correlation Matrix)
+
+```{r}
+# Example correlation matrix (p = q = 2)
+rho <- matrix(c(1.0, 0.4, 0.5, 0.6,
+                0.4, 1.0, 0.3, 0.4,
+                0.5, 0.3, 1.0, 0.2,
+                0.6, 0.4, 0.2, 1.0), 4, 4, byrow = TRUE)
+
+# Step 1: Partition
+p <- 2; q <- 2
+rho11 <- rho[1:p, 1:p]
+rho12 <- rho[1:p, (p+1):(p+q)]
+rho21 <- rho[(p+1):(p+q), 1:p]
+rho22 <- rho[(p+1):(p+q), (p+1):(p+q)]
+
+# Step 2: Compute rho11^{-1/2} via eigendecomposition
+# We need the matrix square root of rho11^{-1}
+# Achieved by: V %*% diag(sqrt(eigenvalues)) %*% V^{-1}
+rho11inv <- solve(rho11)
+eig11    <- eigen(rho11inv)
+rho11inv.sqrt <- eig11$vectors %*% 
+                 diag(sqrt(eig11$values)) %*% 
+                 solve(eig11$vectors)
+
+# Step 3: Compute rho22^{-1}
+rho22inv <- solve(rho22)
+
+# Step 4: Form R and obtain eigendecomposition
+R     <- rho11inv.sqrt %*% rho12 %*% rho22inv %*% rho21 %*% rho11inv.sqrt
+R_eig <- eigen(R)
+
+# Step 5: Canonical correlations (square root of eigenvalues)
+rho_star <- sqrt(R_eig$values)
+rho_star
+```
+
+```{r}
+# Step 6: Canonical coefficients for U (a_k = rho11^{-1/2} e_k)
+# Sign flip optional — just for alignment with cc() output
+A <- -1 * rho11inv.sqrt %*% R_eig$vectors
+A  # columns are a_1, a_2, ...
+```
+
+```{r}
+# Step 7: Unstandardised canonical coefficients for V
+# b_k is proportional to rho22^{-1} rho21 a_k
+B_p <- rho22inv %*% rho21 %*% A
+
+# Step 8: Standardise B so that Var(V_k) = b_k' rho22 b_k = 1
+# We need to divide each column of B_p by sqrt(b_k' rho22 b_k)
+# This ensures the canonical variates V_k have unit variance
+brhob <- sqrt(diag(t(B_p) %*% rho22 %*% B_p))
+B <- B_p / matrix(brhob, nrow = nrow(B_p), ncol = ncol(B_p), byrow = TRUE)
+B  # columns are b_1, b_2, ...
+```
+
+The standardisation in Step 8 is necessary because $\mathbf{b}_k \propto \boldsymbol{\rho}_{22}^{-1}\boldsymbol{\rho}_{21}\mathbf{a}_k$ only guarantees the correct direction, not unit variance. We scale each column by $1/\sqrt{\mathbf{b}_k'\boldsymbol{\rho}_{22}\mathbf{b}_k}$ so that $\text{Var}(V_k) = \mathbf{b}_k'\boldsymbol{\rho}_{22}\mathbf{b}_k = 1$.
+
+```{r}
+# Step 9: Canonical loadings
+# Corr(X^(1), U_k) = A %*% rho11
+loadings_U <- t(A) %*% rho11
+loadings_U
+
+# Corr(X^(2), V_k) = B %*% rho22
+loadings_V <- t(B) %*% rho22
+loadings_V
+```
+
+```{r}
+# Step 10: Cross-loadings
+# Corr(X^(1), V_k) = A %*% rho12
+cross_UV <- t(A) %*% rho12
+cross_UV
+
+# Corr(X^(2), U_k) = B %*% rho21
+cross_VU <- t(B) %*% rho21
+cross_VU
+```
+
+------------------------------------------------------------------------
+
+## R Code: CCA Using the `CCA` Package
+
+```{r}
+#| eval: false
+library(CCA)
+
+# cc() takes the raw data matrices for each group
+cc1 <- cc(X1, X2)
+
+# Canonical correlations
+cc1$cor
+
+# Raw canonical coefficients
+cc1$xcoef  # a_k coefficients
+cc1$ycoef  # b_k coefficients
+
+# Standardised coefficients (multiply by diagonal of SDs)
+s1 <- diag(sqrt(diag(cov(X1))))
+s2 <- diag(sqrt(diag(cov(X2))))
+s1 %*% cc1$xcoef
+s2 %*% cc1$ycoef
+
+# Canonical variate scores for each observation
+cc1$scores$xscores  # U_k scores
+cc1$scores$yscores  # V_k scores
+
+# Canonical loadings
+cc1$scores$corr.X.xscores  # Corr(X^(1), U_k)
+cc1$scores$corr.Y.yscores  # Corr(X^(2), V_k)
+
+# Cross-loadings
+cc1$scores$corr.X.yscores  # Corr(X^(1), V_k)
+cc1$scores$corr.Y.xscores  # Corr(X^(2), U_k)
+```
+
+------------------------------------------------------------------------
+
+## Interpretation Summary
+
+| Quantity                       | What it tells you                                                                     |
+|--------------------------------|---------------------------------------------------------------------------------------|
+| $\rho_k^*$                     | How correlated the $k$-th pair of canonical variates are                              |
+| $\mathbf{a}_k$, $\mathbf{b}_k$ | Weights forming $U_k$ and $V_k$ --- avoid for interpretation due to multicollinearity |
+| $\text{Corr}(X_j^{(1)}, U_k)$  | How much information $U_k$ captures about $X_j^{(1)}$                                 |
+| $\text{Corr}(X_j^{(2)}, V_k)$  | How much information $V_k$ captures about $X_j^{(2)}$                                 |
+| $\text{Corr}(X_j^{(1)}, V_k)$  | Cross-loading: how much $X_j^{(1)}$ bleeds into $V_k$ via the canonical correlation   |
+| Sign of loading                | Positive = move together; Negative = move in opposite directions                      |

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STA2005S — Section A Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML"></script>
+<style>
+:root {
+  --bg:#0F0F0E; --surface:#181816; --card:#1E1E1B; --border:#2A2A26; --border-bright:#3A3A35;
+  --text:#E8E4DC; --muted:#7A7668; --dim:#4A4840;
+  --yellow:#F0C060; --yellow-dim:#3A2E10; --yellow-border:#5A4A18;
+  --teal:#5FC8A0; --teal-dim:#0C2E22; --teal-border:#1A5040;
+  --coral:#E87060; --coral-dim:#2E1410; --coral-border:#5A2820;
+  --blue:#60A8E0; --blue-dim:#0C1E38; --blue-border:#183060;
+  --purple:#A080E0; --purple-dim:#1E1238; --purple-border:#3A2060;
+  --green:#80C060; --green-dim:#142010; --green-border:#285020;
+  --red:#E06060; --red-dim:#2E1010; --red-border:#5A1818;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-weight:300;font-size:14px;line-height:1.65;}
+.header{padding:2.5rem 2rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.course-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;}
+.header h1{font-family:'IBM Plex Serif',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:400;font-style:italic;color:var(--text);line-height:1.2;}
+.header-badges{display:flex;gap:8px;flex-wrap:wrap;}
+.hbadge{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid;}
+.hbadge.gold{background:var(--yellow-dim);border-color:var(--yellow-border);color:var(--yellow);}
+.hbadge.info{background:var(--teal-dim);border-color:var(--teal-border);color:var(--teal);}
+.nav{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:12px 16px;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;letter-spacing:.03em;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+.main{max-width:920px;margin:0 auto;padding:2rem 2rem 5rem;}
+.section{display:none;}
+.section.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.ch-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;margin-top:.25rem;}
+.stefan-quote{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:6px;padding:12px 15px;margin-bottom:1.25rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:rgba(232,228,220,.7);line-height:1.65;}
+.stefan-quote .ql{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--yellow);margin-bottom:5px;display:block;opacity:.8;}
+.topic{margin-bottom:1.25rem;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.topic-header{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;background:var(--card);border-bottom:1px solid var(--border);gap:12px;}
+.topic-header:hover{background:var(--surface);}
+.topic-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--text);display:flex;align-items:center;gap:10px;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-yellow{background:var(--yellow);} .dot-teal{background:var(--teal);} .dot-coral{background:var(--coral);}
+.dot-purple{background:var(--purple);} .dot-blue{background:var(--blue);} .dot-green{background:var(--green);}
+.dot-red{background:var(--red);}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.tag-proof{background:var(--purple-dim);border:1px solid var(--purple-border);color:var(--purple);}
+.tag-nb{background:var(--coral-dim);border:1px solid var(--coral-border);color:var(--coral);}
+.tag-given{background:var(--green-dim);border:1px solid var(--green-border);color:var(--green);}
+.tag-skip{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+.tag-q1{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);}
+.chevron{color:var(--dim);font-size:12px;transition:transform .2s;flex-shrink:0;}
+.topic.open .chevron{transform:rotate(180deg);}
+.topic-body{display:none;}
+.topic.open .topic-body{display:block;}
+.block{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13.5px;line-height:1.72;}
+.block:last-child{border-bottom:none;}
+.block.formula{background:var(--surface);}
+.block.note{background:var(--yellow-dim);border-left:3px solid var(--yellow);border-bottom-color:var(--yellow-border);color:#C8A040;}
+.block.key{background:var(--teal-dim);border-left:3px solid var(--teal);border-bottom-color:var(--teal-border);color:#40A880;}
+.block.proof-block{background:var(--purple-dim);border-left:3px solid var(--purple);border-bottom-color:var(--purple-border);}
+.block.skip-block{background:var(--surface);border-left:3px solid var(--dim);border-bottom-color:var(--border);color:var(--muted);opacity:.75;}
+.block.danger{background:var(--red-dim);border-left:3px solid var(--red);border-bottom-color:var(--red-border);color:#C04040;}
+.block-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;opacity:.6;margin-bottom:7px;display:block;}
+ul.bullets{padding-left:1.2rem;}
+ul.bullets li{margin-bottom:5px;}
+ul.bullets li::marker{color:var(--muted);}
+ol.steps{padding-left:1.4rem;}
+ol.steps li{margin-bottom:7px;}
+ol.steps li::marker{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--purple);font-weight:500;}
+strong{font-weight:500;color:var(--text);}
+em{font-style:italic;color:var(--muted);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.two-col>div{padding:13px 16px;border-bottom:1px solid var(--border);}
+.two-col>div:nth-child(odd){border-right:1px solid var(--border);}
+.col-head{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block;}
+.MathJax{font-size:1em !important;}
+@media(max-width:620px){.two-col{grid-template-columns:1fr;}.two-col>div:nth-child(odd){border-right:none;}.header{padding:1.5rem 1rem;}.main{padding:1.5rem 1rem 4rem;}.nav{padding:0 .75rem;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="course-tag">STA2005S &nbsp;·&nbsp; Section A &nbsp;·&nbsp; Theory Cheat Sheet &nbsp;·&nbsp; From audio briefing 06 Jun 2026</div>
+    <h1>Multivariate Analysis — Theory</h1>
+  </div>
+  <div class="header-badges">
+    <div class="hbadge gold">50 marks · 3 hours</div>
+    <div class="hbadge info">No R · No numbers in first 40</div>
+  </div>
+</div>
+<nav class="nav">
+  <button class="nav-btn active" onclick="show('ch1',this)">Ch 1</button>
+  <button class="nav-btn" onclick="show('ch2',this)">Ch 2</button>
+  <button class="nav-btn" onclick="show('ch3',this)">Ch 3 · MVN</button>
+  <button class="nav-btn" onclick="show('ch4',this)">Ch 4 · MLE</button>
+  <button class="nav-btn" onclick="show('ch5',this)">Ch 5 · Inference</button>
+  <button class="nav-btn" onclick="show('app',this)">Appendix</button>
+</nav>
+<div class="main">
+
+<!-- CH 1 -->
+<div id="ch1" class="section active">
+  <div class="ch-label">Chapter 1 &nbsp;·&nbsp; Concepts used throughout — not tested directly per se</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"If you don't understand sample mean vector, it's not going to be tested directly, but at some point it's going to trip you up."</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-yellow"></div>Sample covariance matrix (page 4)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">Two equivalent forms</span>
+        \[(n-1)\mathbf{S} = \mathbf{X}'\mathbf{X} - n\bar{\mathbf{x}}\bar{\mathbf{x}}' = \mathbf{X}'\!\left(\mathbf{I}_n - \tfrac{1}{n}\mathbf{1}\mathbf{1}'\right)\!\mathbf{X}\]
+      </div>
+      <div class="block key">
+        <span class="block-label">Population moments</span>
+        \(E(\bar{\mathbf{X}}) = \boldsymbol{\mu}\qquad\text{Cov}(\bar{\mathbf{X}}) = \tfrac{1}{n}\boldsymbol{\Sigma}\qquad E(\mathbf{S}) = \boldsymbol{\Sigma}\;\text{(unbiased)}\)
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-yellow"></div>Deviation vectors — page 9, point 3 most salient</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block">
+        \(\mathbf{d}_i = \mathbf{x}_i - \bar{x}_i\mathbf{1}\). Three results:
+        <ul class="bullets" style="margin-top:8px">
+          <li>Projection of \(\mathbf{x}_i\) onto \(\mathbf{1}\): \(\bar{x}_i\mathbf{1}\), length \(\sqrt{n}|\bar{x}_i|\).</li>
+          <li>\(\|\mathbf{d}_i\|^2 = (n-1)s_{ii}\) &ensp;and&ensp; \(\mathbf{d}_i'\mathbf{d}_k = (n-1)s_{ik}\)</li>
+          <li><strong>Point 3 (most salient):</strong> \(r_{ik} = \cos(\theta_{ik}) = \dfrac{\mathbf{d}_i'\mathbf{d}_k}{\|\mathbf{d}_i\|\|\mathbf{d}_k\|}\)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-yellow"></div>Linear combinations</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        \[E(\mathbf{b}'\mathbf{X})=\mathbf{b}'\boldsymbol{\mu},\quad\text{Var}(\mathbf{b}'\mathbf{X})=\mathbf{b}'\boldsymbol{\Sigma}\mathbf{b},\quad\text{Cov}(\mathbf{b}'\mathbf{X},\mathbf{c}'\mathbf{X})=\mathbf{b}'\boldsymbol{\Sigma}\mathbf{c}\]
+        \[E(\mathbf{A}\mathbf{X})=\mathbf{A}\boldsymbol{\mu},\qquad\text{Cov}(\mathbf{A}\mathbf{X})=\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}'\]
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CH 2 -->
+<div id="ch2" class="section">
+  <div class="ch-label">Chapter 2 &nbsp;·&nbsp; Only §2.3 highlighted — no eigenvalue calculation required</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"You will definitely NOT be expected to calculate eigenvalues and eigenvectors." ... "2.3, basically the only thing I'm highlighting." ... "Sometimes rote learning is preferable — it is preferable."</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-teal"></div>Three decompositions — conceptual knowledge</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">Eigendecomposition (symmetric PD)</span>
+        \[\mathbf{A}=\mathbf{U}\mathbf{D}\mathbf{U}'\quad(\mathbf{U}\text{ orthogonal})\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">Spectral decomposition</span>
+        \[\mathbf{A}=\sum_{i=1}^k\lambda_i\mathbf{e}_i\mathbf{e}_i'\qquad\mathbf{A}^{-1}=\sum\tfrac{1}{\lambda_i}\mathbf{e}_i\mathbf{e}_i'\qquad\mathbf{A}^{1/2}=\sum\sqrt{\lambda_i}\mathbf{e}_i\mathbf{e}_i'\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">SVD</span>
+        \[\mathbf{A}_{m\times k}=\mathbf{U}\boldsymbol{\Lambda}\mathbf{V}'=\sum_{i=1}^r\sqrt{\lambda_i}\,\mathbf{u}_i\mathbf{v}_i'\]
+        \(\mathbf{U}\): eigenvectors of \(\mathbf{A}\mathbf{A}'\);&ensp;\(\mathbf{V}\): eigenvectors of \(\mathbf{A}'\mathbf{A}\);&ensp;non-zero eigenvalues equal.
+      </div>
+      <div class="block skip-block">
+        <span class="block-label">Skip</span>
+        Hand-computing eigenvalues/eigenvectors. Not the point of this course.
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-teal"></div>§2.3 — Rank-\(s\) SVD is the best low-rank approximation</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof — must know</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block">
+        <span class="block-label">Claim</span>
+        \(\mathbf{B}=\sum_{i=1}^s\sqrt{\lambda_i}\mathbf{u}_i\mathbf{v}_i'\) minimises \(\text{tr}[(\mathbf{A}-\mathbf{B})(\mathbf{A}-\mathbf{B})']\) over all rank-\(\leq s\) matrices.
+      </div>
+      <div class="block proof-block">
+        <span class="block-label">Proof</span>
+        <ol class="steps">
+          <li>Insert \(\mathbf{U}\mathbf{U}'=\mathbf{I}_m\) and \(\mathbf{V}\mathbf{V}'=\mathbf{I}_k\): \[\text{tr}[(\mathbf{A}-\mathbf{B})(\mathbf{A}-\mathbf{B})'] = \text{tr}[(\boldsymbol{\Lambda}-\mathbf{C})(\boldsymbol{\Lambda}-\mathbf{C})']\] where \(\mathbf{C}=\mathbf{U}'\mathbf{B}\mathbf{V}\).</li>
+          <li>Expand: \(\displaystyle\sum_{i,j}(\sqrt{\lambda_{ij}}-c_{ij})^2 = \underbrace{\sum_i(\sqrt{\lambda_i}-c_{ii})^2}_{\text{diagonal}} + \underbrace{\sum_{i\neq j}c_{ij}^2}_{\geq 0}\)</li>
+          <li>Minimised when: \(c_{ij}=0\;\forall i\neq j\) and \(c_{ii}=\sqrt{\lambda_i}\) for \(s\) largest, \(0\) for rest.</li>
+          <li>\(\therefore\;\mathbf{U}'\mathbf{B}\mathbf{V}=\boldsymbol{\Lambda}_s\;\Rightarrow\;\mathbf{B}=\sum_{i=1}^s\sqrt{\lambda_i}\mathbf{u}_i\mathbf{v}_i'\). \(\square\)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CH 3 -->
+<div id="ch3" class="section">
+  <div class="ch-label">Chapter 3 &nbsp;·&nbsp; MVN — most content examinable. PDF is Q1.</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"The first question in the exam, two marks, is: give the PDF of the multivariate Gaussian distribution. If you don't get two out of two for that one, I really sit there for a minute. That's a huge problem."</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-red"></div>MVN PDF — Question 1, 2 marks</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-q1">Q1 · 2 marks</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block danger">
+        <span class="block-label">Do not lose these marks</span>
+        \[f(\mathbf{x}) = (2\pi)^{-p/2}|\boldsymbol{\Sigma}|^{-1/2}\exp\!\left(-\tfrac{1}{2}(\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})\right),\quad\mathbf{x}\in\mathbb{R}^p\]
+        We write \(\mathbf{X}\sim N_p(\boldsymbol{\mu},\boldsymbol{\Sigma})\).
+      </div>
+      <div class="block">
+        Constant density contours: \((\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})=c^2\) — ellipsoids. Axes: eigenvectors of \(\boldsymbol{\Sigma}\), half-lengths \(c\sqrt{\lambda_i}\). Bivariate (\(\sigma_{11}=\sigma_{22}\)): \(\lambda_1=\sigma_{11}+\sigma_{12}\), \(\lambda_2=\sigma_{11}-\sigma_{12}\), major axis at 45°.
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-coral"></div>§3.3 — Generalised distance is \(\chi^2_p\) (exception from CA)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof</div><div class="tag tag-nb">NB</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        \[(\mathbf{X}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{X}-\boldsymbol{\mu})\sim\chi^2_p\]
+        \[\Pr\!\left[(\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})\leq\chi^2_p(\alpha)\right]=1-\alpha\]
+      </div>
+      <div class="block proof-block">
+        <span class="block-label">Proof — spectral decomposition (Stefan: he may ask for a specific method)</span>
+        <ol class="steps">
+          <li>Write \(\boldsymbol{\Sigma}=\mathbf{P}\boldsymbol{\Lambda}\mathbf{P}'\) (spectral decomp, \(\mathbf{P}\) orthogonal).</li>
+          <li>Let \(\mathbf{Y}=\boldsymbol{\Lambda}^{-1/2}\mathbf{P}'(\mathbf{X}-\boldsymbol{\mu})\). Then \(E(\mathbf{Y})=\mathbf{0}\) and \[\text{Cov}(\mathbf{Y})=\boldsymbol{\Lambda}^{-1/2}\mathbf{P}'\,\boldsymbol{\Sigma}\,\mathbf{P}\boldsymbol{\Lambda}^{-1/2}=\boldsymbol{\Lambda}^{-1/2}\boldsymbol{\Lambda}\boldsymbol{\Lambda}^{-1/2}=\mathbf{I}_p\] so \(\mathbf{Y}\sim N_p(\mathbf{0},\mathbf{I})\) — components i.i.d. \(N(0,1)\).</li>
+          <li>\(\mathbf{Y}'\mathbf{Y}=\sum_{i=1}^p Y_i^2\sim\chi^2_p\).</li>
+          <li>But \(\mathbf{Y}'\mathbf{Y}=(\mathbf{X}-\boldsymbol{\mu})'\mathbf{P}\boldsymbol{\Lambda}^{-1}\mathbf{P}'(\mathbf{X}-\boldsymbol{\mu})=(\mathbf{X}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{X}-\boldsymbol{\mu})\). \(\square\)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-coral"></div>Properties §3.4.1–3.4.3 — used throughout</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block">
+        <span class="block-label">Linear combinations are normal</span>
+        \(\mathbf{a}'\mathbf{X}\sim N(\mathbf{a}'\boldsymbol{\mu},\,\mathbf{a}'\boldsymbol{\Sigma}\mathbf{a})\) for any \(\mathbf{a}\). And \(\mathbf{A}\mathbf{X}\sim N_q(\mathbf{A}\boldsymbol{\mu},\,\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}')\).
+      </div>
+      <div class="block">
+        <span class="block-label">Subsets are MVN</span>
+        Partition \(\mathbf{X}=(\mathbf{X}_1',\mathbf{X}_2')'\). Then \(\mathbf{X}_1\sim N_q(\boldsymbol{\mu}_1,\boldsymbol{\Sigma}_{11})\).
+      </div>
+      <div class="block">
+        <span class="block-label">Zero covariance \(\Leftrightarrow\) independence (MVN only)</span>
+        \[\boldsymbol{\Sigma}_{12}=\mathbf{0}\;\Longleftrightarrow\;\mathbf{X}_1\perp\!\!\!\perp\mathbf{X}_2\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-coral"></div>§3.4.4 — Conditional distribution</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof — matrix A given</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">Result</span>
+        \[\mathbf{X}_1|\mathbf{X}_2=\mathbf{x}_2\sim N_q\!\left(\boldsymbol{\mu}_1+\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}(\mathbf{x}_2-\boldsymbol{\mu}_2),\;\boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}\right)\]
+        Bivariate: \(X_1|X_2\sim N\!\left(\mu_1+\dfrac{\sigma_{12}}{\sigma_{22}}(x_2-\mu_2),\;\sigma_{11}-\dfrac{\sigma_{12}^2}{\sigma_{22}}\right)\)
+      </div>
+      <div class="block proof-block">
+        <span class="block-label">Proof — Stefan: "I would always tell you: using A defined as such, derive the distribution."</span>
+        <ol class="steps">
+          <li>Define \(\mathbf{A}=\begin{pmatrix}\mathbf{I}_q & -\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\\ \mathbf{0} & \mathbf{I}_{p-q}\end{pmatrix}\) (will be given in exam).</li>
+          <li>Apply Result 2: \(\mathbf{A}(\mathbf{X}-\boldsymbol{\mu})\sim N_p(\mathbf{0},\,\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}')\).</li>
+          <li>Compute: \(\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}'=\begin{pmatrix}\boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}&\mathbf{0}\\\mathbf{0}&\boldsymbol{\Sigma}_{22}\end{pmatrix}\). Off-diagonal \(\mathbf{0}\).</li>
+          <li>By Property 3: zero cov in MVN \(\Rightarrow\) independence. So \(\mathbf{X}_1-\boldsymbol{\mu}_1-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}(\mathbf{X}_2-\boldsymbol{\mu}_2)\perp\!\!\!\perp(\mathbf{X}_2-\boldsymbol{\mu}_2)\).</li>
+          <li>Condition on \(\mathbf{X}_2=\mathbf{x}_2\): conditioning value is a constant, preserves normality. \(\square\)</li>
+        </ol>
+      </div>
+      <div class="block note">
+        Conditional covariance \(\boldsymbol{\Sigma}_{11.2}=\boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}\) does not depend on \(\mathbf{x}_2\).
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-coral"></div>§3.5 — Linear combinations of random vectors (NB)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-nb">NB</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        If \(\mathbf{X}_1,\ldots,\mathbf{X}_n\) independent, each \(\sim N_p(\boldsymbol{\mu}_j,\boldsymbol{\Sigma})\):
+        \[\sum_{j=1}^n c_j\mathbf{X}_j\sim N_p\!\left(\sum c_j\boldsymbol{\mu}_j,\;\left(\sum c_j^2\right)\boldsymbol{\Sigma}\right)\]
+      </div>
+      <div class="block">
+        \(\mathbf{V}_1=\sum c_j\mathbf{X}_j\) and \(\mathbf{V}_2=\sum b_j\mathbf{X}_j\) are independent \(\iff\mathbf{b}'\mathbf{c}=\sum b_jc_j=0\). Look at Exercise 3.6.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CH 4 -->
+<div id="ch4" class="section">
+  <div class="ch-label">Chapter 4 &nbsp;·&nbsp; MLE — Theorems A.1–A.4 given in exam. Skip pages 37–38 after MLE result.</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"Will the appendix theorems be given? Yes yes yes yes yes yes yes yes yes yes — no. [The no = showing it's a maximum, not a saddle point.] After getting the MLE of sigma, the rest of page 37 — skip. Page 38 up to where we finish saying it's a maximum — skip."</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-blue"></div>Likelihood setup — the summation identity</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">Key identity (used again in Ch 5)</span>
+        \[\sum_{j=1}^n(\mathbf{x}_j-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}_j-\boldsymbol{\mu}) = \text{tr}[\boldsymbol{\Sigma}^{-1}\mathbf{A}]+n(\bar{\mathbf{x}}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})\]
+        where \(\mathbf{A}=(n-1)\mathbf{S}=\sum(\mathbf{x}_i-\bar{\mathbf{x}})(\mathbf{x}_i-\bar{\mathbf{x}})'\). Uses \(\mathbf{a}'\mathbf{B}\mathbf{a}=\text{tr}(\mathbf{B}\mathbf{a}\mathbf{a}')\) and cross-product terms vanish.
+      </div>
+      <div class="block formula">
+        <span class="block-label">Log-likelihood</span>
+        \[\ell(\boldsymbol{\mu},\boldsymbol{\Sigma})=-\tfrac{np}{2}\log(2\pi)-\tfrac{n}{2}\log|\boldsymbol{\Sigma}|-\tfrac{1}{2}\text{tr}[\boldsymbol{\Sigma}^{-1}\mathbf{A}]-\tfrac{n}{2}(\bar{\mathbf{x}}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-blue"></div>MLEs — derivation (theorems given)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof</div><div class="tag tag-given">A.1–A.3 given</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block proof-block">
+        <span class="block-label">MLE of \(\boldsymbol{\mu}\) — using Theorem A.1</span>
+        \[\frac{\partial\ell}{\partial\boldsymbol{\mu}}=n\boldsymbol{\Sigma}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})=\mathbf{0}\implies\boxed{\hat{\boldsymbol{\mu}}=\bar{\mathbf{x}}}\]
+        Second derivative \(-n\boldsymbol{\Sigma}^{-1}\) is negative definite \(\Rightarrow\) maximum.
+      </div>
+      <div class="block proof-block">
+        <span class="block-label">MLE of \(\boldsymbol{\Sigma}\) — using Theorems A.2, A.3; rewrite \(-\tfrac{n}{2}\log|\boldsymbol{\Sigma}|=+\tfrac{n}{2}\log|\boldsymbol{\Sigma}^{-1}|\)</span>
+        \[\frac{\partial\ell}{\partial\boldsymbol{\Sigma}^{-1}}=\frac{n}{2}\hat{\boldsymbol{\Sigma}}-\frac{1}{2}\mathbf{A}'=\mathbf{0}\implies\boxed{\hat{\boldsymbol{\Sigma}}=\frac{1}{n}\mathbf{A}=\frac{n-1}{n}\mathbf{S}}\]
+      </div>
+      <div class="block skip-block">
+        <span class="block-label">Skip — Stefan explicit</span>
+        Everything from "to show this is indeed a maximum" (rest of page 37, all of page 38). The reparametrisation \(\Delta=\mathbf{A}\boldsymbol{\Sigma}^{-1}\) and eigenvalue argument \(\lambda_i=n\). NOT required.
+      </div>
+      <div class="block danger">
+        <span class="block-label">NB — Bias of MLE</span>
+        \(E(\hat{\boldsymbol{\Sigma}})=\dfrac{n-1}{n}\boldsymbol{\Sigma}\neq\boldsymbol{\Sigma}\). Biased. Unbiased estimator: \(\mathbf{S}\) with denominator \(n-1\).
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-blue"></div>Maximised likelihood — needed for Ch 5 LRT</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-nb">NB for Ch 5</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        Substituting \(\hat{\boldsymbol{\mu}}=\bar{\mathbf{x}}\) and \(\hat{\boldsymbol{\Sigma}}=\frac{1}{n}\mathbf{A}\) into the likelihood:
+        \[L(\hat{\boldsymbol{\mu}},\hat{\boldsymbol{\Sigma}})=(2\pi)^{-np/2}\left(\tfrac{1}{n}\right)^{n/2}|\mathbf{A}|^{-n/2}e^{-np/2}\]
+        This is the denominator of the LRT statistic \(\Lambda\) in §5.3.
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-blue"></div>Sampling distributions and Wishart basics</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        \[\bar{\mathbf{X}}\sim N_p\!\left(\boldsymbol{\mu},\tfrac{1}{n}\boldsymbol{\Sigma}\right)\qquad(n-1)\mathbf{S}\sim W_p(n-1,\boldsymbol{\Sigma})\qquad\bar{\mathbf{X}}\perp\!\!\!\perp\mathbf{S}\]
+      </div>
+      <div class="block">
+        <span class="block-label">Wishart key facts (not the minutiae)</span>
+        <ul class="bullets">
+          <li>\(W_1(n,\sigma^2)=\sigma^2\chi^2_n\) — direct generalisation</li>
+          <li>For non-zero \(\mathbf{c}\): \(\frac{\mathbf{c}'\mathbf{A}\mathbf{c}}{\mathbf{c}'\boldsymbol{\Sigma}\mathbf{c}}\sim\chi^2_n\)</li>
+          <li>\(E(\mathbf{A})=n\boldsymbol{\Sigma}\)</li>
+        </ul>
+      </div>
+      <div class="block formula">
+        <span class="block-label">Large-sample (no normality required)</span>
+        \[n(\bar{\mathbf{X}}-\boldsymbol{\mu})'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu})\;\dot{\sim}\;\chi^2_p\]
+      </div>
+      <div class="block skip-block">
+        <span class="block-label">Skip — §4.4 testing normality</span>
+        Stefan: "Tested in assessments already. I consider that done." QQ-plots, chi-square plots — not in this exam.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CH 5 -->
+<div id="ch5" class="section">
+  <div class="ch-label">Chapter 5 &nbsp;·&nbsp; Inference — §5.2 and §5.3 fully examinable including proofs</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"5.2 — yes yes yes yes yes yes." ... "5.3 — you must be able to reproduce exactly what we did here." ... "[The two-determinants form at bottom of p.51] — yes, that also."</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-purple"></div>§5.2 — Hotelling's \(T^2\), everything</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-nb">NB · yes×6</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">Definition and distribution</span>
+        \[T^2=n(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)\sim\frac{(n-1)p}{n-p}F_{p,\,n-p}\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">Rejection rule</span>
+        Reject \(H_0:\boldsymbol{\mu}=\boldsymbol{\mu}_0\) when \(\dfrac{n-p}{(n-1)p}T^2>F_{p,n-p}(\alpha)\)
+      </div>
+      <div class="block">
+        <span class="block-label">Structural form (why \(F\)-distributed)</span>
+        \(T^2 = \underbrace{[\sqrt{n}(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)]'}_{\sim N_p(\mathbf{0},\boldsymbol{\Sigma})}\underbrace{\left[\tfrac{\mathbf{A}}{n-1}\right]^{-1}}_{\text{Wishart}/df}\underbrace{[\sqrt{n}(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)]}_{\sim N_p(\mathbf{0},\boldsymbol{\Sigma})}\)
+        Independence of \(\bar{\mathbf{X}}\) and \(\mathbf{S}\) \(\Rightarrow\) \(F\)-distribution.
+      </div>
+      <div class="block note">
+        <span class="block-label">Invariance</span>
+        Under \(\mathbf{Y}=\mathbf{C}\mathbf{X}+\mathbf{d}\) (non-singular \(\mathbf{C}\)): \(T^2_Y=T^2_X\). Proof: substitute \(\bar{\mathbf{Y}}=\mathbf{C}\bar{\mathbf{X}}+\mathbf{d}\) and \(\mathbf{S}_Y=\mathbf{C}\mathbf{S}_X\mathbf{C}'\) — the \(\mathbf{C}\)'s cancel.
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-purple"></div>§5.3 — LRT: full derivation + Wilks' \(\Lambda\)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof — reproduce exactly</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block">
+        <span class="block-label">LRT setup</span>
+        \(\Lambda=\max_{\Theta_0}L\,/\,\max_\Theta L\). Reject \(H_0\) when \(\Lambda\) is too small.
+        Unrestricted maximum: from Ch 4 result (know it).
+      </div>
+      <div class="block proof-block">
+        <span class="block-label">Restricted MLE \(\hat{\boldsymbol{\Sigma}}_0\) under \(H_0:\boldsymbol{\mu}=\boldsymbol{\mu}_0\)</span>
+        Same derivation as Ch 4 but \(\boldsymbol{\mu}=\boldsymbol{\mu}_0\) fixed, so \(\mathbf{A}\) is replaced by \(\sum(\mathbf{x}_j-\boldsymbol{\mu}_0)(\mathbf{x}_j-\boldsymbol{\mu}_0)'\):
+        \[\hat{\boldsymbol{\Sigma}}_0=\frac{1}{n}\left[\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'\right]\]
+        Show: \(\sum(\mathbf{x}_j-\boldsymbol{\mu}_0)'\hat{\boldsymbol{\Sigma}}_0^{-1}(\mathbf{x}_j-\boldsymbol{\mu}_0)=\text{tr}(n\hat{\boldsymbol{\Sigma}}_0\hat{\boldsymbol{\Sigma}}_0^{-1})=np\). Exponential terms cancel in ratio.
+      </div>
+      <div class="block formula">
+        <span class="block-label">Wilks' \(\Lambda\)</span>
+        \[\Lambda^{2/n}=\frac{|\hat{\boldsymbol{\Sigma}}|}{|\hat{\boldsymbol{\Sigma}}_0|}=\frac{|\mathbf{A}|}{|\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'|}\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-purple"></div>§5.3.1 — Link \(\Lambda\) to \(T^2\) using Theorem A.4</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-proof">proof</div><div class="tag tag-given">A.4 given</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block proof-block">
+        <span class="block-label">Proof — Stefan: "Use the matrix B and this relationship"</span>
+        <ol class="steps">
+          <li>Construct \(\mathbf{B}=\begin{pmatrix}\mathbf{A}&\sqrt{n}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)\\\sqrt{n}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'&-1\end{pmatrix}\).</li>
+          <li>Apply A.4 with \(B_{22}=-1\): \[\text{LHS}=|-1|\cdot|\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'|\]</li>
+          <li>Apply A.4 with \(B_{11}=\mathbf{A}\): \[\text{RHS}=|\mathbf{A}|\cdot\left|-1-n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'\mathbf{A}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)\right|\]</li>
+          <li>Note: \(n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'\mathbf{A}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)=n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'\frac{\mathbf{S}^{-1}}{n-1}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)=\frac{T^2}{n-1}\).</li>
+          <li>Equating: \(\dfrac{|\mathbf{A}|}{|\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'|}=\left(1+\dfrac{T^2}{n-1}\right)^{-1}\). \(\square\)</li>
+        </ol>
+        \[\therefore\quad\Lambda^{2/n}=\left(1+\frac{T^2}{n-1}\right)^{-1}\]
+      </div>
+      <div class="block danger">
+        <span class="block-label">Two-determinants form — bottom of page 51 — Stefan confirmed this is needed</span>
+        \[T^2=\frac{(n-1)\left|\displaystyle\sum_{j=1}^n(\mathbf{x}_j-\boldsymbol{\mu}_0)(\mathbf{x}_j-\boldsymbol{\mu}_0)'\right|}{\left|\displaystyle\sum_{j=1}^n(\mathbf{x}_j-\bar{\mathbf{x}})(\mathbf{x}_j-\bar{\mathbf{x}})'\right|}-(n-1)\]
+        Computes \(T^2\) as a ratio of two determinants — no matrix inverse needed.
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-purple"></div>§5.4 — Confidence region for \(\boldsymbol{\mu}\)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        \[\left\{\boldsymbol{\mu}:n(\bar{\mathbf{x}}-\boldsymbol{\mu})'\mathbf{S}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})\leq\frac{(n-1)p}{n-p}F_{p,n-p}(\alpha)\right\}\]
+      </div>
+      <div class="block">
+        Axes of ellipsoid: eigenvectors \(\mathbf{e}_i\) of \(\mathbf{S}\) (\(\mathbf{S}\mathbf{e}_i=\lambda_i\mathbf{e}_i\)). Half-lengths:
+        \[\pm\sqrt{\lambda_i}\sqrt{\frac{p(n-1)}{n(n-p)}F_{p,n-p}(\alpha)}\,\mathbf{e}_i\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-purple"></div>§5.6 — Bonferroni intervals</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        For \(p\) means at overall level \(\alpha\): \(\quad\bar{x}_i\pm t_{n-1}\!\left(\dfrac{\alpha}{2p}\right)\!\sqrt{\dfrac{s_{ii}}{n}}\)
+      </div>
+      <div class="block">
+        Bonferroni inequality: \(\Pr(\text{all }C_i\text{ true})\geq 1-\sum\alpha_i\). Individual \(t\)-intervals fail: \(\Pr(\text{all contain})\leq(1-\alpha)^p\ll 1-\alpha\). \(T^2\) simultaneous intervals are for all \(\mathbf{a}\) simultaneously — overly wide for just \(p\) means.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPENDIX -->
+<div id="app" class="section">
+  <div class="ch-label">Appendix — Theorems given in exam + trace identities + distribution table</div>
+  <div class="stefan-quote"><span class="ql">Stefan said</span>"Will the appendix theorems be given in the exam? Yes yes yes yes yes yes yes yes yes yes." They are given. Know how to use them — not memorise or prove.</div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-green"></div>Theorems A.1 – A.4 (given in exam)</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="tag tag-given">given</div><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        <span class="block-label">A.1 — quadratic form</span>
+        \[\frac{\partial(\mathbf{x}'\mathbf{A}\mathbf{x})}{\partial\mathbf{x}}=2\mathbf{A}\mathbf{x}\quad\text{(symmetric PD }A\text{)}\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">A.2 — log-determinant</span>
+        \[\frac{\partial\log|\mathbf{A}|}{\partial\mathbf{A}}=\left(\mathbf{A}^{-1}\right)'\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">A.3 — trace</span>
+        \[\frac{\partial\,\text{tr}(\mathbf{A}\mathbf{B})}{\partial\mathbf{B}}=\mathbf{A}'\]
+      </div>
+      <div class="block formula">
+        <span class="block-label">A.4 — block determinant (key for §5.3)</span>
+        \[|\mathbf{B}|=|\mathbf{B}_{22}||\mathbf{B}_{11}-\mathbf{B}_{12}\mathbf{B}_{22}^{-1}\mathbf{B}_{21}|=|\mathbf{B}_{11}||\mathbf{B}_{22}-\mathbf{B}_{21}\mathbf{B}_{11}^{-1}\mathbf{B}_{12}|\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-green"></div>Trace identities and scalar tricks</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block formula">
+        \[\text{tr}(a)=a\quad\text{(scalar)}\qquad\text{tr}(\mathbf{B}\mathbf{C})=\text{tr}(\mathbf{C}\mathbf{B})\qquad\mathbf{x}'\mathbf{B}\mathbf{x}=\text{tr}(\mathbf{B}\mathbf{x}\mathbf{x}')\]
+      </div>
+    </div>
+  </div>
+
+  <div class="topic open">
+    <div class="topic-header" onclick="toggle(this)">
+      <div class="topic-title"><div class="dot dot-green"></div>Distribution reference table</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="chevron">▼</div></div>
+    </div>
+    <div class="topic-body">
+      <div class="block">
+        <table style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px;">
+          <thead><tr style="border-bottom:1px solid var(--border-bright)">
+            <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">Quantity</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">Distribution</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:500">Notes</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">\(\bar{\mathbf{X}}\)</td><td style="padding:6px 8px">\(N_p(\boldsymbol{\mu},\frac{1}{n}\boldsymbol{\Sigma})\)</td><td style="padding:6px 8px;color:var(--muted)">exact</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">\((n-1)\mathbf{S}\)</td><td style="padding:6px 8px">\(W_p(n-1,\boldsymbol{\Sigma})\)</td><td style="padding:6px 8px;color:var(--muted)">exact, \(n>p\)</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">\((\mathbf{X}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{X}-\boldsymbol{\mu})\)</td><td style="padding:6px 8px">\(\chi^2_p\)</td><td style="padding:6px 8px;color:var(--muted)">exact, §3.3 proof</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">\(T^2=n(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)\)</td><td style="padding:6px 8px">\(\frac{(n-1)p}{n-p}F_{p,n-p}\)</td><td style="padding:6px 8px;color:var(--muted)">exact, §5.2</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">\(n(\bar{\mathbf{X}}-\boldsymbol{\mu})'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu})\)</td><td style="padding:6px 8px">\(\dot{\sim}\chi^2_p\)</td><td style="padding:6px 8px;color:var(--muted)">large \(n-p\), no normality</td></tr>
+            <tr><td style="padding:6px 8px">\(\Lambda^{2/n}\)</td><td style="padding:6px 8px">\(\left(1+\frac{T^2}{n-1}\right)^{-1}\)</td><td style="padding:6px 8px;color:var(--muted)">§5.3.1 proof</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+function show(id,el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');el.classList.add('active');}
+function toggle(h){h.parentElement.classList.toggle('open');}
+</script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+---
+title: ""
+author: ""
+format: pdf
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\includegraphics[width=0.22\textwidth]{UCT_logo.png}
+\vspace{1cm}
+{\Large \textbf{University of Cape Town}\par}
+\vspace{1.5cm}
+{\LARGE \textbf{Multivariate Analysis}\par}
+\vspace{0.8cm}
+{\large Continuous Assessment 6\par}
+\vspace{1.5cm}
+{\large
+\begin{tabular}{c}
+Joshua Orelowitz [ORLJOS001] \\
+Lwandile Duma [DMXLWA003]
+\end{tabular}
+\par}
+\vfill
+{\large \today\par}
+\end{titlepage}
+
+\setcounter{page}{1}
+
+```{r}
+library(heplots)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(kableExtra)
+library(DescTools)
+```
+
+## Question 1
+
+The Egyptian skulls data set is split into 5 different time periods. We conducted a Box M test to test:
+
+$$
+H_0 = \Sigma_1 = \Sigma_2 = \Sigma3 = \Sigma_4 = \Sigma_5
+$$
+
+Against the alternative
+
+$$ 
+H_1 = At \ least \ one \ of \ the \ covariance \ matrices \ is \ different
+$$
+
+```{r}
+skulls = read.csv("CA1.csv")
+
+skulls$TimePeriod = as.factor(skulls$TimePeriod)
+
+# create the multivariate response matrix
+Y = cbind(skulls$MaxBreadth, skulls$BasHeight, skulls$BasLength, skulls$NasHeight)
+
+# Box's M test
+boxM_ans = boxM(Y, skulls$TimePeriod)
+
+boxm_df = data.frame(
+  Statistic = c("Chi-square approximation", "df", "p-value"),
+  Value     = c(unname(round(boxM_ans$statistic, 3)),
+                unname(round(boxM_ans$parameter)),      # df
+                round(boxM_ans$p.value, 4))
+)
+
+kable(boxm_df, col.names = c("", "Value"), caption = "Box's M-Test Results")
+
+
+```
+
+We can see that the generated p value is 0.248 and thus is not very significant. Thus we can conclude that there is insufficient evidence reject the null hypothese which suggests that the covariance matrices do not differ across the five time periods. This now allows us to proceed with MANOVA as having equal covariance matrices is one of its underlying assumptions.
+
+We now perform a one way MANOVA to check if the mean vectors of the five time periods are the same. We test the follow null hypothesis:
+
+$$
+H_0 = \mu_1 = \mu_2 = \mu_3 = \mu_4 = \mu_5
+$$
+
+Against the null hypothesis of:
+
+$$ 
+H_1 = At \ least \ one \ of \ the \ mean \ vectors \ is \ different
+$$
+
+Below is the corresponding MANOVA results in which the treatment was the time period.
+
+```{r}
+
+X <- cbind(skulls$MaxBreadth, skulls$BasHeight, skulls$BasLength, skulls$NasHeight)
+fit <- manova(X ~ skulls$TimePeriod)
+wilks_out <- summary(fit, "Wilks")
+
+kable(wilks_out$stats, caption = "One-Way MANOVA – Wilks' Lambda")
+
+```
+
+Using Wilks $\Lambda$ we obtains a value of 0.6636, this yields a corresponding p value of $7.01$ x $10^{-10}$ which is approximately 0. This is a very significant p value and thus there is very strong evidence to reject the null hypothesis and suggests that at least one of the mean vectors is different across the five time periods. To now investigate which of the four variables within our mean vector causes this difference we perform individual univarriate ANOVA tests. The four variables are Max Breadth, Bas Height, Bas Length and Nas Height.
+
+```{r}
+aovs1 <- summary.aov(fit)
+
+# Helper to clean row names
+clean_aov <- function(x) {
+  s <- as.data.frame(x[[1]])
+  rownames(s) <- c("Time Period", "Residuals")
+  s
+}
+
+kable(clean_aov(aovs1[1]), caption = "ANOVA for Max Breadth")
+kable(clean_aov(aovs1[2]), caption = "ANOVA for Bas Height")
+kable(clean_aov(aovs1[3]), caption = "ANOVA for Bas Length")
+kable(clean_aov(aovs1[4]), caption = "ANOVA for Nas Height")
+```
+
+For all of the above ANOVA tests the treatment we used was on the time period. The above tables show significant p values for Max Breadth (0.0002), Bas Height (0.049) and Bas Length ( $4.06$ x $10^{-6}$ ). This suggests that for these three variables there is difference in the means across the five time periods. We now examine which exact time periods are driving these differences for the relevant variables. This is shown graphically below using post-hoc analysis with Bonferroni correction. This test checks to see if any two specific time periods are significantly different from each other.
+
+```{r}
+# Fit individual aov for each significant variable
+fit_mb <- aov(skulls$MaxBreadth ~ skulls$TimePeriod)
+fit_bh <- aov(skulls$BasHeight  ~ skulls$TimePeriod)
+fit_bl <- aov(skulls$BasLength  ~ skulls$TimePeriod)
+
+# Bonferroni post-hoc for each
+ph_mb <- PostHocTest(fit_mb, method = "bonferroni")
+ph_bh <- PostHocTest(fit_bh, method = "bonferroni")
+ph_bl <- PostHocTest(fit_bl, method = "bonferroni")
+
+# Extract results into data frames
+extract_ph <- function(ph, variable) {
+  df <- as.data.frame(ph[[1]])
+  df$comparison <- rownames(df)
+  df$variable <- variable
+  df
+}
+
+ph_df <- rbind(
+  extract_ph(ph_mb, "MaxBreadth"),
+  extract_ph(ph_bh, "BasHeight"),
+  extract_ph(ph_bl, "BasLength")
+)
+
+ggplot(ph_df, aes(x = diff, y = comparison)) +
+  geom_point(colour = "steelblue", size = 2) +
+  geom_errorbar(aes(xmin = lwr.ci, xmax = upr.ci), 
+                width = 0.2, colour = "steelblue") +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "red") +
+  facet_wrap(~variable, scales = "free_x") +
+  labs(x = "Mean Difference", y = "") +
+  theme_minimal()
+
+# Plot all three side by side
+# par(mfrow = c(1, 3))
+# 
+# plot(ph_mb)
+# title("MaxBreadth")
+# 
+# plot(ph_bh)
+# title("BasHeight")
+# 
+# plot(ph_bl)
+# title("BasLength")
+```
+
+From the graphic above we can see that the significant differences between time periods occur when the confidence intervals exclude 0.
+
+For Bas Height, we see that all of the intervals cross 0. This is helpful as previously we saw its p value in comparrison to the other variables was much higher (0.049), but still could have been significant. Here we can see that it was borderline for a few of the time periods but never actually excluded zero. For Bas Length, we see that in time periods 5-2, 5-1, 4-2 and 4-1 are all significant. These differences are all negative and thus show that Bas Length is decreasing over time. For Max Breadth, we can see that 5-2, 5-1 and 4-1 are all significant. These differences are all positive thus suggesting that skull breadth increases over time.
+
+## Question 2
+
+## a)
+
+```{r}
+data = read.table("CA6.txt", header = TRUE)
+data$Filler <- as.factor(data$Filler)
+data$Proportion <- as.factor(data$Proportion)
+fit_manova <- manova(cbind(y1, y2, y3) ~ Filler * Proportion, data = data)
+manova_summary <- summary(fit_manova, test = "Pillai")
+
+# Extract and display as kable
+manova_table <- as.data.frame(manova_summary$stats)
+manova_table <- round(manova_table, 4)
+
+library(knitr)
+library(kableExtra)
+
+kable(manova_table,
+      caption = "Two-way MANOVA results using Pillai's Trace",
+      booktabs = TRUE) |> 
+  kable_styling(full_width = FALSE,
+                position = "center")
+```
+
+There seem to be significant effects for Filler and Proportion and their interaction. The P-values are quite small at 0.0000, 0.0068 and 0.0049 respectively. The most significant effect is Filler used. The P-value is essentially 0, and is far lower than the other p-value for the other effects.
+
+```{r}
+# y1 - first 1000 revolutions
+anova_y1 <- summary(aov(y1 ~ Filler * Proportion, data = data))[[1]]
+anova_y1 <- round(as.data.frame(anova_y1), 4)
+
+kable(anova_y1,
+      caption = "Two-way ANOVA: Fabric wear over first 1000 revolutions",
+      booktabs = TRUE) |>
+  kable_styling(
+                full_width = FALSE,
+                position = "center")
+
+# y2 - second 1000 revolutions
+anova_y2 <- summary(aov(y2 ~ Filler * Proportion, data = data))[[1]]
+anova_y2 <- round(as.data.frame(anova_y2), 4)
+
+kable(anova_y2,
+      caption = "Two-way ANOVA: Fabric wear over second 1000 revolutions",
+      booktabs = TRUE) |>
+  kable_styling(
+                full_width = FALSE,
+                position = "center")
+
+# y3 - third 1000 revolutions
+anova_y3 <- summary(aov(y3 ~ Filler * Proportion, data = data))[[1]]
+anova_y3 <- round(as.data.frame(anova_y3), 4)
+
+kable(anova_y3,
+      caption = "Two-way ANOVA: Fabric wear over third 1000 revolutions",
+      booktabs = TRUE) |>
+  kable_styling(
+                full_width = FALSE,
+                position = "center")
+```
+
+look at the p-values above, and see the significant effects.
+
+## b)
+
+In the context of this example, interaction means whether the proportion of filler has an effect on the effect of filler on fabric wear and vice versa.
+
+An interaction plot is the best illustration to help explain the effects in this context.
+
+```{r}
+# Interaction plots
+fabric <- read.table("CA6.txt", header = TRUE)
+fabric$Proportion <- factor(fabric$Proportion, 
+                            levels = c(1, 2, 3),
+                            labels = c("25%", "50%", "75%"))
+fabric$Filler <- factor(fabric$Filler,
+                        levels = c(1, 2),
+                        labels = c("F1", "F2"))
+
+fabric_long <- data.frame(
+  Proportion = rep(fabric$Proportion, 3),
+  Filler     = rep(fabric$Filler, 3),
+  Period     = factor(
+    rep(c("First 1000 Rev", "Second 1000 Rev", "Third 1000 Rev"),
+    each = nrow(fabric)),
+    levels = c("First 1000 Rev", "Second 1000 Rev", "Third 1000 Rev")),
+    Wear = c(fabric$y1, fabric$y2, fabric$y3)
+)
+
+ggplot(fabric_long, aes(x = Filler, y = Wear, colour = Proportion, group = Proportion)) +
+  stat_summary(fun = mean, geom = "line", linewidth = 1) +
+  stat_summary(fun = mean, geom = "point", size = 3) +
+  facet_wrap(~Period, ncol = 2) +
+  labs(x = "Filler Type", y = "Mean Fabric Wear", colour = "Proportion Level") +
+  theme_bw()
+```
+
+From the above we can see that moving from filler 1 to 2 mostly yielded the least amount of fabric wear in all 3 revolutions. The exception being in the first 1000 revolutions, at proportion level 1, the mean fabric wear increases. If we look at whether the type of filler changes the effect of proportion of filler on amount of fabric wear, we can gain some insight:
+
+For the first 1000 revolutions, fabric with either filler type experiences increased wear with an increased proportion of filler. Thus, the effect of the proportion of filler is not dependent on the type of filler- there little evidence of significant interaction, also represented by p-value = 7.8%.
+
+For the second 1000 revolutions, there is increased fabric wear with increased proportion of filler for filler type 1. This then changes to be largely unchanged with increasing proportion of filler for filler type 2 .Thus, there is evidence to say the affect of the proportion of filler depends on the type of filler. This is supported by the p-value = 0.01, showing significance.
+
+For the third 1000 revolutions, fabric wear again appears to slightly increase with increasing proportion of filler for filler type 1.The relationship between proportion of filler and amount of fabric wear is less clear for filler type 2. With the p-value being at 6.6% there is little evidence to support the dependence.
+
+## c)
+
+To minimise the fabric in the final 1000 revolutions, we can advise that the type of filler used is most important over the other factor. There is evidence presented in the table above as the p-value of filler is 0% showing a very strong significance. Therefore, from looking at the interaction plots, we would advise that filler 2 should be used.
+
+The proportion of filler has much less significant at a p-value of 6.6% (relative to filler).Using the standard 5% significance level, the 6.6% does appear slightly insignificant, although it is worth mentioning it is close to the level of significance. Thus, from the interaction plots it seems the proportion level 1(25%) yielded the lowest amount of fabric wear.

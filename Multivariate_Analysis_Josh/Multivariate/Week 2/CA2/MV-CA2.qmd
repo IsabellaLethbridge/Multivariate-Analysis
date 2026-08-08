@@ -1,0 +1,158 @@
+---
+title: "Continuous Assessment 2"
+author: "Joshua Orelowitz and Keeran Moodley"
+format:
+  pdf:
+    fig-pos: "C"
+    fig-align: center
+    pdf-engine: pdflatex
+    latex-auto-install: true
+    include-in-header:
+      - file: preamble.tex
+    toc: true
+    number-sections: false
+    colorlinks: false
+mainfont: LMRoman9-Regular
+execute: 
+  echo: false
+  eval: true
+  output: true
+  warning: false
+filters:
+  - parse-latex
+
+knitr:
+  opts_chunk:
+    fig-align: center
+    out-width: "70%"
+---
+
+\newpage
+
+```{r}
+  #Import
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(corrplot)
+
+  # Continuous Assessments/CA2/
+  X<- tibble(read.csv("CA2.csv"))
+```
+
+### Question 1
+
+```{r}
+# Functions
+lowerRankApprox<-function(svd,k){
+  u<-svd$u
+  v<-svd$v
+  d<- svd$d
+
+  mat<-matrix(data=0, nrow = nrow(X), ncol(X))
+  ### Approx
+  for (i in 1:k){
+    mat<- mat + d[i]*u[,i]%*%t(v[,i])
+  }
+  return(mat)
+}
+
+mean_vec<-function(X){
+  return((1/nrow(X))*t(X)%*%rep(1,nrow(X)))
+}
+```
+
+We now compute the lower rank approximations for all ranks. From this we select the case where $\rank (\tilde X_4)= 4$ and compute the error.
+
+```{r}
+### Compute all approxs, deltas and error vectors
+svd<-svd(X)
+deltas<-list()
+errors<-matrix(NA,nrow=12,ncol=12)
+rankapproxs<-list()
+
+for(i in 1:12){
+  rankapproxs[[i]]<-lowerRankApprox(svd,i)
+  deltas[[i]]<-(X-rankapproxs[[i]])
+  error_vec<-mean_vec(deltas[[i]])
+  errors[,i]<-error_vec
+}
+
+
+```
+
+```{r}
+knitr::kable(t(errors[,4]), digits = 3, col.names = 1:12, caption="Errors for the rank 4 approximation")
+```
+
+### Question 2
+
+We now compare the correlation structure for the full matrix and that of the rank 2 approximation.
+
+```{r}
+#| out-width: 70%
+
+corr_x<-cor(X)
+corr_x_2<- cor(rankapproxs[[2]])
+
+par(mfrow =c(1,2), mar = c(1, 1, 3, 1))
+corrplot(corr_x, 
+         title="Correlation matrix for X", 
+         type = "lower", 
+         method = "number", 
+         number.cex = 0.4,
+         mar = c(0,0,2,0),
+         tl.cex = 0.8)
+corrplot(corr_x_2, 
+         title = "Correlation matrix for rank 2 
+         approximation of X",
+         type = "lower", 
+         method = "number",
+         number.cex = 0.4,
+         mar = c(0,0,2,0),
+         tl.cex = 0.8)
+```
+
+The correlation matrix for X shows the correlation structure between all variables. The correlation matrix for the rank 2 approximation of X only explains the variation found by the first 2 singular components. Our rank 2 approximation starts to pick up on some of the stronger correlations such as the correlation between V4 and V2, V10 and V2. However is also seems to be picking up correlation that as the ranks develop seems to erode, such as showing a correlation of 1 for V9 and V2 which in X only has a correlation of 0.07. It also gives a correlation of -1 between V9 and V7 which in truth seem to actually be very uncorrelated with a value of almost 0. More often that not our rank 2 approximation is picking up correlation that does not seem to truly exist. This can be expected as we are compression the data into a 2 dimensional space. Therefore I would say that a rank 2 approximation is not accurate and that we need to do a higher rank approximation to accurately capture the correlation structure in X.
+
+### Question 3
+
+We now compute the Frobenius norm of the delta matrices, $\Delta_k=X-\tilde X_k$, for $k=1,2,\cdots,12$ corresponding to the respective ranks.
+
+```{r}
+frobs<-sapply(deltas, FUN= function(d) norm(as.matrix(d), type = "F"))
+df<-data.frame(frobs,rank=1:12)
+
+par(mfrow =c(1,1))
+plot(frobs~rank, 
+     data=df, 
+     type = "b", 
+     xlab ="Rank", 
+     ylab="Frobenius Norm", 
+     main = "Frobenius norm for different K values",
+     yaxt = "n")
+axis(2, at = seq(floor(min(df$frobs)), ceiling(max(df$frobs)), by = 2))
+
+```
+
+We notice that as the rank of the approximation increases the Frobenius norm of the difference between the original matrix and its approximation decreases. This is to say that as the rank of the approximation increases the approximation becomes closer to the original matrix until they are exactly the same - as the rank increases as does the accuracy of the approximation.
+
+### Question 4
+
+We now compute and plot the percentage of variation retained by the lower rank approximations and examine how they evolve as the rank for the approximation varies.
+
+```{r}
+totalFrobs = norm(as.matrix(X), type = "F")
+percRetained = 100 * (1 - frobs^2 / totalFrobs^2)
+dfPR = data.frame(rank = 1:12, percRetained = percRetained)
+rankSeq = seq(1,12,1)
+
+plot(percRetained ~ rankSeq, data = dfPR,
+     type = "b", # plots both lines and points
+     xlab = "Rank k",
+     ylab = "% total variation retained",
+     main = "Variation retained in X for different K values"
+     )
+```
+
+We can see that the percentage of variation retained of the total X increases with the rank of our SVD. At first it is very steep but seems to flatten out at around a rank of 9 which explains around 90% of the variation. This means that most of the variation is captured in the first 9 singular components. Higher rank approximations add relatively low amounts of variation.

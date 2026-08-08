@@ -1,0 +1,134 @@
+---
+title: "CA10"
+format: pdf
+---
+
+# Question 1
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+if (!requireNamespace("DataTidy23RodoHonsMult", quietly = TRUE)) {
+# note that you'll need to reinstall the package
+# to get the latest version (as of 24 April 2024)
+# with the data set
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+}
+data("corr_mat_profit", package = "DataTidy23RodoHonsMult")
+corr_mat_profit
+```
+
+```{r}
+#Accounting Measures
+X1 = corr_mat_profit[1:6, 1:6]
+
+#Market Value 
+X2 = corr_mat_profit[7:8, 7:8]
+
+X21  = corr_mat_profit[1:6, 7:8]
+
+X12 = corr_mat_profit[7:8, 1:6]
+```
+
+## Perform CCA
+
+```{r}
+X1_inv = solve(X1)
+
+X1.eig = eigen(X1_inv)
+
+X1_inv.sqrt = X1.eig$vectors %*% diag(sqrt(X1.eig$values)) %*% t(X1.eig$vectors)
+```
+
+```{r}
+X2_inv = solve(X2)
+
+X2.eig = eigen(X2_inv)
+
+X2_inv.sqrt = X2.eig$vectors %*% diag(sqrt(X2.eig$values)) %*% t(X2.eig$vectors)
+```
+
+### Eigen decomposition
+
+```{r}
+rho = X1_inv.sqrt %*% X21 %*% X2_inv %*% X12 %*% X1_inv.sqrt
+
+rho_eigen = eigen(rho)
+rho_eigen
+```
+
+### Get Loadings ( Question 1a)
+
+```{r}
+#For X1
+a1 = X1_inv.sqrt %*% rho_eigen$vectors[ ,1]
+a1
+
+#For X2 
+b1 = X2_inv %*% X12 %*% a1
+b1
+```
+
+### Question 1c
+
+```{r}
+#Calc covariance for set 2 (b1) and from diagonal mat of variances
+# V = 1/(sqrt(t(a1) %*% X1 %*% a1))
+# V = matrix(c(V, V),2,1)
+# V
+# 
+# #Standardize to unit var 
+# a1 = a1 * V
+# a1 
+# 
+# #Calc canonical correlation
+# rho_1 = sqrt(rho_eigen$values[1])
+# rho_1
+```
+
+```{r}
+#Calc covariance for set 2 (b1) and from diagonal mat of variances
+V = 1/(sqrt(t(b1) %*% X2 %*% b1))
+V = matrix(c(V, V),2,1)
+V
+
+#Standardize to unit var 
+b1 = b1 * V
+b1 
+
+#Calc canonical correlation
+rho_1 = sqrt(rho_eigen$values[1])
+rho_1
+```
+
+### Question 1d
+
+Interpret canonical variates using the coefficient vectors.
+
+### Question 1e
+
+Interpret canonical variables using correlation matrices for each set
+
+# Question 2
+
+```{r}
+sigma = matrix(c(100, 0,0,0,0,1,0.95,0,0,0.95,1,0,0,0,0,100), 4, 4, byrow = T)
+sigma 
+```
+
+### Question 2a
+
+CCA does not choose variables to include in the ,inear combinations based on maximizing variance, it does so by maximizing correlations. (Look at off diagonal blocks to see the correlations)
+
+### Question 2b
+
+0.  It mean that there exists no correlation between the sets linear combinations
+
+### Question 2c
+
+It affects the scaling of the canonical variables, as well as the correlations between the canonical variables.
+
+### Question 2d
+
+(Affected by what?)
+
+# Question 3

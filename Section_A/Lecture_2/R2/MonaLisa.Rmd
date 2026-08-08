@@ -1,0 +1,90 @@
+---
+title: "SVD Example"
+output: ioslides_presentation
+---
+
+```{r setup, include = F}
+knitr::opts_chunk$set(echo = F,
+                      warning = F,
+                      tidy = T)
+
+library(imager)
+library(tidyr)
+```
+
+## Image compression with SVD
+
+```{r, fig.dim = c(5.5, 5.5)}
+mona <- load.image('lowres_mona.png')
+plot(mona, axes = F)
+```
+
+---
+
+```{r, echo = T, fig.dim = c(4.5, 4.5)}
+# transform into matrix form
+mona_mat <- as.data.frame(mona) %>% 
+  pivot_wider(names_from = y, values_from = value) %>%
+  dplyr::select(-x) %>%
+  as.matrix()
+image(mona_mat[, ncol(mona_mat):1], col = gray.colors(100))
+```
+
+---
+
+```{r, echo = T}
+# svd
+mona_svd <- svd(mona_mat)
+u <- mona_svd$u; v <- mona_svd$v; d <- mona_svd$d
+
+# start with 1 singular value
+nsv <- 1
+
+# approximate original data with outer product of first N singular vectors
+sv1 <- matrix(u[,1:nsv]) %*% diag(d)[1:nsv, 1:nsv] %*% t(v[,1:nsv])
+```
+
+## With 1 SV
+
+```{r, fig.dim = c(6, 6)}
+image(sv1[, nrow(sv1):1], col = gray.colors(30))
+```
+
+## With 2 SV
+
+```{r, fig.dim = c(6, 6)}
+# function for lower rank approximation
+lr_func <- \(nsv) u[, 1:nsv] %*% diag(d)[1:nsv, 1:nsv] %*% t(v[,1:nsv])
+
+approx <- lr_func(2)
+image(approx[, nrow(approx):1], col = gray.colors(30))
+```
+
+## With 5 SV
+
+```{r, fig.dim = c(6, 6)}
+approx <- lr_func(5)
+image(approx[, nrow(approx):1], col = gray.colors(30))
+```
+
+## With 20 SV
+
+```{r, fig.dim = c(6, 6)}
+approx <- lr_func(20)
+image(approx[, nrow(approx):1], col = gray.colors(30))
+```
+
+## With 50 SV
+
+```{r, fig.dim = c(6, 6)}
+approx <- lr_func(50)
+image(approx[, nrow(approx):1], col = gray.colors(30))
+```
+
+## How many SVs is enough?
+
+```{r}
+plot((cumsum(d^2)/sum(d^2))*100, xlab = 'Rank Approximation', ylab = "% Variance Explained", type = 'l')
+```
+
+

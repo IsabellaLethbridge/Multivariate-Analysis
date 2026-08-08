@@ -1,0 +1,111 @@
+---
+title: "practice7"
+format: html
+---
+
+```{r}
+library(dplyr)
+library(knitr)
+```
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+# be sure to install from `2024` branch (code below does this)
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+```
+
+# Q1
+
+```{r}
+dat = data_tidy_mali
+plot(dat$family ~ dat$dist_rd)
+plot(dat$dist_rd ~ dat$cattle)
+
+dat = dat %>% filter(dat$cattle < 40, dat$dist_rd < 200, dat$family < 100)
+
+plot(dat$family ~ dat$dist_rd)
+plot(dat$dist_rd ~ dat$cattle)
+
+```
+
+# Q2
+
+We need to standardise as the predictors are on very different scales
+
+```{r}
+dat = scale(dat)
+```
+
+# Q3
+
+```{r}
+cor_mat = cor(dat)
+eigen = eigen(cor_mat)
+
+total_var = sum(eigen$values)
+prop = eigen$values / total_var
+
+plot(prop, type = 'b', xlab = "PCs", ylab = "Prop var", main = "Scree plot")
+```
+
+We choose 2 PCs
+
+```{r}
+PC1 = eigen$vectors[,1]
+PC2 = eigen$vectors[,2]
+PCs = data.frame("PC1" = PC1, "PC2" = PC2)
+kable(PCs)
+
+score1 = dat %*% PC1
+score2 = dat %*% PC2
+scores = data.frame("Score1" = score1, "Score2" = score2)
+kable(scores)
+```
+
+# Q4
+
+```{r}
+# Note so either take eigen(cov) or svd(data)
+svd_result = svd(dat)
+loadings = svd_result$v
+df_loading = data.frame(loadings[,1:2])
+kable(df_loading)
+
+alt_PCscore = dat %*% svd_result$v
+data.frame("score1" = alt_PCscore[,1], "score2" = alt_PCscore[,2])
+
+scores = svd_result$u %*% diag(svd_result$d)
+svd_pc = data.frame("score1" = scores[,1], "score2" = scores[,2])
+kable(svd_pc)
+```
+
+# 5
+
+nah
+
+# 6
+
+```{r}
+# correlation is with score not loading
+corPC1 = cor(score1, dat)
+df = data.frame(corPC1)
+kable(df)
+```
+
+We can see the PC is positively correlated with each var which makes sense as we saw that its loading from each var was positive. Additionally the vars that loaded the storngest on PC1 are the vars that are more correlated with it.
+
+# Q7
+
+```{r}
+# Just learn prcomp much easier for this part
+pca_prcomp = prcomp(dat, scale. = FALSE)
+
+biplot(pca_prcomp, choices = c(1,2))
+
+biplot(x = scores, y = loadings)
+```
+
+if orthogonal to PC then doesnt load on it or barely, if parallel to PC then loads a lot on it. zthen always spea baout the points too if they are clustered together which PC has more variability shown with the points etc etc.

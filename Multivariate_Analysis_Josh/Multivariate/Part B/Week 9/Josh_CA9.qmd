@@ -1,0 +1,112 @@
+---
+title: "CA9"
+format: html
+---
+```{r}
+library(knitr)
+```
+
+# Question 1
+```{r}
+L = matrix(c(0.9, 0.7, 0.5), 3, 1)
+error = diag(x = 1, nrow = 3)
+error[1,1] = 0.19
+error[2,2] = 0.51
+error[3,3] = 0.75
+
+p = L %*% t(L) + error
+df_q1 = data.frame(p)
+kable(df_q1)
+```
+
+# Question 2
+## a)
+```{r}
+ap = read.csv("Air pollution Data .csv")
+corr_mat = cor(ap)
+q1_a = data.frame(corr_mat)
+kable(q1_a)
+```
+
+## b)
+```{r}
+eigencorr = eigen(corr_mat)
+values = eigencorr$values
+v = eigencorr$vectors
+# Loading vectors
+l1 = v[,1] * sqrt(values[1])
+#l1
+l2 = v[,1:2] %*% diag(sqrt(values[1:2]))
+#l2
+
+# variation explaine dper observed var
+h1 = diag(l1 %*% t(l1))
+h2 = diag(l2 %*% t(l2))
+#h1
+#h2
+psi1 = 1 - h1
+psi1_mat = diag(psi1)
+psi2 = 1 - h2
+psi2_mat = diag(psi2)
+
+recorr1 = l1 %*% t(l1) + psi1_mat
+recorr2 = l2 %*% t(l2) + psi2_mat
+
+q2b_1 = data.frame(recorr1)
+q2b_2 = data.frame(recorr2)
+kable(q2b_1)
+kable(q2b_2)
+```
+##c
+```{r}
+FA = factanal(covmat = corr_mat, factors = 2, rotation = "none")
+l1_mle = FA$loadings[,1]
+l2_mle = FA$loadings[,2]
+# l1
+# l2
+
+uniq = FA$uniquenesses
+communalities = 1 - uniq
+#uniq
+
+df = data.frame("Factor1" = l1_mle, "Factor2" = l2_mle, "Var explained" = uniq)
+kable(df)
+```
+## d)
+```{r}
+#| layout-ncol: 2
+
+df = data.frame("Factor" = l2, "Var explained" = h2)
+kable(df, caption = "This was calculated using PCA")
+
+df = data.frame("Factor1" = l1_mle, "Factor2" = l2_mle, "Var explained" = communalities)
+kable(df, caption = "This was calculated using MLE")
+
+
+```
+## e)
+```{r}
+rote = varimax(l2)
+rotel1 = rote$loadings[,1]
+rotel2 = rote$loadings[,2]
+
+df = data.frame("Factor1" = rotel1, "Factor2" = rotel2)
+kable(df, caption = "Loadings after varimax rotation")
+```
+## f)
+```{r}
+Z = scale(ap)
+#FA = factanal(ap, factors = 2, rotation = "none")
+uniq = FA$uniquenesses
+L = as.matrix(FA$loadings[,1:2])
+Psi_inv = diag(1 / uniq)
+
+A = t(L) %*% Psi_inv %*% L
+B = solve(A) %*% t(L) %*% Psi_inv
+
+scores = Z %*% t(B)
+colnames(scores) = c("Factor1", "Factor2")
+
+kable(data.frame(scores), caption = "WLS F  actor Scores (ML, m=2)")
+```
+

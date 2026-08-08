@@ -1,0 +1,438 @@
+---
+title: "Continuous Assessment 8"
+format: pdf
+author: Roxy Campher (CMPROX001) and Isabella Lethbridge (LTHISA001)
+editor: visual
+---
+
+## Question 1
+
+```{r, warning=FALSE, echo=FALSE, message = FALSE}
+if (!requireNamespace("DataTidy23RodoSTA2005SAssignment", quietly = TRUE)) {
+if (!requireNamespace("remotes", quietly = TRUE)) {
+utils::install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoSTA2005SAssignment")
+}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+install.packages("tibble")
+}
+library(tibble) # ensures dataframes print more informatively and concisely than standard methods
+data("data_tidy_yield", package = "DataTidyRodoSTA2005S")
+```
+
+a\) Regression coefficients for:
+
+```{r, warning=FALSE, echo=FALSE}
+library(knitr)
+```
+
+i\) Maize yield against soil PH and distance to water.
+
+```{r, warning=FALSE}
+# Extract variables
+y_i <- as.matrix(data_tidy_yield$CropYield)
+
+X <- cbind(
+  1,
+  data_tidy_yield$SoilPH,
+  data_tidy_yield$DistanceToWater
+)
+
+# Compute beta_hat
+XtX <- t(X) %*% X
+XtX_inv <- solve(XtX)
+XtY <- t(X) %*% y_i
+
+beta_hat <- XtX_inv %*% XtY
+
+beta_table <- data.frame(
+  Coefficient = c("Intercept", "SoilpH", "DistanceToWater"),
+  Estimate = beta_hat
+)
+
+kable(beta_table, digits = 4, caption = "Estimated Regression Coefficients")
+```
+
+ii\) Sunlight against soil PH and distance to water.
+
+```{r, warning=FALSE}
+# Extract variables
+y_ii <- as.matrix(data_tidy_yield$Sunlight)
+
+X <- cbind(
+  1,
+  data_tidy_yield$SoilPH,
+  data_tidy_yield$DistanceToWater
+)
+
+# Compute beta_hat
+XtX <- t(X) %*% X
+XtX_inv <- solve(XtX)
+XtY <- t(X) %*% y_ii
+
+beta_hat <- XtX_inv %*% XtY
+
+beta_table <- data.frame(
+  Coefficient = c("Intercept", "SoilpH", "DistanceToWater"),
+  Estimate = beta_hat
+)
+
+kable(beta_table, digits = 4, caption = "Estimated Regression Coefficients")
+```
+
+iii\) Maize yield and sunlight against soil PH and distance to water.
+
+```{r, warning=FALSE}
+# MV Regression
+Y_iii <- as.matrix(data_tidy_yield[, c("CropYield", "Sunlight")])
+
+# Design matrix
+X <- cbind(
+  1,
+  data_tidy_yield$SoilPH,
+  data_tidy_yield$DistanceToWater
+)
+
+# OLS estimator
+XtX <- t(X) %*% X
+XtX_inv <- solve(XtX)
+XtY <- t(X) %*% Y_iii
+
+B_hat <- XtX_inv %*% XtY
+
+beta_table <- data.frame(
+  Predictor = c("Intercept", "SoilpH", "DistanceToWater"),
+  MaizeYield = B_hat[, 1],
+  Sunlight = B_hat[, 2]
+)
+
+kable(beta_table, digits = 4, caption = "Estimated Coefficients for Multivariate Regression")
+```
+
+b\) Confidence interval for the effect of soil PH on temperature:
+
+```{r, warning=FALSE}
+# Extract variables
+y <- as.matrix(data_tidy_yield$TempC)
+x <- as.matrix(data_tidy_yield$SoilPH)
+
+# Design matrix
+X <- cbind(1, x)
+
+# Beta estimate
+XtX <- t(X) %*% X
+XtX_inv <- solve(XtX)
+XtY <- t(X) %*% y
+beta_hat <- XtX_inv %*% XtY
+
+# Residuals
+y_hat <- X %*% beta_hat
+residuals <- y - y_hat
+
+n <- nrow(X)
+k <- ncol(X)
+
+sigma2_hat <- as.numeric(t(residuals) %*% residuals / (n - k))
+
+# Standard error of SoilpH coefficient
+var_beta <- sigma2_hat * XtX_inv
+se_beta1 <- sqrt(var_beta[2, 2])
+
+# t critical value
+t_crit <- qt(0.975, df = n - k)
+
+# Confidence interval
+beta1 <- beta_hat[2]
+
+CI <- c(
+  beta1 - t_crit * se_beta1,
+  beta1 + t_crit * se_beta1
+)
+
+ci_table <- data.frame(
+  Term = "SoilpH effect on Temp",
+  Lower_95 = CI[1],
+  Upper_95 = CI[2]
+)
+
+kable(ci_table, digits = 4)
+```
+
+c\) F-test for the effect of soil PH and distance to water on maize yield.
+
+```{r, warning=FALSE}
+# Data
+y <- as.matrix(data_tidy_yield$CropYield)
+
+X <- cbind(
+  1,
+  data_tidy_yield$SoilPH,
+  data_tidy_yield$DistanceToWater
+)
+
+n <- nrow(X)
+k <- ncol(X)
+
+# OLS estimates
+XtX <- t(X) %*% X
+C <- solve(XtX)
+beta_hat <- C %*% t(X) %*% y
+
+# Residual variance
+res <- y - X %*% beta_hat
+s2 <- as.numeric(t(res) %*% res / (n - k))
+
+# Extract Beta(1): SoilpH + DistanceToWater
+beta1_hat <- beta_hat[2:3, , drop = FALSE]
+
+# Extract C11 block
+C11 <- C[2:3, 2:3]
+
+# F statistic
+q <- 2
+
+F_stat <- as.numeric(
+  t(beta1_hat) %*% solve(C11) %*% beta1_hat / (q * s2)
+)
+
+p_value <- 1 - pf(F_stat, df1 = 2, df2 = n - k)
+
+p_statss <- data.frame(
+  Term = "F-test results:",
+  F_Statistic = round(F_stat, 3),
+  P_Value = p_value
+)
+
+p_statss
+```
+
+The null hypothesis is $H_0: \beta_{pH} = \beta_{distance} = 0$ against the alternative that at least one coefficient is non-zero.
+
+The p-value is very small so we can reject $H_0$ with confidence and conclude that soil PH and distance to water jointly have an effect on maize yield.
+
+d\) Likelihood ratio test for the effect of soil PH on either maize yield or sunlight.
+
+```{r, warning=FALSE}
+Y <- as.matrix(data_tidy_yield[, c("CropYield", "Sunlight")])
+
+X_full <- cbind(
+  1,
+  data_tidy_yield$SoilPH,
+  data_tidy_yield$Rainfall,
+  data_tidy_yield$TempC,
+  data_tidy_yield$WindSpeed,
+  data_tidy_yield$DistanceToWater,
+  data_tidy_yield$Altitude
+)
+  
+X_res <- cbind(
+  1,
+  data_tidy_yield$Rainfall,
+  data_tidy_yield$TempC,
+  data_tidy_yield$WindSpeed,
+  data_tidy_yield$DistanceToWater,
+  data_tidy_yield$Altitude
+)
+
+B_mat_full <- solve(t(X_full) %*% X_full) %*% t(X_full) %*% Y
+B_mat_res  <- solve(t(X_res) %*% X_res) %*% t(X_res) %*% Y
+
+Sigma_mat_full <- t((Y - X_full %*% B_mat_full)) %*% (Y - X_full %*% B_mat_full) / (nrow(Y))
+
+Sigma_mat_res <- t((Y - X_res %*% B_mat_res)) %*% (Y - X_res %*% B_mat_res) / (nrow(Y))
+
+n <- nrow(Y)
+r <- ncol(Y)
+q <- ncol(X_full) - ncol(X_res)
+k <- ncol(X_full)
+p <- k - 1
+
+test_stat <- -(n - k - 0.5 * (r - p + q + 1)) * log(det(Sigma_mat_full) / det(Sigma_mat_res))
+
+#test_stat |> signif(2)
+
+df <- r * q
+
+p_value <- pchisq(test_stat, df = df, lower.tail = FALSE)
+
+lrt_results <- data.frame(
+  Factor = "SoilPH",
+  LRT_Statistic = test_stat,
+  DF = df,
+  P_Value = p_value
+)
+
+lrt_results
+```
+
+The null hypothesis states that $H_0: \beta_{soilPH, yield} = 0$ and $\beta_{soilPH,sunlight} = 0$, the null hypothesis is that soil PH has no effect on Maize yield and sunlight.
+
+The p-value is very small so we can confidently reject $H_0$ and conclude that soil pH has a significant effect on at least one of the response variables (crop yield or sunlight).
+
+## Question 2
+
+```{r, warning=FALSE, echo = FALSE, message = FALSE}
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+# be sure to install from `2024` branch (code below does this)
+
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+```
+
+```{r, warning=FALSE}
+# Data
+Y <- as.matrix(data_tidy_mali$cotton)
+
+X <- data_tidy_mali[, names(data_tidy_mali) != "cotton"]
+X <- as.matrix(X)
+
+# Scale vars
+X_scaled <- scale(X)
+Y_centered <- scale(Y, center = TRUE, scale = FALSE)
+```
+
+Multiple regression:
+
+```{r, warning=FALSE}
+beta_ols <- solve(t(X_scaled) %*% X_scaled) %*% t(X_scaled) %*% Y_centered
+
+y_hat_ols <- X_scaled %*% beta_ols
+
+mse_ols <- mean((Y_centered - y_hat_ols)^2)
+```
+
+PCR:
+
+```{r, warning=FALSE}
+S <- t(X_scaled) %*% X_scaled / nrow(X_scaled)
+
+eig <- eigen(S)
+
+V <- eig$vectors   # loadings
+
+Z <- X_scaled %*% V
+
+Z <- X_scaled %*% V # PC's
+
+k <- 6 # first k components
+Z_k <- Z[, 1:k]
+
+theta_pcr <- solve(t(Z_k) %*% Z_k) %*% t(Z_k) %*% Y_centered # OLS in PC space
+
+# Predictions
+y_hat_pcr <- Z_k %*% theta_pcr
+mse_pcr <- mean((Y_centered - y_hat_pcr)^2)
+```
+
+PLS:
+
+```{r, warning=FALSE}
+n <- nrow(X_scaled)
+p <- ncol(X_scaled)
+
+X_m <- X_scaled
+y_m <- Y_centered
+
+y_hat_pls <- rep(0, n)
+
+M <- 4   # tune this
+
+for (m in 1:M) {
+
+  # (a) direction weights
+  phi <- t(X_m) %*% y_m
+  
+  z <- X_m %*% phi   # latent component
+  
+  # (b) coefficient
+  theta <- sum(z * y_m) / sum(z^2)
+  
+  # (c) update fitted values
+  y_hat_pls <- y_hat_pls + theta * z
+  
+  # (d) deflate X
+  for (j in 1:p) {
+    X_m[, j] <- X_m[, j] - (sum(z * X_m[, j]) / sum(z^2)) * z
+  }
+}
+
+mse_pls <- mean((Y_centered - y_hat_pls)^2)
+```
+
+Number of components:
+
+```{r, warning=FALSE}
+max_comp <- 6
+mse_pcr_vec <- rep(0, max_comp)
+mse_pls_vec <- rep(0, max_comp)
+
+for (k in 1:max_comp) {
+
+  # PCR
+  Z_k <- Z[, 1:k]
+  theta <- solve(t(Z_k) %*% Z_k) %*% t(Z_k) %*% Y_centered # OLS reg in PC space
+  mse_pcr_vec[k] <- mean((Y_centered - Z_k %*% theta)^2) # pred error
+
+  # PLS
+  X_m <- X_scaled
+  y_hat <- rep(0, n)
+
+  for (m in 1:k) { # Build PLS components sequentially
+    phi <- t(X_m) %*% y_m
+    z <- X_m %*% phi
+    theta <- sum(z * y_m) / sum(z^2)
+    y_hat <- y_hat + theta * z
+
+    for (j in 1:p) {
+      X_m[, j] <- X_m[, j] - (sum(z * X_m[, j]) / sum(z^2)) * z
+    }
+  }
+
+  mse_pls_vec[k] <- mean((Y_centered - y_hat)^2)
+}
+```
+
+```{r, warning=FALSE, echo = FALSE}
+plot(1:max_comp, mse_pcr_vec,
+     type="b",
+     col="blue",
+     pch=1,
+     lwd=2,
+     ylim=range(c(mse_pcr_vec, mse_pls_vec)),
+     ylab="MSE",
+     xlab="Number of Components")
+
+lines(1:max_comp, mse_pls_vec,
+      type="b",
+      col="red",
+      pch=1,
+      lwd=2)
+
+legend("topright",
+       legend=c("PCR", "PLS"),
+       col=c("blue","red"),
+       lty=1,
+       pch=1,
+       lwd=2)
+```
+
+As shown in the plot MSE decreases for both methods as the number of components increase, which is expected as more variation is being captured. From the plot we see that PLS requires less components before it reaches a stable error level compared to PCR. Based on the MSE curves, 4 components were selected for PCR and 6 components were selected for PLS as reasonable choices. The corresponding MSE values are summarized below:
+
+```{r, warning=FALSE, echo = FALSE}
+stats_mse <- data.frame(
+  OLS_MSE = mse_ols,
+  PCR_MSE = mse_pcr,
+  PLS_MSE = mse_pls
+)
+
+kable(stats_mse, digits = 4, caption = "MSE Comparison across methods.")
+```
+
+OLS performs best overall, achieving the lowest MSE, indicating that using all predictors without dimensionality reduction already provides strong predictive accuracy for cotton production.
+
+PCR performs worst, with a higher MSE than OLS. This is expected because PCR constructs components based on variance in the predictors only, leading to components that are not necessarily predictive of the outcome. PLS performs close to OLS and substantially better than PCR. This is because PLS constructs components that maximise covariance between predictors and the response, making them more relevant for prediction.
+
+Overall, PLS provides the best trade-off among the reduced-dimension methods, while PCR is less effective in this setting. However, since OLS performs slightly better than both, dimensionality reduction does not significantly improve predictive accuracy for this dataset.

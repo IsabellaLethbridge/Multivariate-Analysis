@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STA2005S — Section A Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML"></script>
+<style>
+  :root {
+    --bg: #F7F4EF; --surface: #EFEBE3; --card: #FDFAF6; --border: #DDD8CE;
+    --text: #1C1A16; --muted: #7A7266;
+    --purple-bg: #EEEDFE; --purple-border: #AFA9EC; --purple-badge: #CECBF6; --purple-badge-text: #26215C;
+    --teal-bg: #E1F5EE; --teal-border: #5DCAA5; --teal-badge: #9FE1CB; --teal-badge-text: #04342C;
+    --amber-bg: #FAEEDA; --amber-border: #EF9F27; --amber-badge: #FAC775; --amber-badge-text: #412402;
+    --gray-bg: #F1EFE8; --gray-border: #B4B2A9; --gray-text: #888780;
+    --coral-bg: #FEF0EC; --coral-border: #E8927A; --coral-text: #6B1F0C;
+    --red-bg: #FEE8E8; --red-border: #E07070; --red-text: #6B0C0C;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.65; }
+  .header { background: var(--text); color: #F7F4EF; padding: 3rem 2.5rem 2.5rem; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; border-radius: 50%; border: 1px solid rgba(247,244,239,0.08); }
+  .header::after { content: ''; position: absolute; bottom: -40px; left: 40px; width: 180px; height: 180px; border-radius: 50%; border: 1px solid rgba(247,244,239,0.05); }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .course-tag { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(247,244,239,0.45); margin-bottom: 0.75rem; }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 400; line-height: 1.15; margin-bottom: 0.5rem; }
+  .header h1 em { font-style: italic; color: rgba(247,244,239,0.6); }
+  .header-sub { font-size: 14px; color: rgba(247,244,239,0.5); margin-bottom: 2rem; }
+  .marks-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .mark-chip { background: rgba(247,244,239,0.07); border: 1px solid rgba(247,244,239,0.12); border-radius: 8px; padding: 10px 16px; display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+  .mark-chip .num { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1; }
+  .mark-chip .lbl { font-size: 11px; color: rgba(247,244,239,0.4); margin-top: 3px; text-align: center; }
+  .mark-chip.a .num { color: #C8C3F8; } .mark-chip.b .num { color: #7DD4B8; } .mark-chip.c .num { color: #F0C060; }
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  .source-note { background: #1C1A16; color: rgba(247,244,239,0.7); border-radius: 10px; padding: 14px 18px; font-size: 12.5px; margin-bottom: 1.5rem; font-family: 'DM Mono', monospace; line-height: 1.6; }
+  .source-note strong { color: #F0C060; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 2rem; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; color: var(--muted); }
+  .leg { display: flex; align-items: center; gap: 6px; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab { padding: 8px 16px 10px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 400; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); font-weight: 500; border-bottom-color: var(--text); }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp 0.18s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  .section-intro { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.6; }
+  .stefan-says { background: #1C1A16; border-radius: 10px; padding: 13px 17px; font-size: 12.5px; color: rgba(247,244,239,0.75); font-family: 'DM Mono', monospace; line-height: 1.6; margin-bottom: 1.25rem; border-left: 3px solid #F0C060; }
+  .stefan-says .label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #F0C060; margin-bottom: 5px; display: block; opacity: 0.8; }
+  .items { display: flex; flex-direction: column; gap: 8px; }
+  .item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; line-height: 1.65; }
+  .item.must { border-left: 3px solid var(--purple-border); }
+  .item.proof { border-left: 3px solid var(--coral-border); }
+  .item.note { border-left: 3px solid var(--amber-border); }
+  .item.skip { border-left: 3px solid var(--gray-border); opacity: 0.6; }
+  .item.nb { border-left: 3px solid var(--teal-border); }
+  .item.danger { border-left: 3px solid var(--red-border); background: var(--red-bg); }
+  .badge { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 5px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .b-must { background: var(--purple-badge); color: var(--purple-badge-text); }
+  .b-proof { background: var(--coral-bg); color: var(--coral-text); border: 1px solid var(--coral-border); }
+  .b-note { background: var(--amber-badge); color: var(--amber-badge-text); }
+  .b-skip { background: var(--gray-bg); color: var(--gray-text); }
+  .b-nb { background: var(--teal-badge); color: var(--teal-badge-text); }
+  .b-danger { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+  .item-body { flex: 1; }
+  .item-body strong { font-weight: 500; }
+  .marks-pill { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1px 9px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-left: 6px; vertical-align: middle; }
+  .sub-list { margin-top: 8px; padding-left: 1.2rem; }
+  .sub-list li { margin-bottom: 5px; list-style: disc; }
+  .sub-list li::marker { color: var(--muted); }
+  .MathJax { font-size: 1em !important; }
+  .footer { text-align: center; padding: 2rem; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="course-tag">STA2005S &nbsp;·&nbsp; Multivariate Analysis &nbsp;·&nbsp; Section A &nbsp;·&nbsp; Exam Wednesday</div>
+    <h1>Section A — <em>Study Guide</em></h1>
+    <div class="header-sub">Based on Stefan's audio briefing (06 June 2026) + handwritten exam note · No R in this exam</div>
+    <div class="marks-row">
+      <div class="mark-chip c"><span class="num">50</span><span class="lbl">total marks</span></div>
+      <div class="mark-chip a"><span class="num">40</span><span class="lbl">zero numbers (theory)</span></div>
+      <div class="mark-chip b"><span class="num">10</span><span class="lbl">numbers (applied)</span></div>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="source-note">
+    <strong>Source:</strong> This guide is rebuilt directly from Stefan's exam briefing audio (06 Jun 2026). Items are tagged with his exact words where possible. The 20 May handwritten note is used as secondary reference. When there is a conflict, the audio takes precedence.
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--red-border)"></div>first question / critical</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--purple-border)"></div>must know</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--coral-border)"></div>proof required</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--teal-border)"></div>NB / highlighted</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--amber-border)"></div>watch / nuance</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--gray-border)"></div>explicitly skipped</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="show('ch1',this)">Ch 1 · Summary Stats</button>
+    <button class="tab" onclick="show('ch2',this)">Ch 2 · Decompositions</button>
+    <button class="tab" onclick="show('ch3',this)">Ch 3 · MVN</button>
+    <button class="tab" onclick="show('ch4',this)">Ch 4 · MLE</button>
+    <button class="tab" onclick="show('ch5',this)">Ch 5 · Inference</button>
+  </div>
+
+  <!-- CH 1 -->
+  <div id="ch1" class="section active">
+    <div class="stefan-says">
+      <span class="label">Stefan's words · Ch 1</span>
+      "Chapter one is mostly introducing the concepts we need for the important stuff... if you don't understand the concept of sample mean vector, it's not going to be tested directly per se, but at some point it's going to trip you up because it's something we use all throughout... there's very very little calculation."
+    </div>
+    <div class="items">
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Sample covariance matrix — know how to write it (page 4).</strong>
+          Stefan: "It's something you maybe want to spend a little bit of time on. It's probing." Know the matrix form:
+          \((n-1)\mathbf{S} = \mathbf{X}'\mathbf{X} - n\bar{\mathbf{x}}\bar{\mathbf{x}}' = \mathbf{X}'\!\left(\mathbf{I}-\tfrac{1}{n}\mathbf{1}\mathbf{1}'\right)\!\mathbf{X}\).
+          He confirmed a past exam question asked students to write this fully — and it was not well answered.
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Deviation vectors — page 9, point 3 is the most salient point.</strong>
+          Stefan: "How can we relate the deviation vectors back to the angle between vectors? How does that relate to the correlation?" Know the three-bullet summary:
+          <ul class="sub-list">
+            <li>Projection of \(\mathbf{x}_i\) onto \(\mathbf{1}\) gives \(\bar{x}_i\); length \(\sqrt{n}|\bar{x}_i|\).</li>
+            <li>\(\mathbf{d}_i'\mathbf{d}_i = (n-1)s_{ii}\) and \(\mathbf{d}_i'\mathbf{d}_k = (n-1)s_{ik}\).</li>
+            <li><strong>Point 3 (most salient):</strong> \(r_{ik} = \cos(\theta)\) where \(\theta\) is the angle between \(\mathbf{d}_i\) and \(\mathbf{d}_k\).</li>
+          </ul>
+          "I'm not going to ask you to draw anything." The geometry is conceptual.
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Linear combinations of variables.</strong>
+          Stefan: "This is the type of thing we use later when we take linear combinations of normal random variables and put together the parameters."
+          Know: \(E(\mathbf{b}'\mathbf{X})=\mathbf{b}'\boldsymbol{\mu}\), \(\text{Var}(\mathbf{b}'\mathbf{X})=\mathbf{b}'\boldsymbol{\Sigma}\mathbf{b}\), \(\text{Cov}(\mathbf{b}'\mathbf{X},\mathbf{c}'\mathbf{X})=\mathbf{b}'\boldsymbol{\Sigma}\mathbf{c}\), and for \(\mathbf{A}\mathbf{X}\): mean \(\mathbf{A}\boldsymbol{\mu}\), covariance \(\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}'\).
+        </div>
+      </div>
+      <div class="item note">
+        <span class="badge b-note">watch</span>
+        <div class="item-body">
+          <strong>Notation announcement coming.</strong> Stefan: "Not everyone in this class did matrix methods. I'll confirm the notation — distinguish between vectors, matrices, scalars, random vectors." There is apparently confusion between random vectors and matrices. Watch for this in answers.
+        </div>
+      </div>
+      <div class="item skip">
+        <span class="badge b-skip">skip</span>
+        <div class="item-body">Plotting and graphical displays (scatterplot matrices, heatmaps, etc.) — Stefan: "We consider those during the practical aspects... during the continuous assessments." Not in this theory exam.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CH 2 -->
+  <div id="ch2" class="section">
+    <div class="stefan-says">
+      <span class="label">Stefan's words · Ch 2</span>
+      "You will definitely NOT be expected to calculate eigenvalues and eigenvectors. That was not the point of this course. This was to a large extent just to build some foundation for the PCA/CCA stuff later." ... "2.3, basically the only thing I'm highlighting." ... "The key takeaway is just showing the ability to prove that the lower-rank approximation is the best in the least-squares sense."
+    </div>
+    <div class="items">
+      <div class="item skip">
+        <span class="badge b-skip">skip</span>
+        <div class="item-body"><strong>Calculating eigenvalues and eigenvectors.</strong> Stefan explicitly: "You will definitely not be expected to calculate eigenvalues and eigenvectors." Know the concepts — what they are, what they represent geometrically — but no hand computation.</div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Know the three decompositions conceptually.</strong> Eigendecomposition \(\mathbf{A}=\mathbf{U}\mathbf{D}\mathbf{U}'\), spectral decomposition \(\mathbf{A}=\sum\lambda_i\mathbf{e}_i\mathbf{e}_i'\) (including inverse and square-root forms), and SVD \(\mathbf{A}=\mathbf{U}\boldsymbol{\Lambda}\mathbf{V}'=\sum\sqrt{\lambda_i}\mathbf{u}_i\mathbf{v}_i'\). These are used throughout (PCA, CCA) so must be solid.
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>§2.3 — Prove that the rank-\(s\) SVD truncation is the best low-rank approximation (least-squares sense).</strong>
+          Stefan confirmed this is a proof when asked directly. He also confirmed it is "something you should know" and that "sometimes rote learning is preferable — it is unavoidable." Stefan: "I wouldn't even say it's unavoidable. It is preferable."
+          <br><br>
+          Proof minimises \(\text{tr}[(\mathbf{A}-\mathbf{B})(\mathbf{A}-\mathbf{B})']\):
+          <ul class="sub-list">
+            <li>Insert \(\mathbf{U}\mathbf{U}'=\mathbf{I}\) and \(\mathbf{V}\mathbf{V}'=\mathbf{I}\): reduces to \(\text{tr}[(\boldsymbol{\Lambda}-\mathbf{C})(\boldsymbol{\Lambda}-\mathbf{C})']\) with \(\mathbf{C}=\mathbf{U}'\mathbf{B}\mathbf{V}\).</li>
+            <li>Expand: \(\sum_{i,j}(\sqrt{\lambda_{ij}}-c_{ij})^2 = \sum_i(\sqrt{\lambda_i}-c_{ii})^2 + \sum_{i\neq j}c_{ij}^2\).</li>
+            <li>Minimised when off-diagonals \(c_{ij}=0\) and \(c_{ii}=\sqrt{\lambda_i}\) for the \(s\) largest, zero otherwise.</li>
+            <li>Hence \(\mathbf{U}'\mathbf{B}\mathbf{V}=\boldsymbol{\Lambda}_s\), giving \(\mathbf{B}=\sum_{i=1}^s\sqrt{\lambda_i}\mathbf{u}_i\mathbf{v}_i'\). \(\square\)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CH 3 -->
+  <div id="ch3" class="section">
+    <div class="stefan-says">
+      <span class="label">Stefan's words · Ch 3</span>
+      "The first question in the exam, two marks, is: give the PDF of the multivariate Gaussian distribution... if you don't get two out of two for that one, I really sit there and think: am I even marking the rest of this exam? That's a huge problem." ... "Showing that generalised multivariate distance is chi-squared distributed — that's the one exception [from CA]." ... "For the conditional distribution — I would never expect you to memorise the seemingly arbitrary matrix. I would always tell you: using A defined as such, derive the distribution."
+    </div>
+    <div class="items">
+      <div class="item danger">
+        <span class="badge b-danger">Q1 · 2 marks</span>
+        <div class="item-body">
+          <strong>First question in the exam: write the PDF of the multivariate normal distribution.</strong>
+          Stefan: "If you don't get two out of two for that one I really sit there for a minute." Do not lose these marks.
+          \[f(\mathbf{x}) = (2\pi)^{-p/2}|\boldsymbol{\Sigma}|^{-1/2}\exp\!\left(-\tfrac{1}{2}(\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})\right), \quad \mathbf{x}\in\mathbb{R}^p\]
+          Know every part: normalising constant, the generalised distance in the exponent, and write \(\mathbf{X}\sim N_p(\boldsymbol{\mu},\boldsymbol{\Sigma})\).
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Constant density contours and ellipsoid geometry (§3.2.2).</strong>
+          "Constant density contours — this is quite important conceptually." Contours are ellipsoids \(\{(\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})=c^2\}\). Axes in directions of eigenvectors of \(\boldsymbol{\Sigma}\) with half-lengths \(c\sqrt{\lambda_i}\). Bivariate case: when \(\sigma_{11}=\sigma_{22}\), eigenvalues are \(\lambda_1=\sigma_{11}+\sigma_{12}\), \(\lambda_2=\sigma_{11}-\sigma_{12}\), major axis at 45°.
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>§3.3 — Show that the generalised distance is \(\chi^2_p\) distributed (Homework Exercise 3.2).</strong>
+          Stefan: "This is the one exception for the continuous assessments — absolutely critical to be able to show that." When asked if they could use either method (spectral decomp or another), he said he might ask for a specific one. Learn the spectral decomposition proof:
+          <ul class="sub-list">
+            <li>Write \(\boldsymbol{\Sigma}=\mathbf{P}\boldsymbol{\Lambda}\mathbf{P}'\). Let \(\mathbf{Y}=\boldsymbol{\Lambda}^{-1/2}\mathbf{P}'(\mathbf{X}-\boldsymbol{\mu})\).</li>
+            <li>\(\text{Cov}(\mathbf{Y})=\boldsymbol{\Lambda}^{-1/2}\mathbf{P}'\boldsymbol{\Sigma}\mathbf{P}\boldsymbol{\Lambda}^{-1/2}=\mathbf{I}_p\), so \(\mathbf{Y}\sim N_p(\mathbf{0},\mathbf{I})\).</li>
+            <li>\(\mathbf{Y}'\mathbf{Y}=\sum Y_i^2\sim\chi^2_p\). But \(\mathbf{Y}'\mathbf{Y}=(\mathbf{X}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{X}-\boldsymbol{\mu})\). \(\square\)</li>
+          </ul>
+          Consequence: \(P[(\mathbf{x}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})\leq\chi^2_p(\alpha)]=1-\alpha\).
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Properties §3.4.1–3.4.3 — go through them, used throughout.</strong>
+          Stefan: "Absolutely you should go through them, but we went through them first so we could use them later."
+          <ul class="sub-list">
+            <li><em>Linear combinations normal:</em> \(\mathbf{a}'\mathbf{X}\sim N(\mathbf{a}'\boldsymbol{\mu},\mathbf{a}'\boldsymbol{\Sigma}\mathbf{a})\); \(\mathbf{A}\mathbf{X}\sim N_q(\mathbf{A}\boldsymbol{\mu},\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}')\).</li>
+            <li><em>Subsets are MVN:</em> \(\mathbf{X}_1\sim N_q(\boldsymbol{\mu}_1,\boldsymbol{\Sigma}_{11})\).</li>
+            <li><em>Zero cov \(\Leftrightarrow\) independence</em> in MVN only: \(\boldsymbol{\Sigma}_{12}=\mathbf{0}\Leftrightarrow\mathbf{X}_1\perp\!\!\!\perp\mathbf{X}_2\).</li>
+          </ul>
+          "A linear combination of normals is normal. Just add the parameters in that way. Nothing funny there."
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>§3.4.4 — Conditional distribution of \(\mathbf{X}_1|\mathbf{X}_2\).</strong>
+          Stefan: "This is another thing we should show... going through this is a worthwhile exercise."
+          <br><strong>Key point from Stefan:</strong> "I would never expect you to go and memorise some seemingly arbitrary matrix for the purposes of proving a specific result. I would always tell you: using \(\mathbf{A}\) defined as such, derive the distribution of \(\mathbf{X}_1\) given \(\mathbf{X}_2=\mathbf{x}_2\)." So the matrix will be given — know how to use it.
+          <br><br>
+          The transformation \(\mathbf{A}=\begin{pmatrix}\mathbf{I}_q & -\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\\ \mathbf{0} & \mathbf{I}_{p-q}\end{pmatrix}\) gives \(\mathbf{A}\boldsymbol{\Sigma}\mathbf{A}'=\begin{pmatrix}\boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}&\mathbf{0}\\\mathbf{0}&\boldsymbol{\Sigma}_{22}\end{pmatrix}\). Off-diagonal \(\mathbf{0}\Rightarrow\) independence \(\Rightarrow\) derive conditional. Result:
+          \[\mathbf{X}_1|\mathbf{X}_2=\mathbf{x}_2\sim N_q\!\left(\boldsymbol{\mu}_1+\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}(\mathbf{x}_2-\boldsymbol{\mu}_2),\;\boldsymbol{\Sigma}_{11}-\boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}\right)\]
+          Bivariate simplification: \(X_1|X_2\sim N\!\left(\mu_1+\frac{\sigma_{12}}{\sigma_{22}}(x_2-\mu_2),\;\sigma_{11}-\frac{\sigma_{12}^2}{\sigma_{22}}\right)\).
+        </div>
+      </div>
+      <div class="item nb">
+        <span class="badge b-nb">NB</span>
+        <div class="item-body">
+          <strong>§3.5 — Linear combinations of random vectors.</strong>
+          Stefan: "3.5 is going to be important." If \(\mathbf{X}_1,\ldots,\mathbf{X}_n\) independent with \(\mathbf{X}_j\sim N_p(\boldsymbol{\mu}_j,\boldsymbol{\Sigma})\):
+          \(\sum c_j\mathbf{X}_j\sim N_p(\sum c_j\boldsymbol{\mu}_j,(\sum c_j^2)\boldsymbol{\Sigma})\).
+          Independence of \(\mathbf{V}_1=\sum c_j\mathbf{X}_j\) and \(\mathbf{V}_2=\sum b_j\mathbf{X}_j\) when \(\mathbf{b}'\mathbf{c}=0\). Also look at exercise 3.6.
+        </div>
+      </div>
+      <div class="item note">
+        <span class="badge b-note">watch</span>
+        <div class="item-body">
+          Stefan said he might specify which proof method to use for §3.3 (spectral decomp vs another). He said "I could ask you either specifically." Know the spectral decomposition proof as the primary one.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CH 4 -->
+  <div id="ch4" class="section">
+    <div class="stefan-says">
+      <span class="label">Stefan's words · Ch 4</span>
+      "Will the appendix theorems be given? Yes yes yes yes yes yes yes yes yes yes — no." [The 'no' was to showing the max is not a saddle point.] "After getting the MLE of sigma, the rest of page 37, you can skip, page 38 up to where we finished by saying this is indeed a maximum." ... "Wishart — please for the love of God don't go and memorise stuff like that. But you must know at least the basics."
+    </div>
+    <div class="items">
+      <div class="item nb">
+        <span class="badge b-nb">NB</span>
+        <div class="item-body">
+          <strong>Theorems A.1–A.4 in Appendix A will be given in the exam.</strong>
+          Stefan confirmed this emphatically. You do not need to memorise or prove these — but you must know how to apply them. Theorem A.1: \(\partial(\mathbf{x}'\mathbf{A}\mathbf{x})/\partial\mathbf{x}=2\mathbf{A}\mathbf{x}\). A.2: \(\partial\log|\mathbf{A}|/\partial\mathbf{A}=(\mathbf{A}^{-1})'\). A.3: \(\partial\text{tr}(\mathbf{A}\mathbf{B})/\partial\mathbf{B}=\mathbf{A}'\). A.4: block determinant identity (used in Ch 5).
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Log-likelihood derivation — the summation identity.</strong>
+          Key step: rewrite \(\sum(\mathbf{x}_j-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x}_j-\boldsymbol{\mu}) = \text{tr}[\boldsymbol{\Sigma}^{-1}\mathbf{A}]+n(\bar{\mathbf{x}}-\boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})\) where \(\mathbf{A}=(n-1)\mathbf{S}\). Uses the trace trick \(\mathbf{a}'\mathbf{B}\mathbf{a}=\text{tr}(\mathbf{B}\mathbf{a}\mathbf{a}')\). Stefan confirmed this result is used again in Ch 5.
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>MLE of \(\boldsymbol{\mu}\): \(\hat{\boldsymbol{\mu}}=\bar{\mathbf{x}}\).</strong>
+          Using Theorem A.1 (given): \(\partial\ell/\partial\boldsymbol{\mu}=n\boldsymbol{\Sigma}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})=\mathbf{0}\Rightarrow\hat{\boldsymbol{\mu}}=\bar{\mathbf{x}}\). Second derivative \(-n\boldsymbol{\Sigma}^{-1}\) is negative definite \(\Rightarrow\) maximum.
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>MLE of \(\boldsymbol{\Sigma}\): \(\hat{\boldsymbol{\Sigma}}=\frac{1}{n}\mathbf{A}=\frac{n-1}{n}\mathbf{S}\).</strong>
+          Using Theorems A.2 and A.3 (given): rewrite \(\ell\) using \(\log|\boldsymbol{\Sigma}^{-1}|\), then \(\partial\ell/\partial\boldsymbol{\Sigma}^{-1}=\frac{n}{2}\hat{\boldsymbol{\Sigma}}-\frac{1}{2}\mathbf{A}'=\mathbf{0}\Rightarrow\hat{\boldsymbol{\Sigma}}=\frac{1}{n}\mathbf{A}\).
+        </div>
+      </div>
+      <div class="item skip">
+        <span class="badge b-skip">skip</span>
+        <div class="item-body"><strong>Showing the MLE is a maximum not a saddle point (pages 37–38).</strong> Stefan explicitly: "After getting the MLE of sigma, the rest of page 37, skip. Page 38 up to where we finish saying it's indeed a maximum — skip." The reparametrisation via eigenvalues \(\lambda_i=n\) argument is NOT required.</div>
+      </div>
+      <div class="item nb">
+        <span class="badge b-nb">NB</span>
+        <div class="item-body">
+          <strong>Bias of \(\hat{\boldsymbol{\Sigma}}\) — explicitly flagged in both sources.</strong>
+          \(E(\hat{\boldsymbol{\Sigma}})=\frac{n-1}{n}\boldsymbol{\Sigma}\neq\boldsymbol{\Sigma}\). The MLE is biased. Unbiased estimator is \(\mathbf{S}\) (denominator \(n-1\)).
+        </div>
+      </div>
+      <div class="item nb">
+        <span class="badge b-nb">NB</span>
+        <div class="item-body">
+          <strong>Maximised likelihood — substitute MLEs back in.</strong>
+          Stefan: "Substituting in the MLEs to get the actual maximized likelihood — that is important in Chapter 5 later when we do the likelihood ratio stuff." Result:
+          \[L(\hat{\boldsymbol{\mu}},\hat{\boldsymbol{\Sigma}}) = (2\pi)^{-np/2}\left(\tfrac{1}{n}\right)^{n/2}|\mathbf{A}|^{-n/2}e^{-np/2}\]
+          This is used directly in the LRT numerator/denominator in §5.3.
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>Sampling distributions — Wishart basics.</strong>
+          Stefan: "You must know at least the basics of the distribution of the sample covariance matrix." For i.i.d. \(N_p(\boldsymbol{\mu},\boldsymbol{\Sigma})\) sample:
+          \(\bar{\mathbf{X}}\sim N_p(\boldsymbol{\mu},\frac{1}{n}\boldsymbol{\Sigma})\), \((n-1)\mathbf{S}\sim W_p(n-1,\boldsymbol{\Sigma})\), \(\bar{\mathbf{X}}\perp\!\!\!\perp\mathbf{S}\).
+          Wishart key property: \(W_1(n,\sigma^2)=\sigma^2\chi^2_n\). Large sample: \(n(\bar{\mathbf{X}}-\boldsymbol{\mu})'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu})\dot{\sim}\chi^2_p\).
+        </div>
+      </div>
+      <div class="item skip">
+        <span class="badge b-skip">skip</span>
+        <div class="item-body"><strong>§4.4 Testing normality.</strong> Stefan: "Tested in the minutiae of assessments already. I consider that done." QQ-plots, chi-square plots — assessed in CA. Not in this exam.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CH 5 -->
+  <div id="ch5" class="section">
+    <div class="stefan-says">
+      <span class="label">Stefan's words · Ch 5</span>
+      "5.2, I'm just going to say yes yes yes yes yes yes and scroll." ... "5.3 — you must be able to reproduce exactly what we did here." ... "The link between Wilks' lambda and Hotelling T-squared — this is a good relationship to be able to show." ... When asked about the two-determinants form (bottom of page 51): "Yes, that also." [Confirmed the little two-line formula at the bottom of page 51 is needed.]
+    </div>
+    <div class="items">
+      <div class="item skip">
+        <span class="badge b-skip">skip</span>
+        <div class="item-body"><strong>§5.1 Univariate analogy.</strong> Stefan: "I've considered that one [already assessed]." The univariate \(t\)-test setup is background — not directly tested.</div>
+      </div>
+      <div class="item nb">
+        <span class="badge b-nb">NB</span>
+        <div class="item-body">
+          <strong>§5.2 — Hotelling's \(T^2\): everything.</strong>
+          Stefan: "5.2, yes yes yes yes yes yes." Definition, distribution, rejection rule, example:
+          \[T^2 = n(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)'\mathbf{S}^{-1}(\bar{\mathbf{X}}-\boldsymbol{\mu}_0)\sim\frac{(n-1)p}{n-p}F_{p,n-p}\]
+          Reject \(H_0:\boldsymbol{\mu}=\boldsymbol{\mu}_0\) when \(\frac{n-p}{(n-1)p}T^2>F_{p,n-p}(\alpha)\). Also know the invariance result.
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>§5.3 — Full LRT derivation: likelihood ratio, restricted MLE of \(\boldsymbol{\Sigma}\), Wilks' \(\Lambda\).</strong>
+          Stefan: "You must be able to reproduce exactly what we did here in 5.3." Steps:
+          <ul class="sub-list">
+            <li>Define LRT: \(\Lambda = \max_{\Theta_0}L/\max_\Theta L\). Unrestricted maximum from Ch 4 is known.</li>
+            <li>Restricted MLE under \(H_0\): \(\hat{\boldsymbol{\Sigma}}_0=\frac{1}{n}[\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)']\). Derive this similarly to Ch 4 MLE.</li>
+            <li>Show \(\sum(\mathbf{x}_j-\boldsymbol{\mu}_0)'\hat{\boldsymbol{\Sigma}}_0^{-1}(\mathbf{x}_j-\boldsymbol{\mu}_0)=np\) (so the exponential terms cancel).</li>
+            <li>Wilks' \(\Lambda^{2/n}=|\hat{\boldsymbol{\Sigma}}|/|\hat{\boldsymbol{\Sigma}}_0|=|\mathbf{A}|/|\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'|\).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="item proof">
+        <span class="badge b-proof">proof</span>
+        <div class="item-body">
+          <strong>§5.3.1 — Link between \(\Lambda\) and \(T^2\) using Theorem A.4 (given).</strong>
+          Stefan: "A good relationship to be able to show. I would definitely say use the matrix B and this relationship." He also confirmed the bottom of page 51 (the two-determinants form) is needed.
+          <br><br>
+          Construct \(\mathbf{B}=\begin{pmatrix}\mathbf{A}&\sqrt{n}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)\\\sqrt{n}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'&-1\end{pmatrix}\), apply Theorem A.4 both ways:
+          \[\frac{|\mathbf{A}|}{|\mathbf{A}+n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)'|}=\left(1+\frac{T^2}{n-1}\right)^{-1}\]
+          Therefore: \(\Lambda^{2/n}=\left(1+\frac{T^2}{n-1}\right)^{-1}\).
+          <br><br>
+          <strong>Two-determinants form (bottom of p. 51 — Stefan confirmed this too):</strong>
+          \[T^2 = \frac{(n-1)\left|\sum_{j=1}^n(\mathbf{x}_j-\boldsymbol{\mu}_0)(\mathbf{x}_j-\boldsymbol{\mu}_0)'\right|}{\left|\sum_{j=1}^n(\mathbf{x}_j-\bar{\mathbf{x}})(\mathbf{x}_j-\bar{\mathbf{x}})'\right|} - (n-1)\]
+          This form computes \(T^2\) from two determinants without inverting \(\mathbf{S}\).
+        </div>
+      </div>
+      <div class="item must">
+        <span class="badge b-must">must</span>
+        <div class="item-body">
+          <strong>§5.4 — Confidence region for \(\boldsymbol{\mu}\).</strong>
+          Stefan brought us to chapter 5 covering this. The \(100(1-\alpha)\%\) ellipsoidal confidence region:
+          \[n(\bar{\mathbf{x}}-\boldsymbol{\mu})'\mathbf{S}^{-1}(\bar{\mathbf{x}}-\boldsymbol{\mu})\leq\frac{(n-1)p}{n-p}F_{p,n-p}(\alpha)\]
+          Axes: eigenvectors \(\mathbf{e}_i\) of \(\mathbf{S}\), half-lengths \(\pm\sqrt{\lambda_i}\sqrt{\frac{p(n-1)}{n(n-p)}F_{p,n-p}(\alpha)}\).
+        </div>
+      </div>
+      <div class="item note">
+        <span class="badge b-note">watch</span>
+        <div class="item-body">
+          <strong>§5.5 Simultaneous \(T^2\) intervals / §5.6 Bonferroni.</strong>
+          Stefan's audio is ambiguous here — he said "I've considered that one, I'm going to test it correctly" in a way that is not clearly skip or include. The handwritten note says "no point in simultaneous CIs." Bonferroni is simpler and more likely — know the form \(\bar{x}_i\pm t_{n-1}(\alpha/2p)\sqrt{s_{ii}/n}\) and why one-at-a-time \(t\)-intervals fail.
+        </div>
+      </div>
+      <div class="item note">
+        <span class="badge b-note">watch</span>
+        <div class="item-body">
+          <strong>§5.8 Repeated measures.</strong> Not explicitly mentioned in the audio. Your handwritten note flagged it as NB. Given the audio is the primary source and it wasn't mentioned, treat it as lower priority — but know the contrast matrix \(\mathbf{C}\) setup and \(T^2=n(\mathbf{C}\bar{\mathbf{X}})'(\mathbf{C}\mathbf{S}\mathbf{C}')^{-1}(\mathbf{C}\bar{\mathbf{X}})\) since it's a direct application of §5.2.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="footer">STA2005S · Section A · Stefan Britz · Rebuilt from audio briefing 06 Jun 2026 · No R in exam</div>
+<script>
+function show(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

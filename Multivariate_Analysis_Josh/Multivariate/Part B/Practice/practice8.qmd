@@ -1,0 +1,190 @@
+---
+title: "practice8"
+format: html
+---
+
+```{r}
+library(knitr)
+library(dplyr)
+```
+
+```{r}
+if (!requireNamespace("DataTidy23RodoSTA2005SAssignment", quietly = TRUE)) {
+if (!requireNamespace("remotes", quietly = TRUE)) {
+utils::install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoSTA2005SAssignment")
+}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+install.packages("tibble")
+}
+library(tibble) # ensures dataframes print more informatively and concisely than standard met
+data("data_tidy_yield", package = "DataTidyRodoSTA2005S")
+```
+
+# Q1
+
+```{r}
+dat = data_tidy_yield
+
+y_maize = dat$CropYield
+X_ph_w = cbind(1, dat$SoilPH, dat$DistanceToWater) 
+Bhat1 = solve(t(X_ph_w) %*% X_ph_w) %*% t(X_ph_w) %*% y_maize
+
+y_sl = dat$Sunlight
+Bhat2 = solve(t(X_ph_w) %*% X_ph_w) %*% t(X_ph_w) %*% y_sl
+
+df1 = data.frame(Bhat1, Bhat2)
+kable(df1, digits = 4)
+
+Y = cbind(y_maize, y_sl)
+Bhat = solve(t(X_ph_w) %*% X_ph_w) %*% t(X_ph_w) %*% Y
+df2 = data.frame(Bhat) 
+kable(df2, digits = 4)
+```
+
+# b
+
+```{r}
+y_temp = as.matrix(dat$TempC)
+X_ph = cbind(1, dat$SoilPH) 
+Bhat_temp = solve(t(X_ph) %*% X_ph) %*% t(X_ph) %*% y_temp
+yhat_temp = X_ph %*% Bhat_temp
+
+n = nrow(y_temp)
+k = ncol(X_ph)
+
+s = 1/(n-k) * t(y_temp - yhat_temp) %*% (y_temp - yhat_temp)
+
+se = sqrt(s * solve(t(X_ph) %*% X_ph)[2,2]) # 2,2 as co for soil not intercept
+tcrit = qt(0.975, df = n-k)
+
+upper = Bhat_temp[2,1] + tcrit * se
+lower = Bhat_temp[2,1] - tcrit * se
+
+CI = data.frame("Estimate" = Bhat_temp[2,1], upper, lower)
+kable(CI, digit = 4)
+```
+
+# c
+
+```{r}
+k = ncol(X_ph_w)
+coeffs = as.matrix(Bhat1[2:3])
+q = nrow(coeffs)
+C11 = solve(t(X_ph_w) %*% X_ph_w)[2:3,2:3]
+
+yhat_maize = X_ph_w %*% Bhat1
+s = 1/(n-k) * t(y_maize - yhat_maize) %*% (y_maize - yhat_maize)
+
+Fstat = (t(coeffs) %*% solve(C11) %*% coeffs) / (q * s)
+pval = pf(Fstat, q, n-k)
+df = data.frame(Fstat, pval)
+kable(df)
+```
+
+# d
+
+```{r}
+Yhat_f = X_ph_w %*% Bhat
+full = 1/n * t(Y - Yhat_f) %*% (Y - Yhat_f)
+
+X_r = X_ph_w[,-2] # Tetsing for ph therefore see what it is like w/o it
+Beta_r = solve(t(X_r) %*% X_r) %*% t(X_r) %*% Y
+Yhat_r = X_r %*% Beta_r
+restricted = 1/n * t(Y - Yhat_r) %*% (Y - Yhat_r)
+
+k = ncol(X_ph_w)
+r = ncol(Y)
+p = k - 1
+q = k - ncol(X_r)
+
+wilks = (det(full) / det(restricted))
+Chi = -(n - k - 0.5 * (r - p + q + 1)) * log(wilks) # Worng theyve left out the ^ (2/n)
+pval = pchisq(Chi, r*q, lower.tail = FALSE)
+
+df = data.frame(wilks, Chi, pval)
+kable(df, digit = 4)
+```
+
+# Question 2
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+```
+
+## MLR
+
+```{r}
+mali = data_tidy_mali
+Y = mali$cotton
+X = as.matrix(cbind(1, mali[-3]))
+
+Betahat = solve(t(X) %*% X) %*% t(X) %*% Y
+beta_df = data.frame(Betahat)
+kable(beta_df, digits = 4)
+Yhat = X %*% Betahat
+
+SSE = sum((Y - Yhat)^2) 
+SST = sum((Y - mean(Y))^2)
+  
+MLR_R2 = 1 - SSE / SST
+MLR_R2
+```
+
+## PCR
+
+```{r}
+#mali_scaled = scale(mali)
+#svd_stuff = svd(mali_scaled)
+X_scaled = scale(X[,-1])
+svd_stuff = svd(X_scaled)
+vars = svd_stuff$d^2
+total_var = sum(vars)
+prop = vars / total_var
+
+plot(prop, type = "b")
+abline(v = 3, col = "blue")
+
+#X_scaled = scale(X[,-1])
+PC_loadings = svd_stuff$v[,1:3]
+scores = cbind(1, X_scaled %*% PC_loadings)
+PC_Betahat = solve(t(scores) %*% scores) %*% t(scores) %*% Y
+PC_beta_df = data.frame(PC_Betahat)
+kable(PC_beta_df, digits = 4)
+
+PC_Yhat = scores %*% PC_Betahat
+
+SSE_pcr = sum((Y - PC_Yhat)^2)
+
+PCR_R2 = 1 - SSE_pcr/SST
+PCR_R2
+```
+
+# PLS
+
+```{r}
+library(pls)
+
+mali_df = data.frame(mali)
+pls_fit = plsr(cotton ~ ., 
+               data = mali_df, 
+               validation = "CV",
+               scale = TRUE)
+
+validationplot(pls_fit, val.type = "MSEP", 
+               main = "PLS CV Error by Components",
+               legend = FALSE)
+
+best_ncomp = 2
+
+pls_coef = coef(pls_fit, ncomp = best_ncomp, intercept = TRUE)
+yhat_pls = predict(pls_fit, ncomp = best_ncomp, newdata = mali_df)
+SSE_pls  = sum((Y - yhat_pls)^2)
+R2_pls   = 1 - SSE_pls / SST
+R2_pls
+```

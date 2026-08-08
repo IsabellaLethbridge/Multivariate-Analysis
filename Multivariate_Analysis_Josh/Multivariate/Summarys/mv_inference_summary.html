@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multivariate Inference — Summary Sheet</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: #d8d2c8;
+    --border-strong: #b8b0a0;
+    --text: #1a1714;
+    --text-muted: #6b6560;
+    --text-faint: #9e9890;
+    --teal: #0f6e56;
+    --teal-light: #e1f5ee;
+    --teal-mid: #1d9e75;
+    --purple: #3c3489;
+    --purple-light: #eeedfe;
+    --coral: #993c1d;
+    --coral-light: #faece7;
+    --amber: #854f0b;
+    --amber-light: #faeeda;
+    --blue: #185fa5;
+    --blue-light: #e6f1fb;
+    --accent: #0f6e56;
+    --rule: #c8c0b0;
+  }
+
+  body {
+    font-family: 'EB Garamond', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.75;
+    padding: 3rem 2rem;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid var(--text);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+  }
+  .course-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+  .subtitle {
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+
+  /* Section headings */
+  .section {
+    margin-bottom: 2.5rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    min-width: 2rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+    flex: 1;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .card-sub {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Badges */
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .b-teal   { background: var(--teal-light);   color: var(--teal); }
+  .b-purple { background: var(--purple-light);  color: var(--purple); }
+  .b-coral  { background: var(--coral-light);   color: var(--coral); }
+  .b-amber  { background: var(--amber-light);   color: var(--amber); }
+  .b-blue   { background: var(--blue-light);    color: var(--blue); }
+
+  /* Formula boxes */
+  .fbox {
+    background: var(--surface2);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    padding: 0.75rem 1rem;
+    margin: 0.6rem 0;
+    overflow-x: auto;
+  }
+  .fbox.teal   { border-left-color: var(--teal-mid); }
+  .fbox.purple { border-left-color: var(--purple); }
+  .fbox.coral  { border-left-color: var(--coral); }
+  .fbox.amber  { border-left-color: var(--amber); }
+  .fbox.blue   { border-left-color: var(--blue); }
+
+  /* Example blocks */
+  .eg {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    border-left: 2px solid var(--border);
+    padding-left: 0.75rem;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+  .eg strong { color: var(--text); font-style: normal; }
+
+  /* Key insight boxes */
+  .insight {
+    background: var(--teal-light);
+    border: 1px solid #9fe1cb;
+    border-radius: 6px;
+    padding: 0.9rem 1.25rem;
+    margin: 0.75rem 0;
+    font-size: 0.92rem;
+  }
+  .insight-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+
+  /* Warning/note boxes */
+  .note {
+    background: var(--amber-light);
+    border: 1px solid #fac775;
+    border-radius: 6px;
+    padding: 0.9rem 1.25rem;
+    margin: 0.75rem 0;
+    font-size: 0.92rem;
+  }
+  .note-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+
+  /* Grid layouts */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  /* Comparison table */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 0.75rem 0;
+  }
+  .comp-table th {
+    background: var(--surface2);
+    font-weight: 600;
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+    border: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .comp-table td {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .comp-table tr:nth-child(even) td { background: #faf8f4; }
+
+  /* Width ordering bar */
+  .width-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+  }
+  .wb-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+  .wb-arrow {
+    color: var(--text-faint);
+    font-size: 1.2rem;
+    padding: 0 0.25rem;
+  }
+  .wb-t   { background: var(--teal-light);   border-radius: 4px; color: var(--teal); }
+  .wb-b   { background: var(--amber-light);  border-radius: 4px; color: var(--amber); }
+  .wb-s   { background: var(--coral-light);  border-radius: 4px; color: var(--coral); }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+
+  /* KaTeX sizing */
+  .katex { font-size: 1.05em; }
+  .katex-display { margin: 0.2em 0; }
+
+  /* Monospace inline */
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85em;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.82rem;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 1.5rem; background: white; }
+    .card { break-inside: avoid; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <span class="course-tag">Honours Multivariate Analysis · Lecture 5</span>
+      <span class="course-tag">UCT · 2025</span>
+    </div>
+    <h1>Multivariate Inference</h1>
+    <div class="subtitle">Hotelling's T², Wilks' Λ, invariance, confidence regions and intervals</div>
+  </div>
+
+  <!-- SECTION 1: Hotelling's T^2 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Hotelling's T² statistic</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-teal">definition</span>
+        <span class="card-title">One-sample test of the mean vector</span>
+      </div>
+      <div class="card-sub">$H_0: \boldsymbol{\mu} = \boldsymbol{\mu}_0 \quad \text{vs} \quad H_1: \boldsymbol{\mu} \neq \boldsymbol{\mu}_0, \quad \mathbf{X}_1,\ldots,\mathbf{X}_n \sim N_p(\boldsymbol{\mu}, \boldsymbol{\Sigma})$</div>
+      <div class="fbox teal">$$T^2 = n(\bar{\mathbf{x}} - \boldsymbol{\mu}_0)^\prime \mathbf{S}^{-1}(\bar{\mathbf{x}} - \boldsymbol{\mu}_0) = n \cdot D^2(\bar{\mathbf{x}}, \boldsymbol{\mu}_0)$$</div>
+      <div class="fbox teal">$$T^2 \sim \frac{(n-1)p}{n-p}\,F_{p,\,n-p} \qquad \text{Reject } H_0 \text{ if } T^2 > \frac{(n-1)p}{n-p}\,F_{p,\,n-p}(\alpha)$$</div>
+      <div class="eg"><strong>Sweat example:</strong> $n=20$, $p=3$, $\boldsymbol{\mu}_0 = (4, 50, 10)^\prime$. Computed $T^2 = 9.74$, $p\text{-value} = 0.065$. Fail to reject at 5% — the hypothesised mean is plausible.</div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-label">Key idea</div>
+      $T^2$ measures the squared <em>Mahalanobis distance</em> between $\bar{\mathbf{x}}$ and $\boldsymbol{\mu}_0$, scaled by $n$. It is the multivariate analogue of $t^2 = n(\bar{x} - \mu_0)^2/s^2$. The $\mathbf{S}^{-1}$ term accounts for variance and correlation — distances in high-variance directions are down-weighted.
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-teal">derivation</span>
+        <span class="card-title">Why $T^2 \sim F$ and not $\chi^2$</span>
+      </div>
+      <div class="fbox teal">$$T^2 = N_p(\mathbf{0},\boldsymbol{\Sigma})^\prime \left[\frac{1}{n-1}W_{p,n-1}(\boldsymbol{\Sigma})\right]^{-1} N_p(\mathbf{0},\boldsymbol{\Sigma}) = \frac{\chi^2_p}{\chi^2_{n-1}/(n-1)}$$</div>
+      <p style="font-size:0.9rem; margin-top:0.5rem;">$\boldsymbol{\Sigma}$ is <em>unknown</em> and estimated by $\mathbf{S}$. The Wishart matrix $(n-1)\mathbf{S} \sim W_{p,n-1}(\boldsymbol{\Sigma})$ plays the role of $\chi^2_{n-1}$ in the denominator of the univariate $F$. As $n \to \infty$, $\mathbf{S} \to \boldsymbol{\Sigma}$ and $T^2 \xrightarrow{d} \chi^2_p$.</p>
+      <div class="fbox teal">$$\frac{n-p}{(n-1)p}\,T^2 \sim F_{p,\,n-p} \qquad \Longrightarrow \qquad \text{p-value} = 1 - \texttt{pf}\!\left(\frac{n-p}{(n-1)p}T^2,\; p,\; n-p\right)$$</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-teal">repeated measures</span>
+        <span class="card-title">Testing equality of means across $q$ time points</span>
+      </div>
+      <div class="card-sub">$H_0: \boldsymbol{\mu}_1 = \boldsymbol{\mu}_2 = \cdots = \boldsymbol{\mu}_q \iff H_0: \mathbf{C}\boldsymbol{\mu} = \mathbf{0}$</div>
+      <div class="fbox teal">$$\mathbf{Y} = \mathbf{C}\mathbf{X} \sim N_{q-1}(\mathbf{C}\boldsymbol{\mu},\, \mathbf{C}\boldsymbol{\Sigma}\mathbf{C}^\prime)$$</div>
+      <div class="fbox teal">$$T^2 = n(\mathbf{C}\bar{\mathbf{x}})^\prime(\mathbf{C}\mathbf{S}\mathbf{C}^\prime)^{-1}(\mathbf{C}\bar{\mathbf{x}}) \sim \frac{(n-1)(q-1)}{n-q+1}\,F_{q-1,\,n-q+1}$$</div>
+      <div class="eg">The contrast matrix $\mathbf{C}$ encodes differences between time points. Two common choices: all vs first ($\mu_1 - \mu_i$) or successive ($\mu_i - \mu_{i+1}$). Both give the same test decision.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Invariance -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Invariance of $T^2$</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-purple">theorem</span>
+        <span class="card-title">$T^2$ is invariant under linear transformations</span>
+      </div>
+      <div class="card-sub">Let $\mathbf{Y} = \mathbf{C}\mathbf{X} + \mathbf{d}$ where $\mathbf{C}_{p\times p}$ is non-singular and $\mathbf{d}_{p\times 1}$ is a constant vector.</div>
+      <div class="fbox purple">$$T^2_Y = n(\bar{\mathbf{y}} - \mathbf{C}\boldsymbol{\mu}_0 - \mathbf{d})^\prime \mathbf{S}_Y^{-1}(\bar{\mathbf{y}} - \mathbf{C}\boldsymbol{\mu}_0 - \mathbf{d}) = T^2_X$$</div>
+      <p style="font-size:0.9rem; margin-top:0.6rem; margin-bottom:0.4rem;"><strong>Proof sketch:</strong> since $\bar{\mathbf{y}} = \mathbf{C}\bar{\mathbf{x}} + \mathbf{d}$ and $\mathbf{S}_Y = \mathbf{C}\mathbf{S}_X\mathbf{C}^\prime$,</p>
+      <div class="fbox purple">$$T^2_Y = n[\mathbf{C}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)]^\prime (\mathbf{C}\mathbf{S}_X\mathbf{C}^\prime)^{-1}[\mathbf{C}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)] = n(\bar{\mathbf{x}}-\boldsymbol{\mu}_0)^\prime \mathbf{C}^\prime(\mathbf{C}^\prime)^{-1}\mathbf{S}_X^{-1}\mathbf{C}^{-1}\mathbf{C}(\bar{\mathbf{x}}-\boldsymbol{\mu}_0) = T^2_X$$</div>
+      <div class="insight">
+        <div class="insight-label">Implication</div>
+        Changing units of measurement (e.g. cm to inches), re-centering, or rotating the data does not change the test statistic or its conclusion. The test is about the geometry of the data, not the coordinate system.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Wilks Lambda and LRT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Likelihood ratio test and Wilks' $\Lambda$</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-coral">LRT</span>
+        <span class="card-title">General likelihood ratio framework</span>
+      </div>
+      <div class="fbox coral">$$\Lambda = \frac{\max_{\theta \in \Theta_0} L(\theta)}{\max_{\theta \in \Theta} L(\theta)} \in [0,1] \qquad \text{Reject } H_0 \text{ if } \Lambda < c_\alpha$$</div>
+      <div class="fbox coral">$$-2\log(\Lambda) \xrightarrow{d} \chi^2_{\nu - \nu_0} \quad \text{as } n \to \infty, \quad \nu - \nu_0 = \dim(\Theta) - \dim(\Theta_0)$$</div>
+      <div class="eg"><strong>Intuition:</strong> $\Lambda \approx 1$ means restricting to $H_0$ barely reduces the likelihood — plausible. $\Lambda \approx 0$ means the restricted model is far worse — implausible. This is a <em>relative likelihood</em> comparison, analogous to a difference in deviances.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-coral">derivation</span>
+        <span class="card-title">Restricted MLE under $H_0: \boldsymbol{\mu} = \boldsymbol{\mu}_0$</span>
+      </div>
+      <p style="font-size:0.9rem; margin-bottom:0.5rem;">Maximising $L(\boldsymbol{\mu}_0, \boldsymbol{\Sigma})$ over $\boldsymbol{\Sigma}$ only (since $\boldsymbol{\mu}$ is fixed at $\boldsymbol{\mu}_0$):</p>
+      <div class="fbox coral">$$\hat{\boldsymbol{\Sigma}}_0 = \frac{1}{n}\sum_{j=1}^n(\mathbf{x}_j - \boldsymbol{\mu}_0)(\mathbf{x}_j - \boldsymbol{\mu}_0)^\prime = \underbrace{\hat{\boldsymbol{\Sigma}}}_{\text{unrestricted MLE}} + \underbrace{(\bar{\mathbf{x}} - \boldsymbol{\mu}_0)(\bar{\mathbf{x}} - \boldsymbol{\mu}_0)^\prime}_{\text{does not vanish since }\boldsymbol{\mu}_0 \neq \bar{\mathbf{x}}}$$</div>
+      <div class="note">
+        <div class="note-label">Why the extra term doesn't vanish</div>
+        In the unrestricted MLE, $\hat{\boldsymbol{\mu}} = \bar{\mathbf{x}}$ is chosen to minimise residuals — so $(\bar{\mathbf{x}} - \hat{\boldsymbol{\mu}}) = \mathbf{0}$ exactly. Under $H_0$, $\boldsymbol{\mu}_0$ is fixed and generally $\boldsymbol{\mu}_0 \neq \bar{\mathbf{x}}$, so the cross-product term remains.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-coral">Wilks' $\Lambda$</span>
+        <span class="card-title">The LRT statistic for the mean vector test</span>
+      </div>
+      <div class="fbox coral">$$\Lambda^{2/n} = \frac{|\hat{\boldsymbol{\Sigma}}|}{|\hat{\boldsymbol{\Sigma}}_0|} = \frac{|\mathbf{A}|}{|\mathbf{A} + n(\bar{\mathbf{x}} - \boldsymbol{\mu}_0)(\bar{\mathbf{x}} - \boldsymbol{\mu}_0)^\prime|}$$</div>
+      <p style="font-size:0.9rem; margin: 0.5rem 0;">The $\frac{1}{n}$'s cancel since $|\alpha \mathbf{A}| = \alpha^p|\mathbf{A}|$ pulls $\left(\frac{1}{n}\right)^p$ from both numerator and denominator, leaving an $n$ in front of the outer product in the denominator.</p>
+      <div class="fbox coral">$$\Lambda^{2/n} = \left(1 + \frac{T^2}{n-1}\right)^{-1} \quad \Longleftrightarrow \quad T^2 = (n-1)\!\left(\frac{1}{\Lambda^{2/n}} - 1\right)$$</div>
+      <div class="insight">
+        <div class="insight-label">Equivalence</div>
+        The $T^2$ test and the LRT are <em>identical</em> for testing $H_0: \boldsymbol{\mu} = \boldsymbol{\mu}_0$. They always give the same decision. Use $T^2$ when testing means (exact, finite-sample $F$ distribution); use LRT when testing $\boldsymbol{\Sigma}$ or any parameter where no purpose-built exact test exists (relies on large-sample $\chi^2$ approximation).
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-coral">comparison</span>
+        <span class="card-title">$T^2$ vs LRT — when to use which</span>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Hotelling's $T^2$</th>
+            <th>Likelihood ratio test</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Tests</strong></td><td>Hypotheses about $\boldsymbol{\mu}$</td><td>Any parameter in any model</td></tr>
+          <tr><td><strong>Distribution</strong></td><td>Exact $F_{p,n-p}$ under MVN</td><td>Approximate $\chi^2_{\nu-\nu_0}$ for large $n$</td></tr>
+          <tr><td><strong>Requires large $n$?</strong></td><td>No — exact for any $n$</td><td>Yes — asymptotic result</td></tr>
+          <tr><td><strong>Needs $\mathbf{S}^{-1}$?</strong></td><td>Yes (or via determinants)</td><td>No — uses determinant ratio</td></tr>
+          <tr><td><strong>Use for $\boldsymbol{\Sigma}$?</strong></td><td>No</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 4: Confidence Regions -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Confidence ellipsoid for $\boldsymbol{\mu}$</h2>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-blue">confidence region</span>
+        <span class="card-title">$100(1-\alpha)\%$ ellipsoid for the mean vector</span>
+      </div>
+      <div class="fbox blue">$$\left\{\boldsymbol{\mu} : n(\bar{\mathbf{x}} - \boldsymbol{\mu})^\prime \mathbf{S}^{-1}(\bar{\mathbf{x}} - \boldsymbol{\mu}) \leq \frac{(n-1)p}{n-p}\,F_{p,\,n-p}(\alpha)\right\}$$</div>
+      <p style="font-size:0.9rem; margin: 0.5rem 0;">The ellipsoid is centred at $\bar{\mathbf{x}}$ and its axes come from the eigendecomposition $\mathbf{S}\mathbf{e}_i = \lambda_i\mathbf{e}_i$:</p>
+      <div class="fbox blue">$$\text{Axes: } \pm\underbrace{\sqrt{\lambda_i}}_{\text{relative length}}\underbrace{\sqrt{\frac{p(n-1)}{n(n-p)}\,F_{p,n-p}(\alpha)}}_{c \text{ — critical value scaling}}\,\mathbf{e}_i$$</div>
+      <div class="insight">
+        <div class="insight-label">Frequentist interpretation</div>
+        $\boldsymbol{\mu}$ is <em>fixed</em>. The data, $\bar{\mathbf{x}}$ and $\mathbf{S}$ are random — so the ellipsoid shifts and rotates every resample. Across many resamples, 95% of those ellipsoids contain the fixed true $\boldsymbol{\mu}$. The 5% that miss do so because $\bar{\mathbf{x}}$ was pulled too far from $\boldsymbol{\mu}$ by an unrepresentative sample.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-blue">scaling</span>
+        <span class="card-title">How $c$ changes with sample size</span>
+      </div>
+      <div class="grid2">
+        <div>
+          <div class="fbox blue" style="margin-bottom:0.5rem">$$c_{\text{small}\,n} = \sqrt{\frac{p(n-1)}{n(n-p)}\,F_{p,n-p}(\alpha)}$$</div>
+          <p style="font-size:0.85rem;">Exact under MVN for any $n$. Extra factor accounts for randomness in $\mathbf{S}$.</p>
+        </div>
+        <div>
+          <div class="fbox blue" style="margin-bottom:0.5rem">$$c_{\text{large}\,n} = \sqrt{\chi^2_p(\alpha)}$$</div>
+          <p style="font-size:0.85rem;">Valid as $n \to \infty$ since $\mathbf{S} \to \boldsymbol{\Sigma}$ and $\frac{p(n-1)}{n(n-p)}F_{p,n-p}(\alpha) \to \chi^2_p(\alpha)$.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: The 3 CIs -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Three approaches to confidence intervals for $\boldsymbol{\mu}$</h2>
+    </div>
+
+    <!-- Width ordering bar -->
+    <div style="margin-bottom: 1.25rem;">
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem; font-style:italic;">Width ordering (narrowest to widest):</p>
+      <div class="width-bar">
+        <div class="wb-item wb-t">individual $t$</div>
+        <div class="wb-arrow">→</div>
+        <div class="wb-item wb-b">Bonferroni</div>
+        <div class="wb-arrow">→</div>
+        <div class="wb-item wb-s">$T^2$ simultaneous</div>
+      </div>
+    </div>
+
+    <div class="grid3">
+
+      <div class="card">
+        <div class="card-header">
+          <span class="badge b-teal">individual $t$</span>
+        </div>
+        <div class="card-title" style="margin-bottom:0.5rem;">One-at-a-time $t$-intervals</div>
+        <div class="fbox teal">$$\bar{x}_i \pm t_{n-1}\!\left(\frac{\alpha}{2}\right)\sqrt{\frac{s_{ii}}{n}}$$</div>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">Each interval has coverage $1-\alpha$ individually. Joint coverage drops to $(1-\alpha)^p < 1-\alpha$.</p>
+        <div class="eg"><strong>Use when:</strong> making a single pre-specified comparison. <strong>Do not use</strong> for simultaneous inference on all $p$ means.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="badge b-amber">Bonferroni</span>
+        </div>
+        <div class="card-title" style="margin-bottom:0.5rem;">Bonferroni intervals</div>
+        <div class="fbox amber">$$\bar{x}_i \pm t_{n-1}\!\left(\frac{\alpha}{2m}\right)\sqrt{\frac{s_{ii}}{n}}$$</div>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">where $m$ is the number of intervals. Guaranteed joint coverage $\geq 1-\alpha$ by the Bonferroni inequality: $\Pr(\text{all hold}) \geq 1 - \sum_{i=1}^m \alpha_i$.</p>
+        <div class="eg"><strong>Use when:</strong> making $m$ pre-specified comparisons. Narrower than $T^2$ when $m$ is small. Preferred in practice for $p$ means.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="badge b-coral">$T^2$ simultaneous</span>
+        </div>
+        <div class="card-title" style="margin-bottom:0.5rem;">$T^2$ simultaneous intervals</div>
+        <div class="fbox coral">$$\bar{x}_i \pm \sqrt{\frac{p(n-1)}{n-p}\,F_{p,n-p}(\alpha)}\sqrt{\frac{s_{ii}}{n}}$$</div>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">Valid simultaneously for <em>all</em> linear combinations $\mathbf{a}^\prime\boldsymbol{\mu}$. Guaranteed coverage $1-\alpha$ jointly.</p>
+        <div class="eg"><strong>Use when:</strong> you want coverage for any possible linear combination, not just the $p$ means. Widest — necessary when exploring data-driven contrasts.</div>
+      </div>
+
+    </div>
+
+    <div class="card" style="margin-top:0.5rem;">
+      <div class="card-header">
+        <span class="badge b-blue">large sample</span>
+        <span class="card-title">$\chi^2$ approximation for large $n$ (no normality assumed)</span>
+      </div>
+      <div class="fbox blue">$$\bar{x}_i \pm \sqrt{\chi^2_p(\alpha)}\sqrt{\frac{s_{ii}}{n}}$$</div>
+      <p style="font-size:0.9rem; margin-top:0.5rem;">Valid by the CLT as $n \to \infty$ even without MVN. Replace $F$ critical value with $\chi^2_p(\alpha)$ since $\frac{p(n-1)}{n(n-p)}F_{p,n-p}(\alpha) \to \chi^2_p(\alpha)$ as $n \to \infty$ and $\mathbf{S} \to \boldsymbol{\Sigma}$.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="badge b-purple">Bonferroni inequality</span>
+        <span class="card-title">Why Bonferroni works</span>
+      </div>
+      <div class="fbox purple">$$\Pr(\text{all } C_i \text{ true}) \geq 1 - \sum_{i=1}^m \Pr(C_i \text{ false}) = 1 - \sum_{i=1}^m \alpha_i$$</div>
+      <p style="font-size:0.9rem; margin-top:0.5rem;">Setting $\alpha_i = \alpha/m$ for each interval and using $t_{n-1}(\alpha/2m)$ as the critical value ensures joint coverage $\geq 1 - \alpha$.</p>
+      <div class="eg"><strong>Example ($m=6$, $1-\alpha=0.95$, $n=15$, $p=4$):</strong> $T^2$ multiplier $= \sqrt{\frac{4\times14}{11}\times3.36} = 4.14$ vs individual $t_{14}(0.025) = 2.145$ vs Bonferroni $t_{14}(0.05/12) \approx 3.00$. Bonferroni sits between the two extremes.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 6: Key convergence results -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Key convergence results as $n \to \infty$</h2>
+    </div>
+
+    <div class="card">
+      <div class="fbox teal">$$\hat{\boldsymbol{\Sigma}} = \frac{n-1}{n}\mathbf{S} \xrightarrow{n\to\infty} \mathbf{S} \xrightarrow{n\to\infty} \boldsymbol{\Sigma}$$</div>
+      <div class="fbox teal">$$T^2 \sim \frac{(n-1)p}{n-p}F_{p,n-p} \xrightarrow{d} \chi^2_p \quad \text{as } n \to \infty$$</div>
+      <div class="fbox teal">$$-2\log(\Lambda) \xrightarrow{d} \chi^2_p \quad \text{as } n \to \infty$$</div>
+      <p style="font-size:0.9rem; margin-top:0.6rem;">Both $T^2$ and the LRT converge to $\chi^2_p$ for large $n$, driven by two simultaneous effects: (1) the CLT making $\bar{\mathbf{x}}$ approximately normal, and (2) $\mathbf{S}^{-1} \to \boldsymbol{\Sigma}^{-1}$ eliminating the extra uncertainty that caused the $F$ distribution in finite samples.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Honours Multivariate Analysis · Lecture 5 · UCT Department of Statistical Sciences</span>
+    <span>Johnson &amp; Wichern Ch. 5</span>
+  </div>
+
+</div>
+
+<script>
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false,
+    strict: false
+  });
+</script>
+</body>
+</html>

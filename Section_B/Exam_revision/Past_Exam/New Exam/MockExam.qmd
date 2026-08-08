@@ -1,0 +1,391 @@
+---
+title: "Multivariate Analysis Mock Exam"
+subtitle: "STA2005S — Practice Paper (based on breakdown discussion)"
+format: html
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Introduction
+
+## Instructions
+
+To start:
+
+1.  Place this file in a project folder alongside a `data/` subfolder
+    containing: `pollution_data.csv`, `complaints_data.csv`,
+    `yield_data.csv`, `student_data.csv`, `pcr_pls_data.csv`,
+    `lda_data.csv`.
+2.  Open this `.qmd` in RStudio and render periodically to check it
+    works.
+
+## Desired answers
+
+Each question has leading indicators telling you what should be
+reflected in your write-up:
+
+-   **R code**: your R code should be typeset (`echo = TRUE`). Where a
+    question says "from first principles", you must obtain the output
+    using the underlying formulae rather than a wrapper function (e.g.
+    not `lm()`, not `lda()`), unless a part explicitly allows a package
+    function for cross-checking.
+-   **Plot**: display a plot with labelled axes.
+-   **Table**: display a table (`kable()` is fine, but not required).
+-   **Typed response**: a short paragraph-style answer, typically one
+    mark per point made.
+
+## Exam composition
+
+| Section             | Topic                                             | Marks  |
+|------------------|-------------------------------------|------------------|
+| Q1                  | Factor Analysis                                   | 13     |
+| Q2                  | Correspondence Analysis                           | 6      |
+| Q3.1                | Regression                                        | 5      |
+| Q3.2                | Canonical Correlation Analysis (first principles) | 7      |
+| Q3.3                | PCA / PCR / PLS                                   | 15     |
+| Q3.4                | Fisher's LDA / CDA                                | 12     |
+| MCQ                 | Multiple choice                                   | 5      |
+| **Total available** |                                                   | **63** |
+| **Marked out of**   |                                                   | **60** |
+
+You have five hours to complete the exam.
+
+```{r setup}
+library(dplyr)
+library(knitr)
+library(ggplot2)
+```
+
+------------------------------------------------------------------------
+
+# Question 1 --- Factor Analysis (13)
+
+We use `data/pollution_data.csv`: 150 days of measurements on 8
+air-quality and weather variables (`no2`, `so2`, `co`, `pm10`, `temp`,
+`humidity`, `windspeed`, `pressure`).
+
+```{r}
+# pollution <- read.csv("data/pollution_data.csv")
+# head(pollution)
+
+library(readr)
+pollution <- read_csv("data/pollution_data.csv")
+View(pollution)
+```
+
+a.  **R code + typed response:** Motivate why these data should be
+    standardised before factor analysis. Standardise the data. (2)
+
+The data must be standardised when on different scales. The following
+data is measured on different scale. Mention example.
+
+```{r}
+dat = scale(pollution)
+```
+
+b.  **R code + table:** From first principles, using the correlation
+    matrix and its eigendecomposition, extract the **first factor only**
+    via the principal-component method. Report its loadings, the
+    communalities, and the proportion of total variance it explains. (4)
+
+```{r}
+# Calculate correlation matrix: 
+cor_mat = cor(dat)
+    
+# Eigen decomposition: 
+eig_mat = eigen(cor_mat)
+eig_val = eig_mat$values
+eig_vec = as.matrix(eig_mat$vectors)
+
+# Calculate loadings: 
+loadings = eig_vec[,1]%*%diag(sqrt(eig_val[1]))
+round(loadings,4)
+
+# Calculate communalities:
+h = diag(loadings%*%t(loadings))
+h
+
+# Variance explained:
+tot_var  = sum(eig_val)
+prop_var = eig_val/tot_var
+round(prop_var[1],4)
+```
+
+c.  **R code:** Fit a two-factor model to the standardised data using
+    the ML approach (`factanal`). (2)
+
+```{r}
+# Fit ML model using factanal:
+fa_fit = factanal(dat,factors=2,rotation='none')
+fa_fit$loadings
+```
+
+d.  **R code + table:** From first principles, calculate Bartlett's WLS
+    factor scores for the two-factor ML solution above, i.e.
+    $$\hat{\mathbf{F}} = (\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}\hat{\mathbf{L}})^{-1}\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}(\mathbf{x}-\bar{\mathbf{x}})$$
+    Display the first six rows of scores. (4)
+
+```{r}
+L = as.matrix(fa_fit$loadings)
+psi = fa_fit$uniquenesses
+psi_mat = diag(psi)
+x_std = as.matrix(dat)
+
+# Calculate factor scores:
+f_hat = solve(t(L)%*%solve(psi_mat)%*%L)%*%t(L)%*%solve(psi_mat)%*%t(x_std)
+head(round(t(f_hat),4))
+```
+
+e.  **Typed response:** Based on the loadings, suggest a name for each
+    factor. (1)
+
+No
+
+------------------------------------------------------------------------
+
+# Question 2 --- Correspondence Analysis (6)
+
+We use `data/complaints_data.csv`: complaint counts (Billing, Staff,
+Product, Delivery) logged at four store branches.
+
+```{r}
+complaints <- read.csv("data/complaints_data.csv", row.names = 1)
+kable(complaints)
+```
+
+a.  **R code + plot:** Produce a symmetric CA biplot of this table. (2)
+b.  **Typed response:** Interpret the plot. Use language such as "drives
+    separation along" or "contributes to inertia" rather than
+    "associated with". (2)
+c.  **R code + table:** Using `summary(ca(complaints))`, identify which
+    branch contributes most to the inertia of the first dimension, and
+    report its mass, quality (`qlt`), and contribution (`ctr`) on that
+    dimension. (2)
+
+------------------------------------------------------------------------
+
+# Question 3
+
+## 3.1 --- Regression (5)
+
+We use `data/yield_data.csv`: crop yield with soil pH and rainfall as
+predictors.
+
+```{r}
+yield_dat <- read.csv("data/yield_data.csv")
+head(yield_dat)
+```
+
+a.  **R code + table:** From first principles, fit a multivariate...
+    (here, simple) linear regression of `yield` on `soil_ph` and
+    `rainfall`. Display the estimated regression coefficients. (2)
+b.  **R code + output:** From first principles, construct a 95%
+    confidence interval for the slope on `soil_ph`. (2)
+c.  **Typed response:** Interpret the interval. (1)
+
+## 3.2 --- Canonical Correlation Analysis (7)
+
+We use `data/student_data.csv`: an "academic" set of variables
+($X^{(1)}$: `gpa`, `test_score`, `attendance`, `study_hrs`) and a
+"lifestyle" set ($X^{(2)}$: `sleep_hrs`, `exercise_hrs`, `stress`).
+
+```{r}
+student <- read.csv("data/student_data.csv")
+head(student)
+```
+
+a.  **R code + output:** From first principles, obtain the first
+    canonical correlation and the associated coefficient vectors
+    $\mathbf{a}_1$, $\mathbf{b}_1$. (3)
+b.  **R code + output:** Compute the canonical loadings and
+    cross-loadings for the first pair of canonical variates. (2)
+c.  **R code + output:** Verify your first canonical correlation using
+    `cancor()`. (2)
+
+## 3.3 --- PCA / PCR / PLS (15)
+
+We use `data/pcr_pls_data.csv`: a response `y` and ten correlated
+predictors `x1`--`x10`.
+
+```{r}
+pcr_dat <- read.csv("data/pcr_pls_data.csv")
+head(pcr_dat)
+```
+
+a.  **R code + plot:** Standardise the predictors, perform PCA from
+    first principles, and produce a scree plot. State how many
+    components you would retain. (3)
+b.  **R code + table:** From first principles, fit principal component
+    regression (PCR) of `y` on your retained components. Report $R^2$.
+    (4) 
+c.  **R code + table:** Fit a partial least squares (PLS) regression of
+    `y` on the ten predictors using the `pls` package, with the same
+    number of components. Report $R^2$. (4)
+d.  **Typed response:** Compare the $R^2$ values from PCR, PLS, and a
+    full multiple regression using all ten predictors. Explain why PLS
+    typically needs fewer components than PCR to achieve comparable
+    predictive performance. (4)
+
+## 3.4 --- Fisher's LDA / CDA (12)
+
+We use `data/lda_data.csv`: four groups (`G1`--`G4`), 20 observations
+per group, and 6 variables (`x1`--`x6`).
+
+```{r}
+lda_dat <- read.csv("data/lda_data.csv")
+head(lda_dat)
+```
+
+a.  **R code:** From first principles, code up the full Fisher's LDA
+    algorithm: compute $\mathbf{B}$ and $\mathbf{W}$, obtain the
+    eigendecomposition of $\mathbf{W}^{-1}\mathbf{B}$, and scale the
+    eigenvectors so that
+    $\mathbf{a}_k'\mathbf{S}_{pooled}\mathbf{a}_k = 1$. Display the
+    resulting discriminant loadings. (6)
+
+```{r}
+# STEP 1: Calculate everything we need for LDA
+dat = lda_dat
+dat$group = as.numeric(as.factor(dat$group))
+X   = as.matrix(dat[,-1]) # variables 
+g   = length(unique(dat$group))
+n_i = table(dat$group)
+
+bar_overall = colMeans(X)
+
+bar_group = dat |>
+  dplyr::group_by(group) |>
+  dplyr::summarise(
+    dplyr::across(everything(),mean),
+    .groups='drop'
+  ) |>
+  dplyr::select(-group) |>
+  as.matrix()
+```
+
+```{r}
+# STEP 2: Calculate B
+B = Reduce(`+`,lapply(1:g,function(i){
+  n_i[i]*(bar_group[i,]-bar_overall)%*%t(bar_group[i,]-bar_overall)
+}))
+```
+
+```{r}
+# STEP 3: Calculate W
+W = Reduce(`+`,lapply(1:g,function(i){
+  Xi = X[dat$group==i,]
+  cov(Xi)*(n_i[i]-1)
+}))
+```
+
+```{r}
+# STEP 4: Eigen decomposition
+mat = solve(W)%*%B
+eig_mat = eigen(mat)
+eig_vec = eig_mat$vectors |> Re()
+eig_val = eig_mat$values
+
+S_pooled = W/(sum(n_i)-g)
+
+sd_vec = diag(t(eig_vec)%*%S_pooled%*%eig_vec) |> sqrt()
+
+sol = eig_vec%*%diag(1/sd_vec)
+sol[,1:2]
+```
+
+b.  **R code + plot + typed response:** Compute the discriminant scores
+    and produce a scatterplot of the first two discriminants, coloured
+    by group. Using the loadings, interpret the plot: state which
+    discriminant separates which group(s), and which variables are
+    driving that separation. (4)
+
+```{r}
+# Calculate scores:
+score1 = X%*%sol[,1]
+score2 = X%*%sol[,2]
+
+dat$LD1 = as.numeric(as.matrix(score1))
+dat$LD2 = as.numeric(as.matrix(score2))
+
+col_vec <- c(
+  "#1b9e77",
+  "#d95f02",
+  "#7570b3",
+  "#e7298a",
+  "#66a61e"
+) |>
+  toupper()
+
+ggplot(data=dat,
+       mapping=aes(x=LD1,
+                   y=LD2,
+                   colour=as.factor(group)))+
+  geom_point(size=3,alpha=0.8)+
+  theme_minimal()+
+  scale_colour_manual(
+    values=col_vec,
+    name='Group'
+  )
+
+```
+
+c.  **Typed response:** Fisher's LDA as coded in (a) will not always
+    work. Describe, in general, the condition under which the algorithm
+    breaks down, and why. (2)
+
+------------------------------------------------------------------------
+
+# Multiple choice (4)
+
+**Question A (1)** Suppose there is no correlation between any variables
+from two sets of variables. If we applied canonical correlation
+analysis, what would the values of the left canonical variate loadings
+be for the first pair?
+
+a.  Arbitrary, i.e. any vector in $\mathbb{R}^p$ that preserves unit
+    variance
+b.  0
+c.  Impossible to say
+d.  Proportional to a vector with $1/\sqrt{p}$ in every entry
+
+**Question B (1)** Which scenario is likely to result in the largest
+canonical correlation, all other things being equal?
+
+a.  $X^{(1)}: 1 \times 1$ and $X^{(2)}: 1 \times 1$
+b.  $X^{(1)}: 10 \times 1$ and $X^{(2)}: 1 \times 1$
+c.  $X^{(1)}: 10 \times 1$ and $X^{(2)}: 10 \times 1$
+d.  $X^{(1)}: 10 \times 1$ and $X^{(2)}: 100 \times 1$
+
+**Question C (1)** Suppose we post-multiply the loadings matrix of an
+orthogonal factor analysis by some orthonormal $\mathbf{Q}$. What
+happens to the implied factors?
+
+a.  Unchanged, as $\mathbf{Q}$ is orthonormal
+b.  Unchanged, as the factors are never observed
+c.  Pre-multiplied by $\mathbf{Q}'$ (i.e. become
+    $\mathbf{Q}'\mathbf{F}$)
+d.  Post-multiplied by $\mathbf{Q}'$ (i.e. become
+    $\mathbf{F}\mathbf{Q}'$)
+
+**Question D (1)** In Fisher's LDA, if the pooled within-group SSCP
+matrix $\mathbf{W}$ is singular, which of the following is true?
+
+a.  LDA can proceed exactly as usual since $\mathbf{B}$ is unaffected
+b.  Some form of dimension reduction or regularisation is needed before
+    $\mathbf{W}$ can be inverted
+c.  $\mathbf{B}$ automatically becomes full rank to compensate
+d.  The discriminant functions default to the first principal component
+    only
+
+**Question E (1)** A PCA scree plot is essentially flat (all eigenvalues
+are roughly equal in size). What does this suggest?
+
+a.  The variables are highly correlated, so a single PC will suffice
+b.  The variables are close to uncorrelated with similar variances, so
+    there is little redundancy for PCA to exploit and dimension
+    reduction will not help much
+c.  The data should not have been standardised before running PCA
+d.  The first PC will still explain more than 90% of the total variance
+
+------------------------------------------------------------------------

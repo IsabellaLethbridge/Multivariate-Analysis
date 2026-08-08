@@ -1,0 +1,213 @@
+---
+title: "finalLDA"
+format: html
+---
+
+```{r}
+library(knitr)
+library(ggplot2)
+library(dplyr)
+```
+
+# Simulate data
+
+```{r}
+set.seed(2025)
+library(ggplot2); library(cowplot)
+
+# Simulate five groups, p = 10
+n <- 20       # observations per group
+p <- 10       # number of variables
+
+# Common covariance: diagonal matrix with variance 3 on X1, and 1 on X2–X10
+Sigma <- diag(c(3, rep(1, p - 1)))
+
+# Define group means so that they differ along the first five dimensions
+means <- lapply(1:5, function(i) {
+  mu <- rep(0, p)
+  mu[i] <- 3 * (i - 3)    # shifts: −6, −3, 0, 3, 6 on dimension i
+  mu
+})
+
+# Simulate the data
+dat <- do.call(rbind, lapply(1:5, function(i) {
+  data.frame(
+    group = factor(i),
+    MASS::mvrnorm(n, mu = means[[i]], Sigma = Sigma)
+  )
+}))
+
+# Name the columns X1…X10
+colnames(dat)[-1] <- paste0("X", seq_len(p))
+
+# Peek at the first few rows
+head(dat)
+dat_original = dat
+```
+
+# Compute B and W
+
+```{r}
+# define vars
+X = as.matrix(dat[,-1])
+g = length(unique(dat$group))
+n_i = table(dat$group)
+W = matrix(0, ncol(X), ncol(X))
+B = matrix(0, ncol(X), ncol(X))
+
+# group the data to fidn group means
+overall_mean = colMeans(X)
+group_mean = dat %>% 
+  group_by(group) %>% 
+  summarise(across(everything(), mean), .groups = 'drop') %>% 
+  select(-group) %>% 
+  as.matrix()
+
+# populate B and W
+for(i in 1:g){
+  diff = group_mean[i,] - overall_mean
+  B = B + n_i[i] * (diff %*% t(diff))
+  
+  Xi = X[dat$group == i,]
+  W = W + cov(Xi) * (nrow(Xi) - 1)
+}
+
+```
+
+Eigen decomp
+
+```{r}
+# eigen decomp
+eig_mat = eigen(solve(W) %*% B)$vectors %>% Re()
+S_pooled = W / (sum(n_i) - g)
+sd = diag(sqrt(t(eig_mat) %*% S_pooled %*% eig_mat))
+eig_mat = (eig_mat %*% diag(1/sd))[,1:2] # which LD loadings would you like
+
+df = data.frame(
+  LD1 = eig_mat[,1],
+  LD2 = eig_mat[,2]
+)
+
+kable(df, digits = 3)
+```
+
+Scores and plot
+
+```{r}
+dat$score1 = as.numeric(X %*% eig_mat[,1])
+dat$score2 = as.numeric(X %*% eig_mat[,2])
+ggplot(dat, aes(x = score1, y = score2, colour = group)) +
+  geom_point() +
+  labs(x = "LD1", y = "LD2")
+```
+
+Discuss which discriminate is drivign what seperation then go to loadings and discuss which variables drive these discriminates.
+
+```{r}
+library(MASS)
+#NB to do original data here!
+lda_loadings = lda(group ~ ., data = dat_original)
+kable(data.frame(ld1 = lda_loadings$scaling[,1], ld2 = lda_loadings$scaling[,2]), digits = 3)
+
+X = as.matrix(dat_original[,-1])
+dat$score1_lda = as.numeric(X %*% lda_loadings$scaling[,1])
+dat$score2_lda = as.numeric(X %*% lda_loadings$scaling[,2])
+ggplot(dat, aes(x = score1_lda, y = score2_lda, colour = group)) +
+  geom_point() +
+  labs(x = "LD1", y = "LD2")
+```
+
+```{r}
+library(MASS)
+library(dplyr)
+library(knitr)
+
+set.seed(42)
+
+vars <- c("avg_spend","visit_freq","discount_use","loyalty_score",
+          "online_ratio","basket_size","return_rate","brand_pref",
+          "session_len","age_score")
+
+segments <- c("Budget shoppers","Loyal regulars","Premium buyers",
+              "Young trendsetters","Occasional browsers")
+
+# Group sizes (unequal)
+ns <- c(80, 120, 50, 95, 65)
+
+# Group means (10-dimensional)
+  mu1 <- c(-2.5, -1.5, 2.0, -1.0, -0.5, -1.5, 0.5, -1.5, -1.0, 1.5)  # Budget shoppers
+  mu2 <- c(0.5, 2.5, 0.0, 2.5, -0.5, 0.5, -0.5, 0.5, 1.0, -0.5)  # Loyal regulars
+  mu3 <- c(3.0, -1.0, -1.5, 1.0, -1.0, 2.5, -1.5, 2.0, -0.5, -1.5)  # Premium buyers
+  mu4 <- c(1.0, 1.0, 0.5, -0.5, 2.5, 0.0, 0.5, -1.0, 2.5, -2.0)  # Young trendsetters
+  mu5 <- c(-0.5, -1.5, 0.5, -1.5, 1.0, -1.0, 1.0, -0.5, -1.5, 0.5)  # Occasional browsers
+means <- list(mu1, mu2, mu3, mu4, mu5)
+
+# Common covariance
+Sigma <- diag(10)
+
+dat <- do.call(rbind, lapply(seq_along(segments), function(i){
+  data.frame(
+    segment = factor(segments[i], levels = segments),
+    as.data.frame(mvrnorm(ns[i], mu = means[[i]], Sigma = Sigma))
+  )
+}))
+colnames(dat)[-1] <- vars
+
+# Quick checks
+table(dat$segment)
+head(dat)
+```
+
+```{r}
+# LDA from first principles
+X = as.matrix(dat[,-1])
+dat$segment = as.factor(dat$segment)
+g = length(unique(dat$segment))
+n_i = table(dat$segment)
+W = matrix(0, ncol(X), ncol(X))
+B = matrix(0, ncol(X), ncol(X))
+
+overall_means = colMeans(X)
+group_means = dat %>% 
+  group_by(segment) %>% 
+  summarise(across(everything(), mean), .groups = "drop") %>% 
+  dplyr::select(-segment) %>% 
+  as.matrix()
+
+for(i in 1:g){
+  diff = group_means[i,] - overall_means
+  B = B + n_i[i] * (diff %*% t(diff))
+  
+  Xi = X[as.integer(dat$segment) == i,]
+  W = W + cov(Xi) * (nrow(Xi) - 1)
+}
+
+eig_mat = eigen(solve(W) %*% B)
+vec = eig_mat$vectors %>% Re()
+Spooled = W / (sum(n_i) - g)
+sd = diag(sqrt(t(vec) %*% Spooled %*% vec))
+standardised = (vec %*% diag(1/sd))[,1:2]
+
+kable(data.frame(Loading1 = standardised[,1], Loading2 = standardised[,2]))
+
+dat$LD1 = as.numeric(X %*% standardised[,1])
+dat$LD2 = as.numeric(X %*% standardised[,2])
+ggplot(dat, aes(x = LD1, y = LD2, colour = segment)) +
+  geom_point() +
+  labs(x = "LD1", y = "LD2")
+```
+
+```{r}
+dat_original = dat[-c(12,13)]
+X_org = as.matrix(dat_original[,-1])
+library(MASS)
+ld_temp = lda(segment ~ ., data = dat_original)
+
+kable(data.frame(Loading1 = ld_temp$scaling[,1], Loading2 = ld_temp$scaling[,2]))
+dat_original$LD1 = X_org %*% ld_temp$scaling[,1]
+dat_original$LD2 = X_org %*% ld_temp$scaling[,2]
+ggplot(dat_original, aes(x = LD1, y = LD2, colour = segment)) +
+  geom_point()
+```
+
+LD1 seperates BS, LR, PR fromYT and OB, while LD2 seperates YT from all the other variables. We see overlap between BS and OB as well as overlap for LR and PB. This could be owing to the fact that they are generally just diffciuly groups to seperate as they have lots of overlap. Or it coudl be because we are only using 2 of the LD principle components and thus could be leaving out so variation that would eb explained by the additional loaidngs as they give more dimensions to discover. We can see from examining the laodings that LD1 is driven by avg spend, loyal score and visit freq. L2 is driven by onine_ratio and session length

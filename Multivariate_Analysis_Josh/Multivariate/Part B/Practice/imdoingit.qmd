@@ -1,0 +1,14 @@
+---
+title: "imdoingit"
+format: html
+---
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+# be sure to install from `2024` branch (code below does this)
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+```
+

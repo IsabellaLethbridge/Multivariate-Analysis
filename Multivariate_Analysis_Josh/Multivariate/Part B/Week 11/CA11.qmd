@@ -1,0 +1,237 @@
+---
+title: "CA11"
+author: "Bella Lethbridge $ Joshua Orelowitz"
+format: pdf
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(ggplot2)
+library(reshape2)
+library(ca)
+library(factoextra)
+library(dplyr)
+library(tidyr)
+library(knitr)
+pink_col <- c("#FF9FCC", "#D63384", "#B3126A", "#8B004B", "#6A003A", "#4A0028")
+```
+
+# Question 1
+
+```{r}
+ratings <- structure(
+  c(
+    50, 30, 10, 1, 60, 80, 40, 2,
+    40, 60, 20, 1, 10, 30, 50, 4),
+  dim = c(4L, 4L),
+  dimnames = list(
+    c("High School", "Bachelor's", "Master's", "Doctorate"),
+    c("Action", "Drama", "Comedy", "Documentary"))
+)
+```
+
+## 1)
+
+```{r}
+#|layout-ncol: 2
+# Correspondence matrix:
+P <- ratings/sum(ratings)
+
+# Row profiles:
+r_vec <- apply(P,1,sum) #rowSums()
+Dr    <- diag(r_vec)
+rp    <- solve(Dr)%*%P
+df_rp = data.frame(rp)
+kable(df_rp, digits = 4, caption = "Row profiles")
+# Column profiles:
+c_vec <- apply(P,2,sum) #colSums()
+Dc    <- diag(c_vec)
+cp    <- solve(Dc)%*%t(P)
+df_cp = data.frame(cp)
+kable(df_cp, digits = 4, caption = "Column profiles")
+```
+
+## 2)
+
+```{r}
+#|layout-ncol: 2
+# Chi-squared distance between rows:
+weighted_rp <- rp%*%diag(sqrt(1/c_vec))
+dist_mat_r  <- as.matrix(dist(weighted_rp))
+
+# Chi-squared distance between columns:
+weighted_cp <- cp%*%diag(sqrt(1/r_vec))
+dist_mat_c  <- as.matrix(dist(weighted_cp))
+
+# Heat maps:
+# Add row and column labels:
+rownames(dist_mat_r) <- 
+  colnames(dist_mat_r) <- 
+  c("High School", "Bachelor's", "Master's", "Doctorate")
+rownames(dist_mat_c) <- 
+  colnames(dist_mat_c) <- 
+  c("Action", "Drama", "Comedy", "Documentary")
+
+# Row heatmap:
+df_r <- melt(dist_mat_r)
+row_dist <- ggplot(df_r,
+                   aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2))) +
+  scale_fill_gradientn(colours = pink_col, name = "Distance") +
+  labs(
+    title = "Row distance heatmap.",
+    x = "",
+    y = "") +
+  theme_minimal()
+row_dist
+# Column heatmap:
+df_c <- melt(dist_mat_c)
+col_dist <- ggplot(df_c,
+                   aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2))) +
+  scale_fill_gradientn(colours = pink_col, name = "Distance") +
+  labs(
+    title = "Column distance heatmap.",
+    x = "",
+    y = "") +
+  theme_minimal()
+col_dist
+```
+
+## 3)
+
+Rows: Doctorate and High school \> Master's and High School \> Doctorate and Bachelors
+
+Columns: Documentary and Action \> Documentary and Comedy \> Documentary and Drama
+
+## 4)
+
+```{r}
+rc_mat <- r_vec%*%t(c_vec)
+S      <- diag(sqrt(1/r_vec))%*%(as.matrix(P) - rc_mat)%*%diag(sqrt(1/c_vec))
+svdS   <- svd(S)
+lambda <- diag(svdS$d)
+
+# Principal row coordinates:
+F_mat <- diag(sqrt(1/r_vec))%*%svdS$u%*%lambda
+rownames(F_mat) <- rownames(ratings)
+
+# Principal column coordinates:
+G_mat <- diag(sqrt(1/c_vec))%*%svdS$v%*%lambda
+rownames(G_mat) <- colnames(ratings)
+
+# Plot:
+coord <- rbind(F_mat[,1:2], G_mat[,1:2])
+xlims <- range(coord[,1]) * 1.2
+ylims <- range(coord[,2]) * 1.2
+
+plot(F_mat[,1], 
+     F_mat[,2], 
+     type = "n", 
+     xlim = xlims, 
+     ylim = ylims,
+     main = "Principal coordinate plot.",
+     xlab = paste0("Dimension 1 (", round((svdS$d[1]^2/sum(svdS$d^2))*100, 1), "%)"),
+     ylab = paste0("Dimension 2 (", round((svdS$d[2]^2/sum(svdS$d^2))*100, 1), "%)"))
+abline(h = 0, v = 0, lty = 2, col="gray") 
+
+# Plot Rows (Education)
+points(F_mat[,1], 
+       F_mat[,2], 
+       col = "steelblue", 
+       pch = 19,
+       cex = 1.5)
+text(F_mat[,1], 
+     F_mat[,2], 
+     labels = rownames(F_mat), 
+     col = "steelblue", 
+     pos = 1,
+     cex = 0.8)
+
+# Plot Columns (Genres)
+points(G_mat[,1], 
+       G_mat[,2], 
+       col = "deeppink", 
+       pch = 17,
+       cex = 1.5)
+text(G_mat[,1], 
+     G_mat[,2], 
+     labels = rownames(G_mat), 
+     col = "deeppink", 
+     pos = 3,
+     cex = 0.8)
+
+legend("top", 
+       legend = c("Education", "Genre"), 
+       col = c("steelblue", "deeppink"), 
+       pch = c(19, 17),
+       cex = 1)
+```
+
+Dimension 1 is responsible for 88.7% of the association in this plot, so looking left to right tells us more than up and down as dimension 2 is only responsible for 11.2%. We can clearly see that a lower standard of education results in a closer association with action, comedy and drama. In particular we see that high school is associated with action, bachelors is associated with drama and comedy. Then both Masters and doctorate are associated with documentaries however we note that Masters is close to the other movie categories. We can also see that Doctorate is further away from documentary than Masters is, meaning that masters are more closely associated to documentaries than doctorates (Maybe its because doctorates prefer books.)
+
+## 5)
+
+```{r}
+summary(ca(ratings))
+```
+
+The dimensions reflect that of the plot with dimension 1 being the most associated and dimension 3 being so small that we can essentially disregard it. As dimensions 1 and 2 accoutn for 99.9% of the associated we cans ay the 2D plot is an accurate representation of the association structure. Mass shows the number of observations as a percentage. We see in rows bachelors is the largest and in columns drama is the largest. Inertia mentions how much that point contirbutes to the overall association. Masters and Documentary have the highest values for us and thus drive most of our association structure. Cor shows how much quality is explained by that particular dimension for that variable, Ctr tells us how much that particular dimensions contributes to the overall inertia of that variable.
+
+Dimension 1 is dominated by Documentary (ctr = 709) on one end and High School/Action on the other, capturing the primary education–genre gradient. Dimension 2 is largely driven by Bachelor's (ctr = 557) and Action (ctr = 547), reflecting a secondary distinction among the lower-education, mainstream-genre cluster. Drama has the lowest inertia, indicating its genre profile is closest to what independence would predict
+
+## 6)
+
+```{r}
+pca_fit <- prcomp(ratings, scale. = TRUE)
+biplot(pca_fit, main = "PCA Biplot on Correlation Matrix")
+```
+
+The PCA biplot tells a broadly similar story to the CA plot. However, PCA weights all education levels equally regardless of how many observations they represent. Doctorate has only 16 observations compared to Bachelor's 400, yet both have equal leverage on the axes. This inflates Doctorate's influence and pushes it far to the right, whereas CA down-weights it by its low mass, pulling it closer to the centre.
+
+## 7)
+
+```{r}
+plot(ca(ratings), 
+     mass = TRUE, 
+     contrib = "absolute", 
+     map = "rowgreen", 
+     arrows = c(TRUE, TRUE))
+```
+
+## 8)
+
+This is the exact reason we use rowgreen above instead of rowprincipal. When the principal inertias are very unequal, such as in our data where dimension 1 accounts for 88.7% of inertia, the row points get stretched far out along that axis while the column points in standard coordinates remain clustered near the origin, making it difficult to read associations between the two sets of points.
+
+# Question 2
+
+```{r}
+data("HairEyeColor")
+```
+
+## a)
+
+```{r}
+mca_mat <- as.data.frame(HairEyeColor) |>
+  uncount(Freq)
+out = head(mca_mat)
+kable(out, caption = "Head of MCA for HairEyeColor")
+```
+
+## b)
+
+```{r}
+summary(mjca(mca_mat, lambda = "adjusted"))
+plot(mjca(mca_mat), 
+     mass= TRUE, 
+     contrib = "absolute", 
+     map = "colprincipal", 
+     arrows = c(TRUE, TRUE))
+```
+
+Using the lambda-adjusted method, dimension 1 accounts for 65.6% of the association and dimension 2 for 7.5%, giving 73.1% cumulatively. Dimension 1 captures a light-to-dark colouring gradient: Hair:Blond and Eye:Blue are strongly associated on the left, while Hair:Black and Eye:Brown are strongly associated on the right. Dimension 2 separates rarer feature combinations (Hair:Red, Eye:Green) from more common ones. Sex lies close to the origin in both dimensions, indicating it contributes little to the association structure between hair and eye colour. Sex:Female points weakly toward Hair:Blond and Eye:Blue, while Sex:Male points weakly toward Hair:Brown and Eye:Hazel, suggesting a slight tendency for females to have lighter colouring and males darker. However, as both sex categories lie close to the origin, this association is weak and should be interpreted with caution.

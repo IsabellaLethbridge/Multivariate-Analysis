@@ -1,0 +1,641 @@
+---
+title: "Multivariate analysis exam"
+subtitle: "UCT Statistics Honours 2026"
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{xcolor}
+format:
+  pdf:
+    toc: true
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{r, include=FALSE}
+library(tibble)
+library(ggplot2)
+library(dplyr)
+
+read_exam_data <- function(
+  x = c(
+    "data_tidy_stress.csv", "data_tidy_lum_meta.csv",
+    "data_tidy_lum_response.csv", "pca_image_results.rds"
+  )) {
+  x <- match.arg(x)
+  path_data_vec <- c(file.path("data", x), x)
+  if (requireNamespace("projr", quietly = TRUE)) {
+    path_data_vec <- c(
+      path_data_vec,
+      tryCatch(
+        projr::projr_path_get("raw-data", "data", x),
+        error = function(e) character(0L)
+      )
+    )
+  }
+  if (!any(file.exists(path_data_vec))) {
+    stop("no paths found")
+  }
+  path_data <- path_data_vec[file.exists(path_data_vec)]
+  path_data <- path_data[!is.na(path_data)]
+  path_data <- path_data[nzchar(path_data)]
+  if (length(path_data) == 0L) {
+    stop("path_data has zero length")
+  }
+  path_data <- path_data[[1]]
+  if (grepl("\\.csv$", path_data)) {
+    if (!requireNamespace("readr", quietly = TRUE)) {
+      utils::install.packages("readr")
+    }
+    tryCatch({
+      readr::read_csv(path_data)
+    }, error = function(e) read.csv(path_data, header = TRUE)
+    )
+  } else {
+    readRDS(path_data)
+  }
+}
+
+save_img <- function(x, file) {
+  # x: matrix of pixel values (0-1)
+  # file: path to save the image (e.g., "reconstructed_image.jpg").
+  #       Must specify file extension as .jpg, .png or .pdf.
+  if (grepl("\\.jpg$", file)) {
+    save_func <- jpeg::writeJPEG
+  } else if (grepl("\\.png$", file)) {
+    save_func <- png::writePNG
+  } else if (grepl("\\.pdf$", file)) {
+      save_func <- function(x, file) {
+        pdf(file, width = ncol(x)/100, height = nrow(x)/100)
+        par(mar = c(0, 0, 0, 0))
+        plot(NA, NA, xlim = c(0, ncol(x)), ylim = c(0, nrow(x)), axes = FALSE, xlab = "", ylab = "")
+        rasterImage(x, 0, 0, ncol(x), nrow(x))
+        dev.off()
+      }
+  } else {
+    stop("Unsupported file format. Use .jpg or .png")
+  }
+  for (j in seq_len(ncol(x))) {
+    x[, j] <- pmax(pmin(1, x[, j]), 0)
+  }
+  save_func(
+    x,
+    file
+  )
+  file
+}
+```
+
+# Questions
+
+## Analysis I
+
+```{r}
+if (!exists("read_exam_data", mode = "function")) {
+  stop("Please run the first chunk to define the 'read_exam_data' function.")
+}
+data_tidy_stress <- read_exam_data("data_tidy_stress.csv")
+```
+
+### Question 1.1
+
+#### Part a
+
+```{r}
+# Calculate correlation matrix: 
+cor_mat = cor(data_tidy_stress)
+round(cor_mat,4)
+```
+
+#### Part b
+
+```{r}
+# Eigen decomposition:
+eig_mat = eigen(cor_mat) 
+eig_vec = as.matrix(eig_mat$vectors)
+eig_val = eig_mat$values
+
+# Loadings = eigen vectors: 
+loadings = eig_vec[,1:2]
+round(loadings,4)
+
+```
+
+#### Part c
+
+```{r}
+# Obtain loadings using ML approach: 
+fa_fit = factanal(data_tidy_stress,factors=2)
+print(round(fa_fit$loadings,4),cutoff=0)
+```
+
+#### Part d
+
+Variables age,income,satisfaction and experience load strongly onto factor 1. Variables hours and stress load strongly onto factor 2. 
+Factor 1 represents the length of time a person has been working for as well as their expertise. 
+Factor 2 represents workload and how much energy is being expended into the job.  
+
+#### Part e
+
+PCA aims to maximise variation. This is done by exploiting the correlation of variables with each other. Strongly correlated variables will load strongly onto the same components. The additional of an additional variable uncorrelated with the existing variables will not greatly change the first two components but rather load strongly onto the third. 
+
+#### Part f
+
+Incorrectly calculated. Factor scores should have a variance of 1. The variance in the image is too large. 
+
+------------------------------------------------------------------------
+
+## Analysis II
+
+```{r}
+if (!exists("read_exam_data", mode = "function")) {
+  stop("Please run the first chunk to define the 'read_exam_data' function.")
+}
+img_list <- read_exam_data("pca_image_results.rds")
+```
+
+### Question 2.1
+
+#### Part a
+
+Yes, this was appropriate. Pixels are measured on the same scale and thus do not need to be scaled. 
+
+#### Part b
+
+```{r}
+# Reconstruction of original image: 
+scores    = img_list$Y
+loadings  = img_list$V
+eig_val   = as.matrix(img_list$lambda)
+col_means = matrix(img_list$M,nrow=2160,ncol=1215)
+
+og_img = t(t(scores%*%t(loadings))+col_means)
+```
+
+```{r}
+save_img(og_img,'og_img.png')
+```
+
+```{r}
+#| results: asis
+
+knitr::include_graphics("og_img.png")
+```
+
+#### Part c
+
+```{r}
+# Reconstruct the image using fewer PCs:
+
+tot_var  = sum(eig_val)
+prop_var = eig_val/tot_var
+cum_var  = cumsum(prop_var)
+pc_seq   = seq(1:length(eig_val))
+
+# Cumulative variance: 
+round(cum_var[1:20],4)
+
+# Plot:
+plot(pc_seq,prop_var,
+     type='b',
+     col='deeppink')
+
+plot(pc_seq[1:50],prop_var[1:50],
+     type='b',
+     col='deeppink')
+
+```
+As seen in the above plot there are over 2000 possible principal components. 
+
+```{r}
+# No. principal components used: 
+k = 20
+
+scores_recon    = img_list$Y[1:1215,1:k]
+loadings_recon  = img_list$V[,1:k] # step 1
+eig_val_recon   = as.matrix(img_list$lambda)
+col_means_recon = matrix(img_list$M,nrow=2160,ncol=1215)
+
+recon_img = t(t(scores_recon%*%t(loadings_recon))+col_means_recon)
+```
+
+The original data has 1215 "observations" with 2160 "variables" 
+
+((1215x1000)x(1000x2160)) = 1215x2160
+
+1: cor_mat
+2: eigen decomp
+3: loadings = eig_vec -> this is where you select PCs 
+4: scores[1215:1000] = data[1215:2160]*loadings[2160:1000]
+5: data = t(t(scores*t(loadigs))+col_means)
+
+```{r}
+save_img(recon_img,'recon_img.png')
+```
+
+```{r}
+#| results: asis
+
+knitr::include_graphics("recon_img.png")
+```
+
+20 principal components were selected to reconstruct the image. The cumulative variance explained by the first 20 components was approximately 92%. This yielded a blurry image where one can see what was photographed by finer details are omitted. The figure in (b) contained all the detail. 
+------------------------------------------------------------------------
+
+## Analysis III
+
+```{r}
+if (!exists("read_exam_data", mode = "function")) {
+  stop("Please run the first chunk to define the 'read_exam_data' function.")
+}
+data_tidy_lum_response <- read_exam_data("data_tidy_lum_response.csv")
+data_tidy_lum_meta <- read_exam_data("data_tidy_lum_meta.csv")
+data_tidy_lum <- data_tidy_lum_meta |>
+  dplyr::left_join(data_tidy_lum_response, by = "pid") |>
+  dplyr::mutate(
+    age_infxn = paste0(age, "_", infxn)
+  ) |>
+  dplyr::select(pid:household_size, age_infxn, everything())
+```
+
+### Question 3.1
+
+#### Part a
+
+```{r}
+library(ca)
+# Create a row-principal CA plot: 
+ca_tbl = table(data_tidy_lum_meta$age,data_tidy_lum_meta$ethnicity)
+ca_tbl
+P = ca_tbl/sum(ca_tbl)
+ca_fit = ca(P)
+
+plot.ca(ca_fit,
+        map='rowprincipal',
+        contrib='absolute',
+        mass=c(TRUE,TRUE),
+        arrows=c(TRUE,TRUE))
+```
+
+#### Part b
+
+In the above row-principal plot, 'caucasian' lies far away from the origin suggesting that this ethnicity is highly differentiated. The same is seen with 'asian'. 'Asian' and 'black african' are approximately orthogonal suggesting starkly different profile patterns. 'mixed race' lies approximately on the origin representing the average profile. 
+
+#### Part c
+
+The chi-squared distance is a weighted Euclidean distance. It is used to down-weight more abundant columns, as opposed to normal Euclidean distance which does not account for the number of observations in each column. A large distance in columns with a small number of observations is more informative than the same distance in a column with more observations. 
+
+#### Part d
+
+PCA is typically used as a dimension reduction technique on continuous variables by creating linear combinations of explanatory variables. Since the above data is count data, performing PCA would create components where highly correlated variables load strongly and make it difficult to interpret the fitted model. 
+
+### Question 3.2
+
+#### Part a
+
+```{r}
+# Construct response matrix: 
+Y = cbind(data_tidy_lum_response$crp,
+          data_tidy_lum_response$ddimer)
+
+# Construct predictor matrix: 
+X = cbind(1,
+          data_tidy_lum_response$ifng,
+          data_tidy_lum_response$il10)
+
+# Calculate regression coefficients: 
+beta_hat = solve(t(X)%*%X)%*%t(X)%*%Y
+rownames(beta_hat) = c('intercept','ifng','il10')
+colnames(beta_hat) = c('crp','ddimer')
+round(beta_hat,4)
+```
+
+#### Part b
+
+```{r}
+# Fit restricted model:
+Yres = cbind(data_tidy_lum_response$crp,
+             data_tidy_lum_response$ddimer)
+
+Xres = cbind(1,
+             data_tidy_lum_response$il10)
+
+beta_hatres = solve(t(Xres)%*%Xres)%*%t(Xres)%*%Yres
+rownames(beta_hatres) = c('intercept','il10')
+colnames(beta_hatres) = c('crp','ddimer')
+round(beta_hatres,4)  
+
+# Calculate yhat:
+yhat = X%*%beta_hat
+yhat_res = Xres%*%beta_hatres
+
+n = nrow(Y)
+k = ncol(X)
+r = ncol(Y)
+p = k-1
+q = ncol(X)-ncol(Xres)
+
+# Calculate MLE:
+MLE = t(Y-yhat)%*%(Y-yhat)/n
+MLEres = t(Yres-yhat_res)%*%(Yres-yhat_res)/n
+
+# Calculate lambda:
+lambda = det(MLE)/det(MLEres)
+round(lambda,4)
+
+# Calculate test statistic: 
+stat = -(n-k-0.5*(r-p+q+1))*lambda
+round(stat,4)
+
+# Calculate p-value: 
+pval = pchisq(stat,r*q,lower.tail=TRUE)
+round(pval,4)
+```
+
+The above hypothesis test suggest that ifng does affect crp or ddimer. The very small p-value provides evidence that ifng is significant in the regression model. 
+
+#### Part c
+
+```{r}
+pcr_dat = data_tidy_lum_response[,-(1:2)]
+# Correlation matrix:
+cor_mat = cor(pcr_dat)
+round(cor_mat,4)
+
+```
+
+No, there are very weak covariances between variables. PCA aims to maximise variance. It does this by loading strongly correlated variables onto the same components. When variables are not strongly correlated, PCA perfroms poorely.  
+
+#### Part d
+
+```{r}
+# Extract response variables:
+pcr_dat = data_tidy_lum_response[,-(1:2)]
+
+# Calculate correlation and covariance matrix: 
+cov_mat = cov(pcr_dat)
+cor_mat = cor(pcr_dat)
+
+# Eigen decomposition: 
+eig_mat = eigen(cov_mat)
+eig_val = eig_mat$values
+eig_vec = as.matrix(eig_mat$vectors)
+
+# The eigen vectors are the loadings 
+# We want 2 principal components -> take the first 2 columns 
+
+# Calculate loadings: 
+loadings = eig_vec[,1:2]
+
+# Calculate scores: 
+X        = as.matrix(pcr_dat)
+scores   = X%*%loadings
+
+# Regress:
+Y = as.matrix(data_tidy_lum_response$crp)
+X = cbind(1,scores)
+
+beta_hat = solve(t(X)%*%X)%*%t(X)%*%Y
+rownames(beta_hat) = c('intercept','PC1','PC2')
+colnames(beta_hat) = c('crp')
+round(beta_hat,4)
+```
+
+```{r}
+# Calculate the proportion of variation explained: 
+tot_var  = sum(eig_val)
+prop_var = eig_val/tot_var
+cum_var  = cumsum(prop_var)
+round(cum_var[2],4)
+```
+
+### Question 3.3
+
+In `data_tidy_lum_response`, the variables `crp` to `il1ra` are one set of variables ($\mathbf{X}^{(1)}$), and the variables `mcp1` to `scd40l` are another set ($\mathbf{X}^{(2)}$).
+
+Standardise the variables in `data_tidy_lum_response`, creating a new matrix `lum_response_mat_std`, using this code, and use `lum_response_mat_std` for question 3.3:
+
+```{r}
+if (!exists("data_tidy_lum")) {
+  stop("Please run code above to create the `data_tidy_lum` object.")
+}
+lum_response_mat_std <- data_tidy_lum |>
+  dplyr::select(crp:scd40l) |>
+  dplyr::mutate(across(dplyr::everything(), ~ (.-mean(.))/sd(.))) |>
+  as.matrix()
+```
+
+#### Part a
+
+Okayyyyyyy, CCA from first principles... here we go
+
+```{r}
+X1 = lum_response_mat_std[,1:7]
+X2 = lum_response_mat_std[,8:15]
+
+# STEP 1: Obtain correlations matrix: 
+S   = cov(lum_response_mat_std)
+
+# STEP 2: Partition correlation matrix:
+S11 = S[1:7,1:7]
+S12 = S[1:7,8:15]
+S21 = S[8:15,1:7]
+S22 = S[8:15,8:15]
+
+# STEP 3: Calculate intermediate matrices:  
+S11_inv = solve(S11)
+S22_inv = solve(S22)
+
+S11_eig = eigen(S11)
+S22_eig = eigen(S22)
+
+S11_inv_sqrt = S11_eig$vectors%*%diag(1/sqrt(S11_eig$values))%*%t(S11_eig$vectors)
+S22_inv_sqrt = S22_eig$vectors%*%diag(1/sqrt(S22_eig$values))%*%t(S22_eig$vectors)
+
+# STEP 4: Calculate R and eigen decomposition: 
+R = S11_inv_sqrt%*%S12%*%S22_inv%*%S21%*%S11_inv_sqrt
+R_eig = eigen(R)
+
+# STEP 5: Obtain canonical correlations: 
+can_cor = sqrt(R_eig$values)
+round(can_cor[1],4)
+
+# STEP 6: Obtain canonical coefficients:
+A = S11_inv_sqrt%*%R_eig$vectors
+round(A[,1],4)
+
+sf_A = sqrt(diag(t(A)%*%S11%*%A))
+A    = A%*%diag(1/sf_A)
+round(A[,1],4)
+
+# STEP 7: Obtain B (proportional):
+B_p = S22_inv%*%S21%*%A
+round(B_p[,1],4)
+
+# STEP 8: Standardise B:
+sf_B = sqrt(diag(t(B_p)%*%S22%*%B_p))
+B    = B_p%*%diag(1/sf_B)
+round(B[,1],4)
+```
+
+This was just extra: 
+```{r}
+# STEP 9: Canonical loadings:
+loadings_U = t(A)%*%S11
+loadings_U
+
+loadings_V = t(B)%*%S22
+loadings_V
+
+# STEP 10: Cross-loadings:
+cross_U = t(A)%*%S12
+cross_U
+
+cross_V = t(B)%*%S21
+cross_V
+```
+
+```{r}
+library(CCA)
+# Check using built in functions: 
+
+cca_fit1 = cc(X1,X2)
+
+# Canonical correlation:
+round(cca_fit1$cor[1],4)
+
+# Canonical coefficients
+round(cca_fit1$xcoef[,1],4)
+round(cca_fit1$ycoef[,1],4)
+```
+
+
+#### Part b
+
+#### Part c
+
+### Question 3.4
+
+#### Part a 
+
+Okay, LDA from first principles. Here we go :) 
+
+```{r}
+# First, let's actually get the data:
+dat_og = data_tidy_lum[,-(1:6)]
+dat = data_tidy_lum[,-(1:6)]
+dat$age_infxn = as.numeric(as.factor(dat$age_infxn))
+X = as.matrix(dat[,-1])
+
+# STEP 1: Get everything we actually need to do this
+g = length(unique(dat$age_infxn)) # no. groups 
+n_i = table(dat$age_infxn)        # no. obs per group 
+bar_overall = colMeans(X)         # column means 
+bar_group = dat |>                # group mean
+  dplyr::group_by(age_infxn) |>
+  dplyr::summarise(
+    dplyr::across(everything(),mean),
+    .groups='drop'
+  ) |>
+  dplyr::select(-age_infxn) |>
+  as.matrix()
+
+# STEP 2: Calculate B
+B = Reduce(`+`,lapply(1:g,function(i){
+  n_i[i]*(bar_group[i,]-bar_overall)%*%t(bar_group[i,]-bar_overall)
+}))
+
+# STEP 3: Calculate W 
+W = Reduce(`+`,lapply(1:g,function(i){
+  Xi = X[dat$age_infxn==i,]
+  cov(Xi)*(n_i[i]-1)
+}))
+
+# STEP 4: Eigen decomposition 
+mat = solve(W)%*%B
+eig_mat = eigen(solve(W)%*%B)
+eig_vec = eig_mat$vectors |> Re()
+
+S_pooled = W/(sum(n_i)-g)
+
+sd_vec = diag(t(eig_vec)%*%S_pooled%*%eig_vec) |> sqrt()
+
+sol = eig_vec%*%diag(1/sd_vec)
+sol = sol[,1:2]
+
+# STEP 5: Display results 
+rownames(sol) = colnames(X)
+colnames(sol) = c('LD1','LD2')
+knitr::kable(
+  round(sol,4))
+
+# STEP 6: Plot 
+dat$LD1 = as.numeric(as.matrix(X)%*%(sol[,1]))
+dat$LD2 = as.numeric(as.matrix(X)%*%(-sol[,2]))
+
+col_vec <- c(
+  "#1b9e77",
+  "#d95f02",
+  "#7570b3",
+  "#e7298a",
+  "#66a61e",
+  'steelblue'
+) |>
+  toupper()
+
+ggplot(data=dat,
+       mapping=aes(x=LD1,y=LD2,colour=as.factor(age_infxn)))+
+  geom_point(size=3,
+             alpha=0.8)+
+  theme_minimal()+
+  scale_colour_manual(
+    values=col_vec,
+    name="Group"
+  )
+  
+```
+
+```{r}
+library(MASS)
+
+# Fit model using MASS:lda() function: 
+lda_fit = lda(age_infxn~.,data=dat_og)
+
+# Make predictions:
+lda_pred = predict(lda_fit)
+
+# Calculate scores: 
+scores_df = data.frame(
+  group=dat_og$age_infxn,
+  lda_pred$x[,1:2]
+)
+
+# Plot: 
+ggplot(data=scores_df,
+       mapping=aes(x=LD1,y=LD2,colour=factor(group)))+
+  geom_point(size=3,
+             alpha=0.8)+
+  theme_minimal()+
+  scale_colour_manual(
+    values=col_vec,
+    name="Group"
+  )
+```
+
+#### Part b
+
+All that has to be mentioned here is which groups LD1 and LD2 split on aswell as which variables load strongly onto those linear discriminants. 
+
+------------------------------------------------------------------------
+
+## Multiple choice
+
+-   4.1:
+-   4.2:
+-   4.3:
+-   4.4:
+-   4.5:
+-   4.6:
+-   4.7:
+-   4.8:

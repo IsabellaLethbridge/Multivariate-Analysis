@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MANOVA Summary — Honours Multivariate Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f7f3ed;
+    --paper-dark: #ede7dc;
+    --accent: #8b2635;
+    --accent-soft: #c4505e;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --blue-deep: #1e3a5f;
+    --blue-mid: #2d5986;
+    --teal: #2a6b6b;
+    --teal-light: #3d8c8c;
+    --rule: #c8b99a;
+    --margin-note: #7a6a55;
+    --highlight: #fff3cd;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* Decorative background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,160,120,0.08) 28px),
+      radial-gradient(ellipse at 10% 20%, rgba(139,38,53,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(30,58,95,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .doc-header {
+    text-align: center;
+    padding-bottom: 40px;
+    border-bottom: 3px double var(--rule);
+    margin-bottom: 50px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .doc-header .overline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .doc-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--blue-deep);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .doc-header .subtitle {
+    font-style: italic;
+    color: var(--margin-note);
+    font-size: 20px;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--paper-dark);
+    border-left: 4px solid var(--gold);
+    padding: 24px 28px;
+    margin-bottom: 50px;
+    animation: fadeDown 0.8s 0.2s ease both;
+  }
+
+  .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .toc ol {
+    padding-left: 20px;
+    color: var(--blue-deep);
+  }
+
+  .toc ol li { margin: 4px 0; }
+
+  .toc a {
+    color: var(--blue-deep);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--blue-mid);
+  }
+
+  .toc a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Sections */
+  .section {
+    margin-bottom: 60px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--rule);
+  }
+
+  .section-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 40px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--blue-deep);
+  }
+
+  .subsection {
+    margin: 28px 0;
+  }
+
+  .subsection-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .subsection-title::before {
+    content: '§';
+    color: var(--rule);
+    font-style: italic;
+  }
+
+  p { margin-bottom: 12px; }
+
+  /* Math boxes */
+  .math-box {
+    background: white;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--blue-mid);
+    padding: 18px 22px;
+    margin: 18px 0;
+    border-radius: 2px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+    overflow-x: auto;
+  }
+
+  .math-box.accent-border { border-left-color: var(--accent); }
+  .math-box.gold-border { border-left-color: var(--gold); }
+  .math-box.teal-border { border-left-color: var(--teal); }
+
+  .math-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--margin-note);
+    margin-bottom: 8px;
+  }
+
+  /* Example boxes */
+  .example-box {
+    background: linear-gradient(135deg, #f0ebe2 0%, #e8e0d4 100%);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--gold);
+    padding: 20px 24px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .example-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  /* Key insight boxes */
+  .insight-box {
+    background: #fff8f8;
+    border: 1px solid #e8c0c5;
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px;
+    margin: 18px 0;
+    font-style: italic;
+  }
+
+  .insight-box strong {
+    font-style: normal;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Decision tree */
+  .decision-tree {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 24px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .decision-tree-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--margin-note);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .tree-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin: 14px 0;
+    padding: 12px 16px;
+    background: var(--paper-dark);
+    border-radius: 2px;
+  }
+
+  .tree-step-num {
+    background: var(--blue-deep);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .tree-step-content { flex: 1; }
+  .tree-step-content strong { color: var(--blue-deep); }
+
+  .tree-arrow {
+    text-align: center;
+    color: var(--rule);
+    font-size: 20px;
+    margin: 4px 0;
+  }
+
+  .tree-branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 8px 0 8px 44px;
+  }
+
+  .branch-yes {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-left: 3px solid #4caf50;
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+
+  .branch-no {
+    background: #fce4ec;
+    border: 1px solid #f48fb1;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+
+  .branch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .branch-yes .branch-label { color: #388e3c; }
+  .branch-no .branch-label { color: var(--accent); }
+
+  /* ANOVA table */
+  .anova-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 16px;
+  }
+
+  .anova-table thead tr {
+    background: var(--blue-deep);
+    color: white;
+  }
+
+  .anova-table thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  .anova-table tbody tr:nth-child(even) { background: var(--paper-dark); }
+  .anova-table tbody tr:nth-child(odd) { background: white; }
+
+  .anova-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  .anova-table tbody tr:last-child {
+    background: #f0ebe2;
+    font-weight: 600;
+    border-top: 2px solid var(--rule);
+  }
+
+  /* Interaction plot */
+  .plot-container {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .plot-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .plots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  canvas.interaction-plot {
+    width: 100%;
+    border: 1px solid #eee;
+  }
+
+  .plot-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: var(--margin-note);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* Assumptions box */
+  .assumptions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 18px 0;
+  }
+
+  .assumption-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--teal);
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .assumption-card .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  /* Wilks table */
+  .wilks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 15px;
+  }
+
+  .wilks-table th {
+    background: var(--teal);
+    color: white;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  .wilks-table td {
+    padding: 9px 12px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    background: white;
+    font-size: 15px;
+  }
+
+  .wilks-table tr:nth-child(even) td { background: var(--paper-dark); }
+
+  /* Code block */
+  .code-block {
+    background: #1e2030;
+    color: #cdd6f4;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 16px 0;
+    border-radius: 2px;
+    overflow-x: auto;
+  }
+
+  .code-block .kw { color: #cba6f7; }
+  .code-block .fn { color: #89b4fa; }
+  .code-block .st { color: #a6e3a1; }
+  .code-block .cm { color: #585b70; font-style: italic; }
+  .code-block .nm { color: #fab387; }
+
+  /* Decomposition display */
+  .decomp {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    border: 1px solid var(--rule);
+    margin: 16px 0;
+    font-size: 17px;
+    justify-content: center;
+  }
+
+  .decomp-term {
+    text-align: center;
+    padding: 8px 14px;
+    border-radius: 2px;
+  }
+
+  .decomp-term .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .decomp-term.total { background: #e8eaf6; }
+  .decomp-term.total .label { color: var(--blue-deep); }
+  .decomp-term.factor1 { background: #e8f5e9; }
+  .decomp-term.factor1 .label { color: #388e3c; }
+  .decomp-term.factor2 { background: #fff3e0; }
+  .decomp-term.factor2 .label { color: #e65100; }
+  .decomp-term.interact { background: #fce4ec; }
+  .decomp-term.interact .label { color: var(--accent); }
+  .decomp-term.resid { background: #f3e5f5; }
+  .decomp-term.resid .label { color: #7b1fa2; }
+
+  .decomp-op {
+    font-size: 22px;
+    color: var(--margin-note);
+    font-weight: 300;
+  }
+
+  /* Bonferroni interval visual */
+  .ci-visual {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 20px;
+    margin: 16px 0;
+  }
+
+  .ci-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 10px 0;
+    font-size: 15px;
+  }
+
+  .ci-label {
+    width: 160px;
+    font-size: 14px;
+    color: var(--margin-note);
+    font-style: italic;
+    flex-shrink: 0;
+  }
+
+  .ci-bar-container {
+    flex: 1;
+    height: 24px;
+    position: relative;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+  }
+
+  .ci-zero {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #999;
+  }
+
+  .ci-bar {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    border-radius: 2px;
+  }
+
+  .ci-bar.reject { background: var(--accent); opacity: 0.8; }
+  .ci-bar.fail { background: var(--teal); opacity: 0.6; }
+
+  .ci-verdict {
+    width: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .ci-verdict.reject { color: var(--accent); }
+  .ci-verdict.fail { color: var(--teal); }
+
+  /* Annotations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+  .section:nth-child(4) { animation-delay: 0.4s; }
+  .section:nth-child(5) { animation-delay: 0.5s; }
+  .section:nth-child(6) { animation-delay: 0.6s; }
+
+  hr.ornament {
+    border: none;
+    text-align: center;
+    margin: 40px 0;
+    color: var(--rule);
+    font-size: 20px;
+    letter-spacing: 12px;
+  }
+
+  hr.ornament::before { content: '✦ ✦ ✦'; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .col-box {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 16px;
+  }
+
+  .col-box-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  em { font-style: italic; color: var(--margin-note); }
+
+  @media (max-width: 700px) {
+    .plots-grid { grid-template-columns: 1fr; }
+    .assumptions { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .tree-branch { grid-template-columns: 1fr; }
+    .doc-header h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="overline">Honours Multivariate Analysis · Lecture 6</div>
+    <h1>MANOVA</h1>
+    <div class="subtitle">From ANOVA to Multivariate Testing — A Complete Summary</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">ANOVA — The Univariate Foundation</a></li>
+      <li><a href="#s2">One-Way MANOVA</a></li>
+      <li><a href="#s3">Wilks' Lambda &amp; Testing</a></li>
+      <li><a href="#s4">Post-Rejection Analysis</a></li>
+      <li><a href="#s5">Two-Way ANOVA &amp; MANOVA</a></li>
+      <li><a href="#s6">The Full Decision Process</a></li>
+    </ol>
+  </div>
+
+  <!-- RUNNING EXAMPLE NOTE -->
+  <div class="insight-box" style="margin-bottom:40px;">
+    <strong>Running Example</strong><br>
+    Throughout this summary we use a single consistent example: we measure <strong>yield</strong> (tonnes/ha) and <strong>plant height</strong> (cm) on crops grown under <strong>three fertiliser treatments</strong> (\(g=3\) groups). In the two-way section we add a second factor: <strong>two irrigation levels</strong> (\(b=2\)). All interpretations refer back to this example. Our response vector is always \(\mathbf{X}_{lj} = (\text{yield},\ \text{height})'\) so \(p=2\).
+  </div>
+
+  <!-- ===== SECTION 1: ANOVA ===== -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div class="section-title">ANOVA — The Univariate Foundation</div>
+    </div>
+
+    <p>ANOVA is the special case of MANOVA where we measure only <em>one</em> variable (\(p=1\)). Understanding it clearly makes the multivariate extension natural.</p>
+
+    <div class="subsection">
+      <div class="subsection-title">The Model</div>
+      <p>Each observation \(X_{lj}\) (the \(j\)th observation in group \(l\)) is decomposed as:</p>
+      <div class="math-box">
+        <div class="math-label">ANOVA Model</div>
+        \[X_{lj} = \underbrace{\mu}_{\text{overall mean}} + \underbrace{\tau_l}_{\text{group effect}} + \underbrace{e_{lj}}_{\text{random error}}\]
+        where \(e_{lj} \sim N(0, \sigma^2)\) and the constraint \(\sum_{l=1}^g n_l \tau_l = 0\) ensures uniqueness.
+      </div>
+      <p>The constraint forces \(\mu\) to equal the weighted overall mean \(\bar{x}\), making the \(\tau_l\) deviations from that overall mean. Without it, infinitely many \((\mu, \tau_l)\) combinations would give identical fitted values.</p>
+      <div class="example-box">
+        <div class="example-tag">Example — Yield only</div>
+        If mean yield under fertilisers \(1, 2, 3\) is \(40, 50, 45\) tonnes/ha with equal group sizes \(n_l = 10\), then the overall mean is \(\bar{x} = 45\) and the treatment effects are \(\tau_1 = -5,\ \tau_2 = +5,\ \tau_3 = 0\). These sum to zero as required.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Partitioning Variation</div>
+      <p>The total deviation of any observation from the overall mean can be split into two parts:</p>
+      <div class="decomp">
+        <div class="decomp-term total">
+          <span class="label">Total</span>
+          \((X_{lj} - \bar{x})\)
+        </div>
+        <div class="decomp-op">=</div>
+        <div class="decomp-term factor1">
+          <span class="label">Treatment (Between)</span>
+          \((\bar{x}_l - \bar{x})\)
+        </div>
+        <div class="decomp-op">+</div>
+        <div class="decomp-term resid">
+          <span class="label">Residual (Within)</span>
+          \((X_{lj} - \bar{x}_l)\)
+        </div>
+      </div>
+
+      <table class="anova-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Sum of Squares</th>
+            <th>df</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Treatment</strong> (Between)</td>
+            <td>\(\displaystyle\sum_{l=1}^g n_l(\bar{x}_l - \bar{x})^2\)</td>
+            <td>\(g-1\)</td>
+            <td>How far each group mean is from the overall mean</td>
+          </tr>
+          <tr>
+            <td><strong>Residual</strong> (Within)</td>
+            <td>\(\displaystyle\sum_l\sum_j (x_{lj} - \bar{x}_l)^2\)</td>
+            <td>\(\sum n_l - g\)</td>
+            <td>How far observations are from their own group mean</td>
+          </tr>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td>\(\displaystyle\sum_l\sum_j (x_{lj} - \bar{x})^2\)</td>
+            <td>\(\sum n_l - 1\)</td>
+            <td>How far observations are from the overall mean</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The degrees of freedom make intuitive sense: treatment loses 1 df for estimating \(\bar{x}\); residual loses \(g\) df, one per group mean; total loses just 1 df for \(\bar{x}\).</p>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">The F-Test</div>
+      <div class="math-box accent-border">
+        <div class="math-label">ANOVA F-statistic</div>
+        \[F = \frac{SS_{tr}/(g-1)}{SS_{res}/(\sum n_l - g)} \sim F_{g-1,\, \sum n_l - g}\]
+        Reject \(H_0: \tau_1 = \cdots = \tau_g = 0\) if \(F > F_{g-1,\, \sum n_l - g}(\alpha)\).
+      </div>
+      <p>This is equivalent to a regression \(F\)-test with \(g-1\) dummy variables — ANOVA is just regression with a categorical predictor.</p>
+    </div>
+  </div>
+
+  <hr class="ornament">
+
+  <!-- ===== SECTION 2: ONE-WAY MANOVA ===== -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div class="section-title">One-Way MANOVA</div>
+    </div>
+
+    <p>Now each observation is a <strong>vector</strong> of \(p\) variables measured simultaneously. In our example, each crop plot gives us a vector of yield and height: \(\mathbf{X}_{lj} = (\text{yield},\ \text{height})'\).</p>
+
+    <div class="subsection">
+      <div class="subsection-title">Assumptions</div>
+      <div class="assumptions">
+        <div class="assumption-card">
+          <div class="num">01</div>
+          <strong>Independence</strong><br>Samples from different groups are independent of each other.
+        </div>
+        <div class="assumption-card">
+          <div class="num">02</div>
+          <strong>Common covariance</strong><br>All groups share the same \(\boldsymbol{\Sigma}\) — verified using Box's M test.
+        </div>
+        <div class="assumption-card">
+          <div class="num">03</div>
+          <strong>Multivariate normality</strong><br>Each group follows \(N_p(\boldsymbol{\mu}_l, \boldsymbol{\Sigma})\).
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">The Model</div>
+      <div class="math-box">
+        <div class="math-label">MANOVA Model</div>
+        \[\mathbf{X}_{lj} = \boldsymbol{\mu} + \boldsymbol{\tau}_l + \mathbf{e}_{lj}, \quad j=1,\ldots,n_l,\ l=1,\ldots,g\]
+        where \(\mathbf{e}_{lj} \sim N_p(\mathbf{0}, \boldsymbol{\Sigma})\) and \(\sum_{l=1}^g n_l \boldsymbol{\tau}_l = \mathbf{0}\).
+      </div>
+      <p>The key extension: the \(p\) variables within each observation vector are <strong>correlated</strong> with each other — this correlation is captured in \(\boldsymbol{\Sigma}\). Observations across groups remain independent.</p>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">SSP Matrices — Replacing Sums of Squares</div>
+      <p>Instead of scalar sums of squares, we now have \(p \times p\) matrices of <strong>sums of squares and cross-products (SSP)</strong>. The diagonal entries are the usual univariate SS for each variable; the off-diagonals capture covariation between variables.</p>
+
+      <table class="anova-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>SSP Matrix</th>
+            <th>df</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Treatment B</strong></td>
+            <td>\(\displaystyle\sum_{l=1}^g n_l(\bar{\mathbf{x}}_l - \bar{\mathbf{x}})(\bar{\mathbf{x}}_l - \bar{\mathbf{x}})'\)</td>
+            <td>\(g-1\)</td>
+          </tr>
+          <tr>
+            <td><strong>Residual W</strong></td>
+            <td>\(\displaystyle\sum_l\sum_j (\mathbf{x}_{lj} - \bar{\mathbf{x}}_l)(\mathbf{x}_{lj} - \bar{\mathbf{x}}_l)'\)</td>
+            <td>\(\sum n_l - g\)</td>
+          </tr>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td>\(\mathbf{B} + \mathbf{W}\)</td>
+            <td>\(\sum n_l - 1\)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="example-box">
+        <div class="example-tag">Example — computing W</div>
+        For our two-variable example, \(\mathbf{W}\) is a \(2 \times 2\) matrix. For each observation, compute the outer product of its deviation from its group mean, then sum across all observations and groups:
+        \[\mathbf{x}_{lj} - \bar{\mathbf{x}}_l = \begin{pmatrix}\text{yield}_{lj} - \bar{\text{yield}}_l \\ \text{height}_{lj} - \bar{\text{height}}_l\end{pmatrix}\]
+        The diagonal of \(\mathbf{W}\) gives \(SS_{res}\) for yield and for height separately — exactly the ANOVA residual \(SS\) for each variable. The off-diagonal gives the cross-product, capturing how the two variables co-vary within groups.
+      </div>
+    </div>
+  </div>
+
+  <hr class="ornament">
+
+  <!-- ===== SECTION 3: WILKS LAMBDA ===== -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div class="section-title">Wilks' Lambda &amp; Testing</div>
+    </div>
+
+    <p>In ANOVA we form \(F = B/W\). In MANOVA we cannot divide matrices, so instead we use determinants to compress each matrix to a single number (the <em>generalised variance</em>), giving Wilks' \(\Lambda^*\).</p>
+
+    <div class="math-box gold-border">
+      <div class="math-label">Wilks' Lambda — Three Equivalent Forms</div>
+      \[\Lambda^* = \frac{|\mathbf{W}|}{|\mathbf{W}+\mathbf{B}|} = \prod_{i=1}^s \frac{1}{1+\lambda_i} = \frac{|\hat{\boldsymbol{\Sigma}}_0|}{|\hat{\boldsymbol{\Sigma}}|}\]
+      where \(s = \min(p, g-1)\) and \(\lambda_1 \geq \cdots \geq \lambda_s\) are eigenvalues of \(\mathbf{W}^{-1}\mathbf{B}\).
+    </div>
+
+    <div class="two-col">
+      <div class="col-box">
+        <div class="col-box-title" style="color:var(--blue-deep);">When \(\Lambda^* \approx 1\)</div>
+        \(|\mathbf{W}| \approx |\mathbf{W}+\mathbf{B}|\), meaning \(\mathbf{B} \approx \mathbf{0}\). Group means \(\bar{\mathbf{x}}_l\) are all close to \(\bar{\mathbf{x}}\). <strong>Fail to reject \(H_0: \boldsymbol{\tau}_1 = \cdots = \boldsymbol{\tau}_g = \mathbf{0}\).</strong>
+      </div>
+      <div class="col-box">
+        <div class="col-box-title" style="color:var(--accent);">When \(\Lambda^* \approx 0\)</div>
+        \(|\mathbf{W}| \ll |\mathbf{W}+\mathbf{B}|\), meaning \(\mathbf{B}\) is large relative to \(\mathbf{W}\). Groups explain most of the total variation. <strong>Reject \(H_0: \boldsymbol{\tau}_1 = \cdots = \boldsymbol{\tau}_g = \mathbf{0}\).</strong>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <strong>Link to LRT</strong><br>
+      Wilks' \(\Lambda^*\) is a likelihood ratio test statistic — the third form \(|\hat{\boldsymbol{\Sigma}}_0|/|\hat{\boldsymbol{\Sigma}}|\) makes this explicit. It is directly related to Hotelling's \(T^2\): for \(g=2\) groups, \(\Lambda^*\) reduces to a scaled \(T^2\). The eigenvalue form links it to Roy's largest root \(\theta = \lambda_1\), Pillai's trace \(V^{(s)} = \sum \lambda_i/(1+\lambda_i)\), and the Lawley-Hotelling trace \(U^{(s)} = \sum \lambda_i\) — all of which use the same eigenvalues \(\lambda_i\) of \(\mathbf{W}^{-1}\mathbf{B}\), the multivariate analogue of \(B/W\).
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Exact and Approximate Distributions</div>
+      <p>The distribution of \(\Lambda^*\) depends on \(p\) and \(g\). For a few special cases we have exact \(F\)-distributions:</p>
+
+      <table class="wilks-table">
+        <thead>
+          <tr>
+            <th>Variables \(p\)</th>
+            <th>Groups \(g\)</th>
+            <th>Scaling factor</th>
+            <th>Distribution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>\(p=1\)</td>
+            <td>\(g \geq 2\)</td>
+            <td>\(\dfrac{\sum n_l - g}{g-1}\cdot\dfrac{1-\Lambda^*}{\Lambda^*}\)</td>
+            <td>\(F_{g-1,\,\sum n_l - g}\)</td>
+          </tr>
+          <tr>
+            <td>\(p=2\)</td>
+            <td>\(g \geq 2\)</td>
+            <td>\(\dfrac{\sum n_l - g - 1}{g-1}\cdot\dfrac{1-\sqrt{\Lambda^*}}{\sqrt{\Lambda^*}}\)</td>
+            <td>\(F_{2(g-1),\,2(\sum n_l-g-1)}\)</td>
+          </tr>
+          <tr>
+            <td>\(p \geq 1\)</td>
+            <td>\(g=2\)</td>
+            <td>\(\dfrac{\sum n_l - p - 1}{p}\cdot\dfrac{1-\Lambda^*}{\Lambda^*}\)</td>
+            <td>\(F_{p,\,\sum n_l - p - 1}\)</td>
+          </tr>
+          <tr>
+            <td>\(p \geq 1\)</td>
+            <td>\(g=3\)</td>
+            <td>\(\dfrac{\sum n_l - p - 2}{p}\cdot\dfrac{1-\sqrt{\Lambda^*}}{\sqrt{\Lambda^*}}\)</td>
+            <td>\(F_{2p,\,2(\sum n_l-p-2)}\)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>For large \(n\) and cases not covered above, use the \(\chi^2\) approximation:</p>
+      <div class="math-box teal-border">
+        <div class="math-label">Large-sample approximation</div>
+        \[-\!\left(n - 1 - \frac{p+g}{2}\right)\ln\Lambda^* \;\dot{\sim}\; \chi^2_{p(g-1)}\]
+        The correction factor \(\left(n-1-\frac{p+g}{2}\right)\) improves on the naive \(-2\ln\Lambda\) for finite samples.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Box's M Test — Checking Equal Covariances</div>
+      <p>Before running MANOVA, test the assumption \(H_0: \boldsymbol{\Sigma}_1 = \cdots = \boldsymbol{\Sigma}_g\) using Box's M. This is also an LRT — instead of comparing means, we compare individual group covariance matrices \(S_i\) against the pooled estimate \(S_p\):</p>
+      <div class="math-box">
+        \[M = \left(\sum_i(n_i-1)\right)\ln|S_p| - \sum_i(n_i-1)\ln|S_i|\]
+        Scaled \(M \sim \chi^2_{p(p+1)(g-1)/2}\) approximately.
+      </div>
+      <p>Note: Box's M is sensitive to non-normality, so a significant result does not automatically invalidate MANOVA — consider the context before abandoning the analysis.</p>
+    </div>
+  </div>
+
+  <hr class="ornament">
+
+  <!-- ===== SECTION 4: POST-REJECTION ===== -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div class="section-title">Post-Rejection Analysis</div>
+    </div>
+
+    <p>Rejecting \(H_0: \boldsymbol{\mu}_1 = \cdots = \boldsymbol{\mu}_g\) tells us <em>something</em> is different — but not <em>what</em> or <em>where</em>. We then zoom in using two complementary approaches.</p>
+
+    <div class="subsection">
+      <div class="subsection-title">Step 1 — Univariate ANOVAs: Which Variable Differs?</div>
+      <p>Run \(p\) separate ANOVA \(F\)-tests, one per variable. Apply a Bonferroni correction, testing each at level \(\alpha/p\) to control the overall error rate.</p>
+      <div class="example-box">
+        <div class="example-tag">Example</div>
+        MANOVA rejects equal mean vectors across fertiliser groups. Running \(p=2\) ANOVAs at level \(\alpha/2\):
+        <ul style="margin-top:8px; padding-left:20px;">
+          <li><strong>Yield:</strong> \(F = 1.2\), \(p\text{-value} = 0.31\) — not significant</li>
+          <li><strong>Height:</strong> \(F = 8.7\), \(p\text{-value} = 0.001\) — <strong>significant</strong></li>
+        </ul>
+        Conclusion: it is <strong>plant height</strong>, not yield, that is driving the difference in mean vectors.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Step 2 — Bonferroni Intervals: Which Groups Differ?</div>
+      <p>For each variable \(i\) that was significant, and each pair of groups \((k, l)\), construct:</p>
+      <div class="math-box accent-border">
+        <div class="math-label">Bonferroni Confidence Interval for \(\tau_{ki} - \tau_{li}\)</div>
+        \[\bar{x}_{ki} - \bar{x}_{li} \;\pm\; t_{n-g}\!\left(\frac{\alpha}{pg(g-1)}\right)\sqrt{\frac{w_{ii}}{n-g}\left(\frac{1}{n_k}+\frac{1}{n_l}\right)}\]
+        with \(m = \frac{pg(g-1)}{2}\) simultaneous intervals total.
+      </div>
+      <p>The rule is simple: if the interval <strong>straddles zero</strong>, those groups are not significantly different for that variable. If the interval is <strong>entirely positive or entirely negative</strong>, reject equality for that pair.</p>
+
+      <div class="example-box">
+        <div class="example-tag">Example — Height intervals (\(g=3\) groups, \(\frac{g(g-1)}{2}=3\) pairs)</div>
+        <div class="ci-visual">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--margin-note); margin-bottom:12px; letter-spacing:1px;">← negative &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; positive →</div>
+          <div class="ci-row">
+            <div class="ci-label">Groups \(1\) vs \(2\) (height)</div>
+            <div class="ci-bar-container">
+              <div class="ci-zero"></div>
+              <div class="ci-bar fail" style="left:38%; right:55%;"></div>
+            </div>
+            <div class="ci-verdict fail">FAIL TO REJECT</div>
+          </div>
+          <div class="ci-row">
+            <div class="ci-label">Groups \(1\) vs \(3\) (height)</div>
+            <div class="ci-bar-container">
+              <div class="ci-zero"></div>
+              <div class="ci-bar reject" style="left:58%; right:25%;"></div>
+            </div>
+            <div class="ci-verdict reject">REJECT</div>
+          </div>
+          <div class="ci-row">
+            <div class="ci-label">Groups \(2\) vs \(3\) (height)</div>
+            <div class="ci-bar-container">
+              <div class="ci-zero"></div>
+              <div class="ci-bar fail" style="left:44%; right:42%;"></div>
+            </div>
+            <div class="ci-verdict fail">FAIL TO REJECT</div>
+          </div>
+        </div>
+        Fertiliser groups 1 and 3 produce significantly different mean plant heights. Groups 1 vs 2 and 2 vs 3 are not significantly different.
+      </div>
+
+      <div class="insight-box">
+        <strong>What each step answers</strong><br>
+        Univariate ANOVAs answer: <em>which of the \(p\) variables differ across groups?</em><br>
+        Bonferroni intervals answer: <em>which specific group pairs \((k,l)\) differ for those variables?</em><br>
+        Together: "Plant height (\(i=2\)) differs significantly between fertiliser groups \(1\) and \(3\) (\(k=1, l=3\))."
+      </div>
+    </div>
+  </div>
+
+  <hr class="ornament">
+
+  <!-- ===== SECTION 5: TWO-WAY ===== -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <div class="section-title">Two-Way ANOVA &amp; MANOVA</div>
+    </div>
+
+    <p>We now classify observations by <strong>two factors simultaneously</strong>. In our example: Factor 1 = fertiliser type (\(g=3\) levels), Factor 2 = irrigation level (\(b=2\) levels), giving \(g \times b = 6\) combinations with \(n=5\) observations each, and \(p=2\) response variables (yield, height).</p>
+
+    <div class="subsection">
+      <div class="subsection-title">The Two-Way Model</div>
+      <div class="math-box">
+        <div class="math-label">Two-Way MANOVA Model</div>
+        \[\mathbf{X}_{lkr} = \boldsymbol{\mu} + \boldsymbol{\tau}_l + \boldsymbol{\beta}_k + \boldsymbol{\gamma}_{lk} + \mathbf{e}_{lkr}\]
+        <ul style="padding-left:20px; margin-top:10px; font-size:16px;">
+          <li>\(\boldsymbol{\mu}\) — overall mean vector</li>
+          <li>\(\boldsymbol{\tau}_l\) — effect of fertiliser level \(l\)</li>
+          <li>\(\boldsymbol{\beta}_k\) — effect of irrigation level \(k\)</li>
+          <li>\(\boldsymbol{\gamma}_{lk}\) — interaction between fertiliser \(l\) and irrigation \(k\)</li>
+          <li>\(\mathbf{e}_{lkr} \sim N_p(\mathbf{0}, \boldsymbol{\Sigma})\)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">The Variance Decomposition</div>
+      <div class="decomp">
+        <div class="decomp-term total">
+          <span class="label">Total</span>
+          \((X_{lkr} - \bar{x})\)
+        </div>
+        <div class="decomp-op">=</div>
+        <div class="decomp-term factor1">
+          <span class="label">Factor 1 (fertiliser)</span>
+          \((\bar{x}_{l\cdot} - \bar{x})\)
+        </div>
+        <div class="decomp-op">+</div>
+        <div class="decomp-term factor2">
+          <span class="label">Factor 2 (irrigation)</span>
+          \((\bar{x}_{\cdot k} - \bar{x})\)
+        </div>
+        <div class="decomp-op">+</div>
+        <div class="decomp-term interact">
+          <span class="label">Interaction</span>
+          \((\bar{x}_{lk} - \bar{x}_{l\cdot} - \bar{x}_{\cdot k} + \bar{x})\)
+        </div>
+        <div class="decomp-op">+</div>
+        <div class="decomp-term resid">
+          <span class="label">Residual</span>
+          \((X_{lkr} - \bar{x}_{lk})\)
+        </div>
+      </div>
+
+      <table class="anova-table">
+        <thead>
+          <tr><th>Source</th><th>Interpretation</th><th>df</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Factor 1</strong></td>
+            <td>How far each fertiliser group mean \(\bar{x}_{l\cdot}\) is from the overall mean \(\bar{x}\)</td>
+            <td>\(g-1\)</td>
+          </tr>
+          <tr>
+            <td><strong>Factor 2</strong></td>
+            <td>How far each irrigation group mean \(\bar{x}_{\cdot k}\) is from the overall mean \(\bar{x}\)</td>
+            <td>\(b-1\)</td>
+          </tr>
+          <tr>
+            <td><strong>Interaction</strong></td>
+            <td>How far each cell mean \(\bar{x}_{lk}\) is from what we'd predict from the two factor effects alone — i.e. the <em>extra</em> effect of being in a specific combination</td>
+            <td>\((g-1)(b-1)\)</td>
+          </tr>
+          <tr>
+            <td><strong>Residual</strong></td>
+            <td>How far each observation is from its own cell mean \(\bar{x}_{lk}\)</td>
+            <td>\(gb(n-1)\)</td>
+          </tr>
+          <tr>
+            <td><strong>Total</strong></td>
+            <td>How far each observation is from the overall mean</td>
+            <td>\(gbn-1\)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="insight-box">
+        <strong>Why interaction df = \((g-1)(b-1)\)?</strong><br>
+        You start with \(gb\) cell means. After accounting for \(g-1\) factor 1 effects, \(b-1\) factor 2 effects, and 1 overall mean, you have \(gb - (g-1) - (b-1) - 1 = (g-1)(b-1)\) free interaction parameters remaining.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Understanding Interaction</div>
+      <p>The interaction term answers: does the <em>effect of fertiliser depend on irrigation level</em>? If the two factors act purely additively, the interaction terms are all zero. The expected cell mean under no interaction would be:</p>
+      <div class="math-box">
+        \[\text{Expected } \bar{x}_{lk} = \bar{x} + (\bar{x}_{l\cdot} - \bar{x}) + (\bar{x}_{\cdot k} - \bar{x}) = \bar{x}_{l\cdot} + \bar{x}_{\cdot k} - \bar{x}\]
+        So interaction \(= \bar{x}_{lk} - \bar{x}_{l\cdot} - \bar{x}_{\cdot k} + \bar{x}\): the gap between the actual and the predicted cell mean.
+      </div>
+
+      <div class="example-box">
+        <div class="example-tag">Interaction Example — Yield</div>
+        <p>Without interaction: high fertiliser always adds 10 units of yield regardless of irrigation.</p>
+        <p style="margin-top:6px;">With interaction: high fertiliser adds 10 units under high irrigation, but only 2 units under low irrigation — the fertiliser effect <em>depends on</em> the irrigation level.</p>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Interaction Plots — Reading the Visual</div>
+      <p>Interaction plots show group means connected across factor 1 levels, with separate lines for each level of factor 2. The key rule:</p>
+      <div class="two-col" style="margin-bottom:16px;">
+        <div class="col-box">
+          <div class="col-box-title" style="color:var(--teal);">Parallel lines \(\Rightarrow\) No interaction</div>
+          The effect of factor 1 is the same at both levels of factor 2. Factors act independently and additively. The \(\boldsymbol{\gamma}_{lk} \approx \mathbf{0}\). Main effects \(\boldsymbol{\tau}_l\) and \(\boldsymbol{\beta}_k\) can be interpreted cleanly.
+        </div>
+        <div class="col-box">
+          <div class="col-box-title" style="color:var(--accent);">Crossing / diverging lines \(\Rightarrow\) Interaction present</div>
+          The effect of factor 1 changes depending on the level of factor 2. Some \(\boldsymbol{\gamma}_{lk} \neq \mathbf{0}\). Main effects \(\boldsymbol{\tau}_l\) and \(\boldsymbol{\beta}_k\) cannot be interpreted in isolation.
+        </div>
+      </div>
+
+      <div class="plot-container">
+        <div class="plot-title">Interaction Plots — Yield and Height across Fertiliser \(\times\) Irrigation</div>
+        <div class="plots-grid">
+          <div>
+            <canvas id="plot1" width="240" height="200" class="interaction-plot"></canvas>
+            <div class="plot-subtitle">Yield — <em>no interaction</em> (parallel lines, \(\gamma_{lk}\approx 0\))</div>
+          </div>
+          <div>
+            <canvas id="plot2" width="240" height="200" class="interaction-plot"></canvas>
+            <div class="plot-subtitle">Height — <em>mild interaction</em> (diverging lines)</div>
+          </div>
+          <div>
+            <canvas id="plot3" width="240" height="200" class="interaction-plot"></canvas>
+            <div class="plot-subtitle">Hypothetical — <em>strong interaction</em> (crossing lines)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-title">Two-Way MANOVA Test Statistics</div>
+      <p>Three separate Wilks' lambdas — one per source of variation — using \(\mathbf{SSP}_{res}\) in the numerator each time:</p>
+
+      <table class="wilks-table">
+        <thead>
+          <tr><th>Test</th><th>\(H_0\)</th><th>Wilks' \(\Lambda^*\)</th><th>Approx. distribution</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Interaction</strong></td>
+            <td>All \(\boldsymbol{\gamma}_{lk} = \mathbf{0}\)</td>
+            <td>\(\dfrac{|\mathbf{SSP}_{res}|}{|\mathbf{SSP}_{int}+\mathbf{SSP}_{res}|}\)</td>
+            <td>\(\chi^2_{(g-1)(b-1)p}\)</td>
+          </tr>
+          <tr>
+            <td><strong>Factor 1</strong></td>
+            <td>All \(\boldsymbol{\tau}_l = \mathbf{0}\)</td>
+            <td>\(\dfrac{|\mathbf{SSP}_{res}|}{|\mathbf{SSP}_{fac1}+\mathbf{SSP}_{res}|}\)</td>
+            <td>\(\chi^2_{(g-1)p}\)</td>
+          </tr>
+          <tr>
+            <td><strong>Factor 2</strong></td>
+            <td>All \(\boldsymbol{\beta}_k = \mathbf{0}\)</td>
+            <td>\(\dfrac{|\mathbf{SSP}_{res}|}{|\mathbf{SSP}_{fac2}+\mathbf{SSP}_{res}|}\)</td>
+            <td>\(\chi^2_{(b-1)p}\)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="ornament">
+
+  <!-- ===== SECTION 6: FULL DECISION PROCESS ===== -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <div class="section-title">The Full Decision Process</div>
+    </div>
+
+    <div class="decision-tree">
+      <div class="decision-tree-title">Two-Way MANOVA — Complete Testing Workflow</div>
+
+      <div class="tree-step">
+        <div class="tree-step-num">1</div>
+        <div class="tree-step-content">
+          <strong>Test interaction</strong> using \(\Lambda^*_{int}\). <em>Always do this first.</em><br>
+          <span style="font-size:16px;">Example: Is the effect of fertiliser (\(\boldsymbol{\tau}_l\)) on our \(p=2\) responses different at the \(b=2\) irrigation levels?</span>
+        </div>
+      </div>
+
+      <div class="tree-branch">
+        <div class="branch-yes">
+          <div class="branch-label">✓ Significant</div>
+          Some \(\boldsymbol{\gamma}_{lk} \neq \mathbf{0}\). Factor effects have no clean interpretation. Drop to \(p\) separate <strong>univariate two-way ANOVAs</strong> to identify which variables show interaction. Use interaction plots.
+        </div>
+        <div class="branch-no">
+          <div class="branch-label">✗ Not significant</div>
+          All \(\boldsymbol{\gamma}_{lk} \approx \mathbf{0}\). Factors act independently. Proceed to test main effects \(\boldsymbol{\tau}_l\) and \(\boldsymbol{\beta}_k\).
+        </div>
+      </div>
+
+      <div class="tree-arrow">↓</div>
+
+      <div class="tree-step">
+        <div class="tree-step-num">2</div>
+        <div class="tree-step-content">
+          <strong>Test Factor 1 and Factor 2 main effects</strong> using \(\Lambda^*_{fac1}\) and \(\Lambda^*_{fac2}\).<br>
+          <span style="font-size:16px;">Example: Does fertiliser type significantly affect \(\mathbf{X} = (\text{yield}, \text{height})'\)? Does irrigation?</span>
+        </div>
+      </div>
+
+      <div class="tree-arrow">↓</div>
+
+      <div class="tree-step">
+        <div class="tree-step-num">3</div>
+        <div class="tree-step-content">
+          <strong>Univariate ANOVAs</strong> for each significant factor — one per variable \(i = 1,\ldots,p\).<br>
+          <span style="font-size:16px;">Example: Fertiliser is significant. Running \(p=2\) ANOVAs shows height (\(i=2\)) is significant but yield (\(i=1\)) is not.</span>
+        </div>
+      </div>
+
+      <div class="tree-arrow">↓</div>
+
+      <div class="tree-step">
+        <div class="tree-step-num">4</div>
+        <div class="tree-step-content">
+          <strong>Bonferroni confidence intervals</strong> for each significant variable — all \(\frac{g(g-1)}{2}\) group pairs.<br>
+          <span style="font-size:16px;">Example: For height, test pairs \((1,2),\ (1,3),\ (2,3)\). Find that only fertiliser groups \(1\) and \(3\) differ significantly (\(\tau_{1,2} - \tau_{3,2} \neq 0\)).</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-box" style="margin-top:24px;">
+      <strong>Final Conclusion — Our Example</strong><br>
+      <strong>Final Conclusion — Our Example</strong><br>
+      There is no significant interaction between fertiliser type and irrigation level (\(\boldsymbol{\gamma}_{lk} \approx \mathbf{0}\)). Fertiliser type has a significant effect on the mean response vector \(\boldsymbol{\mu}_l\), driven specifically by <strong>plant height</strong> (\(i=2\), not yield). Among the \(g=3\) fertiliser groups, it is specifically <strong>groups \(1\) and \(3\)</strong> whose mean heights differ significantly from each other.
+    </div>
+
+    <div class="code-block" style="margin-top:24px;">
+<span class="cm"># Two-way MANOVA in R</span>
+X <span class="kw">&lt;-</span> <span class="fn">cbind</span>(yield, height)
+<span class="fn">summary</span>(<span class="fn">manova</span>(X <span class="kw">~</span> fertiliser <span class="kw">*</span> irrigation), test <span class="kw">=</span> <span class="st">'Wilks'</span>)
+
+<span class="cm"># If interaction not significant, test main effects</span>
+<span class="cm"># Then run univariate ANOVAs per variable</span>
+<span class="fn">summary</span>(<span class="fn">aov</span>(height <span class="kw">~</span> fertiliser))
+
+<span class="cm"># Bonferroni intervals — pairwise group comparisons</span>
+<span class="fn">pairwise.t.test</span>(height, fertiliser, p.adj <span class="kw">=</span> <span class="st">"bonferroni"</span>)
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Draw interaction plots on canvas
+function drawInteractionPlot(canvasId, data, colors, labels, title, yLabel) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = { top: 30, right: 20, bottom: 40, left: 45 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, W, H);
+
+  // Find data range
+  let allVals = data.flat();
+  let minV = Math.min(...allVals) - 2;
+  let maxV = Math.max(...allVals) + 2;
+
+  function xPos(i) { return pad.left + (i / (data[0].length - 1)) * plotW; }
+  function yPos(v) { return pad.top + (1 - (v - minV) / (maxV - minV)) * plotH; }
+
+  // Grid
+  ctx.strokeStyle = '#e8e8e8';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = pad.top + (i / 4) * plotH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + plotW, y); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#999';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + plotH);
+  ctx.lineTo(pad.left + plotW, pad.top + plotH);
+  ctx.stroke();
+
+  // X axis labels
+  ctx.fillStyle = '#555';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < data[0].length; i++) {
+    ctx.fillText('Fertiliser l=' + (i + 1), xPos(i), pad.top + plotH + 16);
+  }
+
+  // Y axis label
+  ctx.save();
+  ctx.translate(12, pad.top + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = '11px Crimson Pro, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  // Lines and points
+  data.forEach((series, si) => {
+    ctx.strokeStyle = colors[si];
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash(si === 1 ? [5, 3] : []);
+    ctx.beginPath();
+    series.forEach((v, i) => {
+      if (i === 0) ctx.moveTo(xPos(i), yPos(v));
+      else ctx.lineTo(xPos(i), yPos(v));
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Points
+    series.forEach((v, i) => {
+      ctx.fillStyle = colors[si];
+      ctx.beginPath();
+      ctx.arc(xPos(i), yPos(v), 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+
+  // Legend
+  const legX = pad.left + plotW - 70;
+  data.forEach((_, si) => {
+    ctx.fillStyle = colors[si];
+    ctx.fillRect(legX, pad.top + 4 + si * 16, 18, 3);
+    ctx.fillStyle = '#444';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(labels[si], legX + 22, pad.top + 10 + si * 16);
+  });
+}
+
+// Yield: parallel lines (no interaction)
+drawInteractionPlot('plot1',
+  [[40, 46, 43], [50, 56, 53]],
+  ['#1e3a5f', '#c4505e'],
+  ['Irrig k=1', 'Irrig k=2'],
+  'Yield', 'Yield'
+);
+
+// Height: slight divergence
+drawInteractionPlot('plot2',
+  [[55, 72, 60], [58, 82, 63]],
+  ['#1e3a5f', '#c4505e'],
+  ['Irrig k=1', 'Irrig k=2'],
+  'Height', 'Height'
+);
+
+// Hypothetical crossing: strong interaction
+drawInteractionPlot('plot3',
+  [[70, 55, 65], [45, 75, 50]],
+  ['#1e3a5f', '#c4505e'],
+  ['Irrig k=1', 'Irrig k=2'],
+  'Height', 'Height'
+);
+</script>
+</body>
+</html>

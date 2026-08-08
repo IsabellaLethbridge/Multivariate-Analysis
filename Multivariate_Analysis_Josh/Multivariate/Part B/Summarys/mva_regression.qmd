@@ -1,0 +1,530 @@
+---
+title: "Least-Squares Regression: Multiple, Multivariate, PCR and PLS"
+format: pdf
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(pls)
+data("data_tidy_house_price", package = "DataTidy23RodoHonsMult")
+data("data_tidy_paper", package = "DataTidy23RodoHonsMult")
+```
+
+# Overview
+
+This document covers four regression approaches:
+
+-   **Simple/Multiple regression (MLR)**: one response, one or more
+    predictors
+-   **Multivariate regression (MVR)**: multiple responses, multiple
+    predictors
+-   **Principal Components Regression (PCR)**: MLR on PCA components of
+    predictors
+-   **Partial Least Squares (PLS)**: regression on components that
+    maximise covariance with response
+
+------------------------------------------------------------------------
+
+# Notation
+
+| Symbol | Meaning |
+|----------------------------------|--------------------------------------|
+| $n$ | number of observations |
+| $r$ | number of responses ($r = 1$ for MLR, $r \geq 1$ for MVR) |
+| $k$ | number of predictors **including** the intercept |
+| $p = k - 1$ | number of predictors **excluding** the intercept |
+| $\mathbf{y} : n \times 1$ | response vector (MLR) |
+| $\mathcal{Y} : n \times r$ | response matrix (MVR) |
+| $\mathbf{X} : n \times k$ | design matrix (first column all 1s for intercept) |
+| $\boldsymbol{\beta} : k \times 1$ | coefficient vector (MLR) |
+| $\mathcal{B} : k \times r$ | coefficient matrix (MVR) |
+
+------------------------------------------------------------------------
+
+# 1. Multiple Regression (MLR)
+
+## Model
+
+One response, $p$ predictors:
+
+$$Y = \beta_0 + \beta_1 X_1 + \ldots + \beta_p X_p + \epsilon, \quad \text{or in matrix form} \quad \mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon}$$
+
+## Assumptions
+
+-   **Linearity**:
+    $\mathrm{E}[Y] = \beta_0 + \beta_1 X_1 + \ldots + \beta_p X_p$
+-   **Constant variance**: $\mathrm{Var}[\epsilon] = \sigma^2$
+-   **Independence**: $\mathrm{Cov}[\epsilon_i, \epsilon_j] = 0$ for
+    $i \neq j$ — errors across *different observations* are uncorrelated
+
+## Estimating Coefficients
+
+We choose $\hat{\boldsymbol{\beta}}$ to minimise the sum of squared
+residuals:
+
+$$\sum_{i=1}^n (y_i - \hat{y}_i)^2 = (\mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}})'(\mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}})$$
+
+This gives the OLS estimator:
+
+$$\hat{\boldsymbol{\beta}} = (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}$$
+
+## The Hat Matrix
+
+Fitted values for all observations at once:
+
+$$\hat{\mathbf{y}} = \mathbf{X}\hat{\boldsymbol{\beta}} = \mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y} = \mathbf{H}\mathbf{y}$$
+
+where $\mathbf{H} = \mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'$
+is called the **hat matrix**. It is:
+
+-   A projection matrix:
+    $\mathbf{H}\mathbf{y} = \mathrm{proj}_{\mathbf{X}}(\mathbf{y})$
+-   Idempotent: $\mathbf{H}^2 = \mathbf{H}$
+
+## Estimator Properties
+
+$$\mathrm{E}[\hat{\boldsymbol{\beta}}] = \boldsymbol{\beta} \quad \text{(unbiased)}$$
+$$\mathrm{Cov}[\hat{\boldsymbol{\beta}}] = \sigma^2(\mathbf{X}'\mathbf{X})^{-1}$$
+$$\mathrm{Cov}[\hat{\boldsymbol{\epsilon}}] = \sigma^2(\mathbf{I} - \mathbf{H})$$
+
+Note: the true errors $\epsilon_i$ are independent, but the
+**residuals** $\hat{\epsilon}_i$ are correlated with each other because
+they all depend on the same $\hat{\boldsymbol{\beta}}$. The off-diagonal
+entries of $\sigma^2(\mathbf{I} - \mathbf{H})$ capture this.
+
+## Estimating the Variance
+
+$$\hat{\sigma}^2 = s^2 = \frac{1}{n-k}(\mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}})'(\mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}})$$
+
+We divide by $n - k$ (not $n$) because we lose one degree of freedom for
+each of the $k$ parameters estimated. This makes $s^2$ an unbiased
+estimator of $\sigma^2$.
+
+## Sums of Squares
+
+$$\mathrm{SST} = \sum_{i=1}^n (y_i - \bar{y})^2 = \mathbf{y}'\mathbf{y} - n\bar{y}^2$$
+
+$$\mathrm{SST} = \mathrm{SSR} + \mathrm{SSE}$$
+
+where SSR is the sum of squares due to regression and SSE the sum of
+squares due to error:
+
+$$\mathrm{SSR} = \hat{\mathbf{y}}'\hat{\mathbf{y}} - n\bar{y}^2, \qquad \mathrm{SSE} = \mathbf{y}'\mathbf{y} - \hat{\mathbf{y}}'\hat{\mathbf{y}}$$
+
+$$R^2 = \frac{\mathrm{SSR}}{\mathrm{SST}} = 1 - \frac{\mathrm{SSE}}{\mathrm{SST}}$$
+
+$R^2$ is the proportion of total variance explained by the model,
+$0 \leq R^2 \leq 1$.
+
+## Inference (requires normality assumption)
+
+Assuming
+$\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$,
+it follows that:
+
+$$\hat{\boldsymbol{\beta}} \sim \mathcal{N}\left(\boldsymbol{\beta},\ \sigma^2(\mathbf{X}'\mathbf{X})^{-1}\right), \qquad \frac{n-k}{\sigma^2}s^2 \sim \chi^2_{n-k}$$
+
+Note: $\hat{\boldsymbol{\beta}}$ and $s^2$ are independent, because they
+are functions of orthogonal projections of $\mathbf{y}$ —
+$\hat{\boldsymbol{\beta}}$ depends on $\mathbf{H}\mathbf{y}$ and $s^2$
+depends on $(\mathbf{I} - \mathbf{H})\mathbf{y}$, and orthogonal
+projections of a normal vector are independent.
+
+### Confidence Interval for $\beta_j$
+
+$$\hat{\beta}_j \pm t_{n-k}^{\alpha/2} \sqrt{s^2 (\mathbf{X}'\mathbf{X})^{-1}_{jj}}$$
+
+### Univariate Hypothesis Test: $H_0 : \beta_j = 0$
+
+$$t = \frac{\hat{\beta}_j}{\sqrt{s^2(\mathbf{X}'\mathbf{X})^{-1}_{jj}}}, \qquad \text{reject if } |t| > t_{n-k}^{1-\alpha/2}$$
+
+### Simultaneous Hypothesis Test: $H_0 : \boldsymbol{\beta}^{(1)} = \mathbf{0}$
+
+Where $\boldsymbol{\beta}^{(1)} : q \times 1$ is a subset of
+coefficients and
+$(\mathbf{X}'\mathbf{X})^{-1} = \mathbf{C} = \begin{bmatrix} \mathbf{C}_{11} & \mathbf{C}_{12} \\ \mathbf{C}_{21} & \mathbf{C}_{22} \end{bmatrix}$:
+
+$$F = \frac{\hat{\boldsymbol{\beta}}^{(1)\prime}\mathbf{C}_{11}^{-1}\hat{\boldsymbol{\beta}}^{(1)}}{qs^2}, \qquad \text{reject if } F \geq F^{1-\alpha}_{q,\, n-k}$$
+
+------------------------------------------------------------------------
+
+## MLR Example: House Prices
+
+We model selling price against house size and assessed value.
+
+```{r mlr-data}
+# Extract response vector and design matrix
+y_vec <- data_tidy_house_price %>% pull(selling_price)
+
+X_mat <- data_tidy_house_price %>%
+  select(-selling_price) %>%
+  as.matrix() %>%
+  cbind(intercept = 1, .)
+```
+
+```{r mlr-coefficients}
+# Estimate coefficients from scratch: beta = (X'X)^-1 X'y
+beta_vec <- solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*% y_vec
+colnames(beta_vec) <- "estimate"
+beta_vec %>% signif(3) %>% kable(caption = "MLR coefficient estimates")
+```
+
+```{r mlr-r2}
+# Calculate R^2
+SST <- sum((y_vec - mean(y_vec))^2)
+SSE <- sum((y_vec - X_mat %*% beta_vec)^2)
+SSR <- SST - SSE
+R2  <- SSR / SST
+cat("R^2 =", signif(R2, 2))
+```
+
+```{r mlr-verify}
+# Verify with lm()
+lm(selling_price ~ ., data = data_tidy_house_price) %>%
+  coef() %>%
+  signif(3) %>%
+  kable(caption = "lm() output for comparison")
+```
+
+------------------------------------------------------------------------
+
+# 2. Multivariate Regression (MVR)
+
+## What is MVR?
+
+MVR is simply running MLR for each of $r$ response variables
+simultaneously, using the same predictor matrix $\mathbf{X}$ for all of
+them.
+
+## Model
+
+$$\mathcal{Y} = \mathbf{X}\mathcal{B} + \mathcal{E}$$
+
+where $\mathcal{Y} : n \times r$, $\mathcal{B} : k \times r$,
+$\mathcal{E} : n \times r$.
+
+Fitted value for observation $i$:
+$\hat{\mathcal{Y}}_{[i]} = \mathbf{x}_i'\hat{\mathcal{B}}$ (a
+$1 \times r$ row vector).
+
+## Assumptions
+
+-   **Linearity**: $\mathrm{E}[\mathcal{Y}] = \mathbf{X}\mathcal{B}$
+-   **Constant variance**:
+    $\mathrm{Var}[\mathcal{E}] = \boldsymbol{\Sigma}$ — an $r \times r$
+    matrix where the diagonal entries are the individual response
+    variances and the off-diagonals are the covariances *between
+    responses within the same observation*. This does **not** have to be
+    zero.
+-   **Independence**:
+    $\mathrm{Cov}[\mathcal{E}_i, \mathcal{E}_j] = \mathbf{0}$ for
+    $i \neq j$ — errors across *different observations* must be
+    independent. Different responses on the same observation can be
+    correlated; different observations cannot.
+
+## Estimating Coefficients
+
+$$\hat{\mathcal{B}} = (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathcal{Y}$$
+
+Each column of $\hat{\mathcal{B}}$ is exactly the OLS estimate you would
+get running a separate MLR for that response. $\boldsymbol{\Sigma}$ does
+not affect coefficient estimation — only inference.
+
+## Estimating the Variance-Covariance Matrix
+
+$$\hat{\boldsymbol{\Sigma}} = \mathbf{S} = \frac{1}{n-k}(\mathcal{Y} - \mathbf{X}\hat{\mathcal{B}})'(\mathcal{Y} - \mathbf{X}\hat{\mathcal{B}})$$
+
+Same $n - k$ denominator as MLR — we still lose $k$ degrees of freedom
+for the $k$ rows of $\hat{\mathcal{B}}$.
+
+## MVR Example: Paper Properties
+
+We model four paper properties against four wood-pulp predictors.
+
+```{r mvr-data}
+# Response matrix: all paper columns
+Y_mat <- data_tidy_paper %>%
+  select(starts_with("paper")) %>%
+  as.matrix()
+
+# Design matrix: intercept + all pulp columns
+X_mat <- data_tidy_paper %>%
+  select(starts_with("pulp")) %>%
+  as.matrix() %>%
+  cbind(intercept = 1, .)
+```
+
+```{r mvr-coefficients}
+# Estimate B: (X'X)^-1 X'Y
+B_mat <- solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*% Y_mat
+B_mat %>% signif(3) %>% kable(caption = "MVR coefficient estimates")
+```
+
+```{r mvr-verify}
+# Verify with lm()
+lm(cbind(paper_1, paper_2, paper_3, paper_4) ~ pulp_1 + pulp_2 + pulp_3 + pulp_4,
+   data = data_tidy_paper) %>%
+  coef() %>%
+  signif(3) %>%
+  kable(caption = "lm() output for comparison")
+```
+
+------------------------------------------------------------------------
+
+## Inference in MVR
+
+When testing hypotheses *within* a single response variable, MVR and MLR
+give exactly the same answer. The extra power of MVR is that you can
+test hypotheses *across* response variables simultaneously.
+
+### Individual Coefficient CI and t-test (same as MLR)
+
+```{r mvr-inference-setup}
+# Using only paper_1 as response for the inference example
+Y_mat_1 <- data_tidy_paper[, "paper_1", drop = FALSE] %>% as.matrix()
+colnames(Y_mat_1) <- "paper_1"
+
+beta_vec <- solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*% Y_mat_1
+colnames(beta_vec) <- "estimate"
+
+# Variance estimate
+n <- nrow(Y_mat_1)
+k <- ncol(X_mat)
+var_resp <- sum((Y_mat_1 - X_mat %*% beta_vec)^2) / (n - k)
+
+# Standard error for pulp_1 coefficient (row 2)
+XtX_inv <- solve(t(X_mat) %*% X_mat)
+se_pulp1 <- sqrt(var_resp * XtX_inv[2, 2])
+```
+
+```{r mvr-ci}
+# 95% CI for beta_pulp1
+t_crit <- qt(0.975, df = n - k)
+ci <- beta_vec[2] + c(-1, 1) * t_crit * se_pulp1
+cat("95% CI for beta_pulp1: [", signif(ci[1], 3), ",", signif(ci[2], 3), "]")
+```
+
+```{r mvr-ttest}
+# t-test: H0: beta_pulp1 = 0
+t_stat  <- beta_vec[2] / se_pulp1
+p_value <- 2 * pt(-abs(t_stat), df = n - k)
+cat("t =", signif(t_stat, 2), "  p-value =", signif(p_value, 2))
+```
+
+### Simultaneous F-test: $H_0 : \boldsymbol{\beta}^{(1)} = \mathbf{0}$
+
+Testing
+$H_0: \beta_{\text{pulp}_1} = \beta_{\text{pulp}_3} = \beta_{\text{pulp}_4} = 0$.
+
+```{r mvr-ftest}
+# Extract C11 block (rows/cols for pulp_1, pulp_3, pulp_4 = indices 2, 4, 5)
+C11_mat <- XtX_inv[c(2, 4, 5), c(2, 4, 5)]
+
+# Extract the corresponding beta estimates
+beta_vec_1 <- beta_vec[c(2, 4, 5), , drop = FALSE]
+q <- length(beta_vec_1)
+
+# F statistic
+f_stat <- (t(beta_vec_1) %*% solve(C11_mat) %*% beta_vec_1) / (q * var_resp)
+p_value_f <- pf(f_stat, df1 = q, df2 = n - k, lower.tail = FALSE)
+
+cat("F =", signif(f_stat, 2), "  p-value =", signif(p_value_f, 2))
+```
+
+------------------------------------------------------------------------
+
+### Multivariate Likelihood Ratio Test: $H_0 : \mathcal{B}^{(1)} = \mathbf{0}$
+
+This tests whether a subset of predictors has *any* effect on *any*
+response. We compare a full model (all predictors) against a reduced
+model (predictors under $H_0$ removed).
+
+The test statistic is the likelihood ratio:
+
+$$\Lambda = \left(\frac{|\hat{\boldsymbol{\Sigma}}|}{|\hat{\boldsymbol{\Sigma}}^{(2)}|}\right)^{n/2}$$
+
+For large $n$, the following approximation holds:
+
+$$-[n - k - 0.5(r - p + q + 1)]\ln(\Lambda^{2/n}) \sim \chi^2_{rq}$$
+
+```{r mvr-lr-test}
+# Test whether pulp_2 and pulp_3 have any effect on any paper property
+# Full model uses all pulps; reduced model removes pulp_2 and pulp_3 (cols 3:4)
+X_mat_2 <- X_mat[, -(3:4), drop = FALSE]
+
+B_mat_full    <- solve(t(X_mat)   %*% X_mat)   %*% t(X_mat)   %*% Y_mat
+B_mat_reduced <- solve(t(X_mat_2) %*% X_mat_2) %*% t(X_mat_2) %*% Y_mat
+
+# MLE covariance matrices (divide by n, not n-k, for the LR test)
+n <- nrow(Y_mat)
+Sigma_full    <- t(Y_mat - X_mat   %*% B_mat_full)    %*% (Y_mat - X_mat   %*% B_mat_full)    / n
+Sigma_reduced <- t(Y_mat - X_mat_2 %*% B_mat_reduced) %*% (Y_mat - X_mat_2 %*% B_mat_reduced) / n
+
+r <- ncol(Y_mat)
+k <- ncol(X_mat)
+p <- k - 1
+q <- ncol(X_mat) - ncol(X_mat_2)   # number of predictors being tested
+
+test_stat <- -(n - k - 0.5 * (r - p + q + 1)) * log(det(Sigma_full) / det(Sigma_reduced))
+p_value_lr <- pchisq(test_stat, df = r * q, lower.tail = FALSE)
+
+# Form 1: compute Lambda first, then the test statistic / can also do this
+Lambda   <- (det(Sigma_full) / det(Sigma_reduced))^(n / 2)
+test_stat <- -(n - k - 0.5 * (r - p + q + 1)) * log(Lambda^(2 / n))
+
+cat("Chi-sq =", signif(test_stat, 2), "  df =", r * q, "  p-value =", signif(p_value_lr, 3))
+```
+
+------------------------------------------------------------------------
+
+# 3. Principal Components Regression (PCR)
+
+## Idea
+
+Replace the original $p$ predictors with $m \leq p$ principal
+components, then run MLR on those components. Motivations:
+
+-   Avoid multicollinearity (components are uncorrelated by
+    construction)
+-   Reduce overfitting (fewer predictors)
+-   Improve interpretability
+
+**Key point**: PCA is performed only on $\mathbf{X}$ — it ignores
+$\mathbf{y}$ completely. The components maximise variance in the
+predictor space, not association with the response.
+
+## Method
+
+1.  Compute the principal components of the (non-intercept) predictors
+    (standardise first).
+2.  Regress $\mathbf{y}$ on the first $m$ components.
+3.  Choose $m$ by cross-validation or scree plot.
+
+When cross-validating, PCA loadings must be **recomputed within each
+fold** — they cannot be computed on the full dataset first.
+
+```{r pcr-fit}
+# Fit PCR using plsr() with cross-validation to choose m
+# ncomp sets the maximum number of components to try
+pcr_fit <- pcr(
+  paper_1 ~ pulp_1 + pulp_2 + pulp_3 + pulp_4,
+  data      = data_tidy_paper,
+  scale     = TRUE,
+  ncomp     = 4,
+  validation = "CV"
+)
+
+# Extract cross-validated MSEP manually (avoids validationplot legend bug)
+msep_vals <- MSEP(pcr_fit)$val[1, 1, ]   # [estimator, response, ncomp]
+ncomp_seq <- 0:(length(msep_vals) - 1)
+
+tibble(ncomp = ncomp_seq, MSEP = msep_vals) %>%
+  ggplot(aes(x = ncomp, y = MSEP)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "PCR: Cross-validated MSEP", x = "Number of components", y = "CV-MSEP") +
+  theme_minimal()
+```
+
+```{r pcr-optimal}
+# Choose optimal number of components (minimum CV-MSEP)
+m_opt <- which.min(msep_vals) - 1   # subtract 1 because index 1 = 0 components
+cat("Optimal number of PCR components:", m_opt)
+```
+
+```{r pcr-coefficients}
+# Coefficients in original variable space for chosen m
+coef(pcr_fit, ncomp = m_opt, intercept = TRUE) %>%
+  kable(caption = paste("PCR coefficients (m =", m_opt, ")"))
+```
+
+------------------------------------------------------------------------
+
+# 4. Partial Least Squares (PLS)
+
+## Idea
+
+Like PCR, PLS takes linear combinations of the predictors and regresses
+on them. The difference is *how* the components are chosen:
+
+| Method | Components maximise                                        |
+|--------|------------------------------------------------------------|
+| PCR    | Variance in $\mathbf{X}$ (ignores $\mathbf{y}$)            |
+| PLS    | Covariance between $\mathbf{X}\mathbf{a}$ and $\mathbf{y}$ |
+
+This means PLS components are directly guided by the response — a
+component that explains a lot of predictor variance but has nothing to
+do with $\mathbf{y}$ will not be selected.
+
+## Orthogonality
+
+In PCA, the **loadings** $\mathbf{a}_i$ are orthogonal, which means the
+**scores** $\mathbf{t}_i = \mathbf{X}\mathbf{a}_i$ are also orthogonal
+as a consequence.
+
+In PLS, the **loadings** are not orthogonal. Instead it is the
+**scores** that are forced to be orthogonal, achieved through a
+**deflation step** — after each component, its contribution is
+subtracted from $\mathbf{X}$ before the next component is found. This is
+why back-transforming PLS coefficients to the original variable space
+requires extra work.
+
+## Fitting with `plsr()`
+
+```{r pls-fit}
+pls_fit <- plsr(
+  paper_1 ~ pulp_1 + pulp_2 + pulp_3 + pulp_4,
+  data       = data_tidy_paper,
+  scale      = TRUE,
+  ncomp      = 4,
+  validation = "CV"
+)
+
+# Extract CV-MSEP manually
+msep_pls <- MSEP(pls_fit)$val[1, 1, ]
+ncomp_seq <- 0:(length(msep_pls) - 1)
+
+tibble(ncomp = ncomp_seq, MSEP = msep_pls) %>%
+  ggplot(aes(x = ncomp, y = MSEP)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "PLS: Cross-validated MSEP", x = "Number of components", y = "CV-MSEP") +
+  theme_minimal()
+```
+
+```{r pls-optimal}
+m_opt_pls <- which.min(msep_pls) - 1
+cat("Optimal number of PLS components:", m_opt_pls)
+```
+
+```{r pls-coefficients}
+# Coefficients back-transformed to original variable space
+coef(pls_fit, ncomp = m_opt_pls, intercept = TRUE) %>%
+  kable(caption = paste("PLS coefficients (m =", m_opt_pls, ")"))
+```
+
+------------------------------------------------------------------------
+
+# PCR vs PLS: A Comparison
+
+```{r pcr-vs-pls}
+# Plot CV-MSEP for both methods side by side
+bind_rows(
+  tibble(ncomp = 0:(length(msep_vals) - 1), MSEP = msep_vals, method = "PCR"),
+  tibble(ncomp = 0:(length(msep_pls)  - 1), MSEP = msep_pls,  method = "PLS")
+) %>%
+  ggplot(aes(x = ncomp, y = MSEP, colour = method)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "PCR vs PLS: Cross-validated MSEP",
+       x = "Number of components", y = "CV-MSEP", colour = "Method") +
+  theme_minimal()
+```
+
+PLS typically needs fewer components than PCR to achieve the same
+prediction error, because its components are already oriented toward the
+response.

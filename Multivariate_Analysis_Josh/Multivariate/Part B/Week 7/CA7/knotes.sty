@@ -1,0 +1,343 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{knotes}[2024/06/13 Keeran's Note Format]
+
+%Test Command
+\newcommand{\test}{HELLO WORLD}
+%Imports
+\RequirePackage{actuarialsymbol}
+\RequirePackage{graphicx}
+\RequirePackage{mdframed}
+\RequirePackage{amsmath}
+\RequirePackage{amsthm}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{mathtools}
+\RequirePackage{bbm} % For extended bold and blackboard bold characters
+\RequirePackage{physics} % matrix handling also in here and some quick commands for functions and derivatives
+\RequirePackage[T1]{fontenc}
+\RequirePackage{xparse}
+\RequirePackage{lmodern}
+\RequirePackage{mathrsfs}
+\RequirePackage[table,dvipsnames]{xcolor}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[a4paper,top=0.5in,bottom=0.2in,left=0.5in,right=0.5in,footskip=0.3in,includefoot]{geometry}
+\RequirePackage{darkmode}
+\RequirePackage{placeins} %floats handling
+\RequirePackage{array}
+\RequirePackage{hyperref}
+\RequirePackage{stringstrings} % for title capitalisation
+
+\newcommand{\funhats}{\RequirePackage{realhats}}
+
+
+%TODO: Learn how to reference and find packages for referencing
+
+%%Configuring packages%%
+%lmodern,mathsrsfs
+\normalfont
+\DeclareFontShape{T1}{lmr}{bx}{sc} { <-> ssub * cmr/bx/sc }{}
+%array
+\newcolumntype{L}{>{$}l<{$}} % math-mode version of "l" column type
+%hypperref
+\hypersetup{
+    colorlinks=false, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=blue,  %choose some color if you want links to stand out
+}
+%StringStrings
+%\addlcwords{the a of an in by}
+%%Declaring useful commands
+    % To remind me of unfinished work to fix later
+    \newcommand{\todo}[1]{\textcolor{red}{\textbf{#1}}} 
+    % Inner product ⟨x,y⟩ (but only one argument is taken, so  ip{x,y} renders as ⟨x,y⟩)
+    \DeclareDocumentCommand\ip{ l m }{\braces#1{\langle}{\rangle}{#2}} 
+    % Floor function ⌊x⌋
+    \DeclareDocumentCommand\floor{ l m }{\braces#1{\lfloor}{\rfloor}{#2}} 
+    % Ceiling function ⌈x⌉
+    \DeclareDocumentCommand\ceil{ l m }{\braces#1{\lceil}{\rceil}{#2}} 
+    % Shortcuts for blackboard bold letters, e.g. \A outputs \mathbb{A}
+    \def\do#1{\csdef{#1}{\mathbb{#1}}}
+    \docsvlist{C,R,N,Q,Z,E,P}
+    \renewcommand{\cal}{\mathcal}
+    \newcommand{\bb}{\mathbb}
+    \DeclareMathOperator*{\argmin}{arg\,min}
+    \DeclareMathOperator*{\argmax}{arg\,max}
+    % Shortcuts for letters with a bar on top, e.g. \Abar outputs \overline{A}
+    \def\do#1{\csdef{#1bar}{\overline{#1}}}
+    \docsvlist{a,b,c,d,e,f,g,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+    % Transpose
+    \newcommand{\tm}{^{\mathsf{T}}}     
+    % Fast Limits
+    \newcommand{\limn}{\lim_{n\to\infty}}
+    \newcommand{\limx}[1][a]{\lim_{x\to#1}}
+    \newcommand{\klimit}[2][x,0]{\lim_{#1\to#2}}
+    \NewDocumentCommand{\limit}{O{x} O{0}}{\lim_{#1\to#2}}
+    \newcommand{\liminfn}{\liminf_{n\to\infty}}
+    \newcommand{\limsupn}{\limsup_{n\to\infty}}
+    %Fast Sums and Products
+    \NewDocumentCommand{\sumk}{O{i} O{\infty} O{1}}{\sum_{#1=#3}^{#2}}
+    \NewDocumentCommand{\prodk}{O{i} O{\infty} O{1}}{\prod_{#1=#3}^{#2}}
+    \newcommand{\sumn}[1]{\sum_{n=1}^\infty{#1}}
+    %Fast Unions and Intersections if you ever need em go here
+
+    %Set notation stuff
+    \newcommand{\emp}{\varnothing}
+    \newcommand{\exc}{\backslash}
+    \newcommand{\sub}{\subseteq}
+    \newcommand{\sups}{\supseteq}
+    % Shortcuts for operators with structure OperatorName(ARG)
+    \def\do#1{\csdef{#1}{\trigbraces{\operatorname{#1}}}}
+    \docsvlist{
+    asinh,acosh,atanh,acoth,asech,acsch,
+    arsinh,arcosh,artanh,arcoth,arsech,arcsch,
+    arcsinh,arccosh,arctanh,arccoth,arcsech,arccsch,
+    sen,tg,cth,senh,tgh,ctgh,
+    Re,Im,im,ker,class, sign, Cov, Var, Range, Domain, Sign, rank, diam,
+    }
+    %Algebra stuff
+    \newcommand{\gen}[1]{\langle #1 \rangle}
+    % \spn has to be defined separately as the syntax "spn" is different from the output "span"
+    % \span is already defined in the LaTeX kernel. This is a fundamental LaTeX command, DO NOT overwrite it!
+    \newcommand{\spn}{\trigbraces{\operatorname{span}}} 
+    % Redefining the commands \iff (given by LaTeX), \implies and \impliedby (given by amsmath) so that Math mode is automatically enforced, starred version makes the arrows shorter
+        % Corresponding Unicode character: U+21D0 ⇐
+        \renewcommand{\impliedby}{\@ifstar{\ensuremath{\Longleftarrow}}{\ensuremath{\Leftarrow}}} 
+        % Corresponding Unicode character: U+21D2 ⇒
+        \renewcommand{\implies}{\@ifstar{\ensuremath{\Longrightarrow}}{\ensuremath{\Rightarrow}}} 
+        % Corresponding Unicode character: U+21D4 ⇔
+        \renewcommand{\iff}{\@ifstar{\ensuremath{\Longleftrightarrow}}{\ensuremath{\Leftrightarrow}}} 
+    
+    %Stats functions
+    \NewDocumentCommand{\normdist}{ O{\sigma} O{\mu}}{
+        \frac{1}{ #1\cdot\sqrt{2\pi}}\cdot e^{-{1 \over 2}\cdot \left( \frac{x-#2}{#1}\right)^2}
+        }
+    \newcommand{\indicator}[1]{\mathbbm{1}_{#1}}
+    \newcommand{\expec}[1][X]{\E\left(#1\right)}
+    \newcommand{\variance}[1][X]{\V\left(#1\right)}
+    \newcommand{\prob}[1][X]{\mathbb{P}\left(#1\right)}
+    \newcommand{\ind}{\perp\!\!\!\!\!\!\perp} 
+    %Converts windows filepaths to LaTex Recognised file paths
+    \newcommand{\replaceBS}[2]{{\escapechar=`/ 
+    \xdef#2{\expandafter\zap@space\detokenize\expandafter{#1} \@empty}}}
+    
+    %This handles inserting screenshots with absolute paths (Well any paths actually it just fucking works)
+    \NewDocumentCommand{\pic}{ m O{0.7} o }{
+        \def\WindowsFilename{#1}
+        \replaceBS{\WindowsFilename}{\TeXFilename}
+        \IfNoValueTF{#3}
+        {%If value 3 is  not present
+            \begin{figure}[h]
+            \includegraphics[scale = #2]{\TeXFilename}
+            \end{figure}
+        }
+        {%if value 3 is present
+            \begin{figure}[h]
+            \includegraphics[scale = #2]{\TeXFilename}
+            \caption{#3}
+            \end{figure}
+        }  
+    }
+
+    \NewDocumentCommand{\cpic}{ m O{0.7} o }{
+        \def\WindowsFilename{#1}
+        \replaceBS{\WindowsFilename}{\TeXFilename}
+        \IfNoValueTF{#3}
+        {%If value 3 is  not present
+            \begin{figure}[h]
+            \centering
+            \includegraphics[scale = #2]{\TeXFilename}
+            \end{figure}
+            \FloatBarrier
+        }
+        {%if value 3 is present
+            \begin{figure}[h]
+            \centering
+            \includegraphics[scale = #2]{\TeXFilename}
+            \caption{#3}
+            \end{figure}
+            \FloatBarrier
+        }  
+    }
+
+%%Colours
+\definecolor{DEF}{HTML}{89FBA2} % Color for Definition
+\definecolor{LEM}{HTML}{A9FFF7} % Color for Lemma
+\definecolor{THM}{HTML}{89FBA2} % Color for Theorem
+\definecolor{PRF}{HTML}{BCB6FF} % Color for Proof
+\definecolor{EXA}{HTML}{B8E1FF} % Color for Example
+\definecolor{BKG}{HTML}{293133} % Color for Dark mode background
+\definecolor{RMK}{HTML}{B8E1FF} % Color for Remark
+
+%%Declaring counters and state sensitve options
+    %Theorem Numbering
+    \newcounter{theorem}[section]
+    %State variables set to false
+    \newif\ifdarkmodeEnabled
+    \newif\ifpagelessEnabled
+    \darkmodeEnabledfalse
+    \pagelessEnabledfalse
+    
+
+%%Environments
+    %Definition
+    \newenvironment{pages}{}{} % this creates a wrapper to handle pageless scrolling
+    \newenvironment{defn}[1]
+        {
+            \refstepcounter{theorem}
+            \label{defn:#1}
+            \begin{mdframed}[style=theorem]
+            \textbf{Definition \thesection.\thetheorem:} \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Corollary
+    \newenvironment{corollary}[1]
+        {
+            \refstepcounter{theorem}
+            \label{cor:#1}
+            \begin{mdframed}[style=theorem]
+            \textbf{Corollary \thesection.\thetheorem:} \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Lemma
+    \newenvironment{lemma}[1]
+        {
+            \refstepcounter{theorem}
+            \label{lem:#1}
+            \begin{mdframed}[style=theorem]
+            \textbf{Lemma \thesection.\thetheorem:} \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Theorem
+    \newenvironment{theorem}[1]
+        {
+            \refstepcounter{theorem}
+            \label{thm:#1}
+            \begin{mdframed}[style=theorem]
+            \textbf{Theorem \thesection.\thetheorem:} \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Proof
+    \renewenvironment{proof}[1]
+        {
+            \begin{mdframed}[style=proof]
+            \emph{Proof}: \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Example
+    \newenvironment{example}[1]
+        {
+            \begin{mdframed}[style=example]
+            \emph{Example:}\capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+    %Remark
+    \newenvironment{remark}[1]
+        {
+            \begin{mdframed}[style=remark]
+            \emph{Remark}: \capitalizetitle{#1}\\
+        }
+        {\end{mdframed}}
+
+%Styles for light mode
+\mdfdefinestyle{theorem}{}
+\mdfdefinestyle{proof}{ linecolor=PRF,
+                        linewidth= 2pt,
+                        backgroundcolor=PRF!10,
+                        topline = false,
+                        rightline = false, 
+                        bottomline = false}
+\mdfdefinestyle{example}{linecolor=EXA,
+                         linewidth= 2pt, 
+                         backgroundcolor=EXA!10,
+                         topline = false, 
+                         rightline = false, 
+                         bottomline = false}
+\mdfdefinestyle{remark}{linecolor=RMK,
+                         linewidth= 2pt, 
+                         backgroundcolor=RMK!10,
+                         topline = false, 
+                         rightline = false, 
+                         bottomline = false}
+
+%%Dark Mode
+%To trigger dark mode we need to overwrite the style files for the envionments otherwise its gonna look fucked cause they are not transparent
+\newcommand{\darkmode}{   
+    \enabledarkmode
+    \darkmodeEnabledtrue
+    
+    %Dark Mode styles
+    \mdfdefinestyle{theorem}{   
+        fontcolor = white,
+        backgroundcolor = BKG,
+        linecolor = white}
+    \mdfdefinestyle{proof}{ 
+        linecolor=PRF,
+        linewidth= 2pt,
+        backgroundcolor=PRF!10!black,
+        topline = false,
+        rightline = false, 
+        bottomline = false,
+        fontcolor = white
+    }
+    \mdfdefinestyle{example}{   
+        linecolor=EXA,
+        linewidth= 2pt, 
+        backgroundcolor=EXA!10!black,
+        topline = false, 
+        rightline = false, 
+        bottomline = false,
+        fontcolor = white}
+                            
+    \mdfdefinestyle{remark}{   
+        linecolor=RMK,
+        linewidth= 2pt, 
+        backgroundcolor=RMK!10!black,
+        topline = false, 
+        rightline = false, 
+        bottomline = false,
+        fontcolor = white}
+                            } 
+                            
+%%Title page
+\renewcommand{\maketitle}{
+    \begin{center}
+        \LARGE{
+        \vspace{2ex}
+        \textbf{\huge \textsc{\@title}}
+        \vspace{3ex}\\
+        \coursecode
+        \vspace{3ex}\\
+        \Large \@author\\
+        \small Revised on: \today \\
+        \hrulefill\\
+        \vspace*{\fill}
+        \begin{flushright}
+            \Large Abstract\\
+            \abstract
+            \vspace{5ex}
+        \end{flushright}}
+        
+    \end{center}
+    \Newpage
+}
+
+%%Pageless documents
+\newcommand{\Newpage}{\newpage} %wrapper for newpage command to standardise between paged and pageless
+\newcommand{\pageless}
+{
+    \RequirePackage[active,tightpage,floats,graphics]{preview}
+    
+    \renewcommand{\PreviewBorder}{1in}
+    \PreviewMacro[*[[!]{\includegraphics}
+    
+    \renewcommand{\Newpage}{\end{preview}\begin{preview}}
+    % We now check whether the darkmode in enabled to see if we need to color correct the fonts when we overwrite the pages wrapper environment
+        %Darkmode off
+        \renewenvironment{pages}{\begin{preview}} {\end{preview}}
+        %Dark mode on
+        \ifdarkmodeEnabled \renewenvironment{pages}{\begin{preview} \color{white}} {\end{preview}}\fi
+}
+%%General document geometry
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+

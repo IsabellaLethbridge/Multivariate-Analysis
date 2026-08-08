@@ -1,0 +1,407 @@
+---
+format:
+  pdf:
+    toc: false
+    number-sections: false
+    fontsize: 11pt
+    geometry: margin=1in
+    documentclass: article
+    fig-cap-location: bottom
+    tbl-cap-location: bottom
+
+execute:
+  warning: false
+  message: false
+---
+
+```{=latex}
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries Multivariate Analysis - CA7\par}
+    \vspace{0.5cm}
+    {\Large\itshape Regression \par}
+    
+    \vspace{2cm}
+    \includegraphics[width=0.3\textwidth]{UCT_logo.png}\par
+    \vspace{2cm}
+    
+    {\Large Joshua Orelowitz\par}
+    {\large ORLJOS001\par}
+    \vspace{0.3cm}
+    {\Large Kai Van Niekerk\par}
+    {\large VNKKAI001\par}
+    \vspace{0.3cm}
+    {\Large Alan Hunter\par}
+    {\large HNTALA001\par}
+    \vspace{0.5cm}
+    {\large University of Cape Town\par}
+    
+    \vfill
+    {\large 19 April 2026\par}
+\end{titlepage}
+\newpage
+\hypersetup{linkcolor=black}
+\tableofcontents
+\newpage
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(pls)
+```
+
+## Question 1
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+if (!requireNamespace("DataTidy23RodoSTA2005SAssignment", quietly = TRUE)) {
+if (!requireNamespace("remotes", quietly = TRUE)) {
+utils::install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoSTA2005SAssignment")
+}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+install.packages("tibble")
+}
+library(tibble) # ensures dataframes print more informatively and concisely than standard met
+data("data_tidy_yield", package = "DataTidyRodoSTA2005S")
+
+```
+
+```{r}
+#| echo: false
+#| output: false
+data <- data_tidy_yield
+```
+
+### a) Regression Coefficients Estimates
+
+#### i)
+
+```{r}
+n = nrow(data)
+
+#design matrix 
+X = cbind(1, data_tidy_yield$SoilPH, data_tidy_yield$DistanceToWater)
+colnames(X) = c("Intercept", "SoilpH", "DistToWater")
+
+#selecting our response variables 
+Y_mat = as.matrix(data_tidy_yield$CropYield)
+colnames(Y_mat) = c("MaizeYield")
+
+#this solves the entire MV case
+Beta_hat = solve(t(X) %*% X) %*% t(X) %*% Y_mat
+
+kable(Beta_hat, 
+      digits = 4, 
+      caption = "Regression coefficient estimates.",
+      col.names = c("Maize Yield")
+      )
+```
+
+#### ii)
+
+```{r}
+#selecting our response variables 
+Y_mat = as.matrix(data_tidy_yield$Sunlight)
+colnames(Y_mat) = c("Sunlight")
+
+#this solves the entire MV case
+Beta_hat = solve(t(X) %*% X) %*% t(X) %*% Y_mat
+
+kable(Beta_hat, 
+      digits = 4, 
+      caption = "Regression coefficient estimates.",
+      col.names = c( "Sunlight")
+      )
+```
+
+
+#### iii)
+
+```{r}
+#selecting our response variables 
+Y_mat = cbind(data_tidy_yield$CropYield, data_tidy_yield$Sunlight)
+colnames(Y_mat) = c("MaizeYield", "Sunlight")
+
+#this solves the entire MV case
+Beta_hat = solve(t(X) %*% X) %*% t(X) %*% Y_mat
+
+kable(Beta_hat, 
+      digits = 4, 
+      caption = "Regression coefficient estimates.",
+      col.names = c("Maize Yield", "Sunlight")
+      )
+```
+
+### b) Confidence Interval for the effect of Soil PH on Temperature
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+
+#using the celsius response for temp 
+y_b = data$TempC
+x_b = cbind(1, data$SoilPH)
+n = nrow(x_b) 
+k = ncol(x_b)
+
+#coeff estimates 
+beta_b = solve(t(x_b) %*% x_b) %*% t(x_b) %*% y_b
+
+var_resp = sum(t((y_b - x_b %*% beta_b)) %*% (y_b - x_b %*% beta_b)) / (n - k)
+var_beta = var_resp * solve(t(x_b) %*% x_b)
+
+#our variance for soil ph in the covariance matrix above 
+se_soilph = sqrt(var_beta[2,2])
+
+#get the confidence interval 
+t_beta = qt(0.975, df = n - k)
+ci_lower = beta_b[2] - t_beta * se_soilph
+ci_upper = beta_b[2] + t_beta * se_soilph
+
+ci_res = data.frame(
+  Estimate = beta_b[2],
+  Lower_CI = ci_lower,
+  Upper_CI = ci_upper
+)
+
+kable(ci_res, digits = 4, 
+      caption = "95% confidence interval for the effect of soil PH on temperature.")
+```
+
+### c) F-test for the effect of soil PH and distance to water on maize yield
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+
+#need full model results 
+beta_full = Beta_hat[, 1]
+n = nrow(X)
+k = ncol(X)
+q = 2
+
+y_c = data_tidy_yield$CropYield
+var_resp_c = (t(y_c - (X %*% beta_full)) %*% (y_c - (X %*% beta_full))) / (n - k)
+
+#the matrix of our estimates we are testing 
+beta_1 = matrix(beta_full[2:3], nrow = 2)
+C = solve(t(X) %*% X)
+C11 = C[2:3, 2:3]
+
+#get f-statistic 
+f_stat = t(beta_1) %*% solve(C11) %*% beta_1 / (q * var_resp_c)
+p_val = pf(f_stat, df1 = q, df2 = n - k, lower.tail = FALSE)
+
+f_results = data.frame(
+  "F Statistic" = f_stat,
+  "Numerator_DF" = q,
+  "Denominator_DF" = n - k,
+  "P_Value" = p_val
+)
+
+kable(f_results, digits = 4, 
+      caption = "F-test result for the joint effect of Soil pH and Distance to Water.")
+```
+
+### d) Likelihood ratio test for the effect of soil PH on either maize yield or sunlight
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+
+Y = cbind(data$CropYield, data$Sunlight)
+n = nrow(Y)
+
+#full model error 
+error_full = Y - (X %*% Beta_hat)
+Sigma_MLE = (1/n) * (t(error_full) %*% error_full)
+
+#reduced model 
+X_reduced = X[, -2]
+Beta_reduced = solve(t(X_reduced) %*% X_reduced) %*% t(X_reduced) %*% Y
+error_reduced = Y - (X_reduced %*% Beta_reduced)
+Sigma_MLE_2 = (1/n) * (t(error_reduced) %*% error_reduced)
+
+ratio = det(Sigma_MLE) / det(Sigma_MLE_2)
+
+k = 3
+r = 2
+p = 2
+q = 1
+
+#the chi-squared approximation 
+lrt_stat = -(n - k - 0.5 * (r - p + q + 1)) * log(ratio)
+p_val = pchisq(lrt_stat, df = r * q, lower.tail = FALSE)
+
+lrt_final = data.frame(
+  "Wilks_Lambda" = ratio,
+  "Chi_Squared_Approximation" = lrt_stat,
+  "DF" = r * q,
+  "P_Value" = p_val
+)
+kable(lrt_final, digits = 4, caption = "Multivariate Likelihood ratio test.")
+```
+
+## Question 2
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+data2 <- data_tidy_mali
+```
+
+### Multiple Regression
+
+```{r}
+mali = na.omit(data_tidy_mali)
+y_raw = mali$cotton
+X_raw = as.matrix(mali[, names(mali) != "cotton"])
+n_m = nrow(X_raw)
+one_m = matrix(1, n_m, 1)
+
+X_mlr = cbind(one_m, X_raw)
+B_mat = solve(t(X_mlr) %*% X_mlr) %*% t(X_mlr) %*% y_raw
+
+```
+```{r}
+kable(B_mat, digits = 4, caption = "Multiple Regression Beta Coefficients")
+```
+
+```{r}
+y_hat <- X_mlr %*% B_mat
+
+SSE <- sum((y_raw - y_hat)^2)
+SST <- sum((y_raw - mean(y_raw))^2)
+r2_mr <- 1 - SSE/SST
+r2_mr |> signif(3)
+```
+
+The multiple regression model achieved an $R^2$ of `r signif(r2_mr, 3)`.
+
+### PCR
+
+```{r}
+#scaling and normalizing 
+X = scale(X_raw)
+y = scale(y_raw) 
+n = nrow(X)
+p = ncol(X)
+
+svd_X = svd(X)
+V = svd_X$v
+
+#finding the optimal number of components to include 
+component_variances = svd_X$d^2
+pve = component_variances / sum(component_variances)
+```
+
+```{r}
+pca_summary <- tibble(
+  PC = paste0("PC", 1:p),
+  Eigenvalue = svd_X$d^2,
+  `Proportion of Variance` = pve,
+  `Cumulative Proportion` = cumsum(pve)
+)
+
+pca_summary |> kableExtra::kable(
+  digits = 3,
+  booktabs = TRUE,
+  caption = "Eigenvalues and proportion of variance explained by each principal component"
+)
+
+```
+
+The first three principal components explain approximately 70.7% of the total variation, so m is chosen to be 3. 
+
+```{r}
+plot(pve, 
+     type = "b", 
+     pch = 19, 
+     col = "steelblue",
+     xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained",
+     main = "Proportion of Variance Explained by each PC.")
+
+abline(v = 3, col = "red")
+text(x = 3.15, y = max(pve) * 0.9, 
+     labels = "m = 3", 
+     col = "red", 
+     adj = 0)
+```
+From the scree plot above we have decided to use a cut off of 3 PCs as this will cover most of the variance within our dataset, this supports what we discovered from the table above.
+
+```{r}
+#lets set m as 3 components 
+Z_m= X %*% V[, 1:3]
+
+#pca component coefficients 
+coeffs = (solve(t(Z_m) %*% Z_m) %*% t(Z_m) %*% y)
+beta_pcr = V[, 1:3] %*% coeffs
+```
+
+```{r}
+#pcr metrics 
+y_hat_pcr = Z_m %*% coeffs
+mse_pcr = mean((y - y_hat_pcr)^2)
+r2_pcr = 1 - (sum((y - y_hat_pcr)^2) / sum((y - mean(y))^2))
+r2_pcr |> signif(3)
+```
+
+The PCR regression model achieved an $R^2$ of `r signif(r2_pcr, 3)`.
+
+### PLS
+
+```{r}
+mali_df = as.data.frame(mali)
+
+pls_fit = plsr(cotton ~ ., 
+               data = mali_df, 
+               validation = "CV",
+               scale = TRUE)
+
+validationplot(pls_fit, val.type = "MSEP", 
+               main = "PLS CV Error by Components",
+               legend = FALSE)
+```
+
+The validation plot shows the CV and adjusted CV MSEP for each number of PLS components. We are not too concerned with the adjust CV MSEP, which adjusts for bias from CV and is very close to the black line. The CV error drops sharply from 0 to 1 component and levels off after 2 components, suggesting that 2 components is a reasonable choice. 
+
+```{r}
+best_ncomp = 2
+
+pls_coef = coef(pls_fit, ncomp = best_ncomp, intercept = TRUE)
+
+yhat_pls = predict(pls_fit, ncomp = best_ncomp, newdata = mali_df)
+SSE_pls  = sum((y_raw - yhat_pls)^2)
+r2_pls   = 1 - SSE_pls / SST
+```
+The PLS model achieved an $R^2$ of `r signif(r2_pls, 3)`.
+
+### Summary
+We now compare all the models $R^2$ to assess which model has the best fit.
+```{r}
+#summary metrics 
+table = data.frame(
+  Method = c("Multiple Regression", "PCR (m = 3)", paste0("PLS (m = 2)")),
+  R_Squared = c(r2_mr, r2_pcr, r2_pls)
+)
+kable(table, digits = 4, 
+      caption = "Comparison of Model Fit Quality for Multiple Regression, PCR and PLS.")
+```
+
+MLR achieved the highest $R^2$ of 0.7739, meaning that 77.39% of the variance in cotton planted is explained by the model. However, MLR uses all predictors directly, which can cause problems when predictors are correlated with each other.
+PCR achieved an $R^2$ of 0.7034 using 3 components. This is slightly lower than MLR, but PCR handles correlated predictors better by combining them into a smaller set of uncorrelated components. The small drop in R² is the price paid for a simpler and more stable model.
+PLS achieved an $R^2$ of 0.7450 using only 2 components, which is better than PCR despite using fewer components. This is because PLS builds its components with the response variable in mind, making it better at predicting cotton yield than PCR.
+Overall, MLR explains the most variance but struggles when predictors are correlated. PLS gives a good balance between predictive performance and simplicity, and performs better than PCR here because its components are built to be useful for prediction rather than just summarising the predictors.

@@ -1,0 +1,184 @@
+---
+title: "Continuous Assessment 4"
+author:
+  - "Patrick Tesha [TSHPAT016]"
+  - "Joshua Orelowitz [ORLJOS001]"
+date: "12 March 2026"
+format:
+  pdf:
+    latex-engine: lualatex
+    toc: false
+    number-sections: false
+    fig-pos: "H"
+execute:
+  echo: false
+  warning: false
+  message: false
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{amsfonts}
+---
+## Question 1
+
+Consider the random vector $\mathbf{X} \sim N_p(\symbf{\mu}, \symbf{\Sigma})$.
+Let the maximum likelihood estimate of the mean vector be $\hat{\symbf{\mu}} = \bar{\symbf{x}}$. The log-likelihood function is
+
+
+\begin{align*}
+\ell(\hat{\symbf{\mu}} = \bar{\symbf{x}}, \symbf{\Sigma}) = 
+-\frac{np}{2}\log(2\pi)
+-\frac{n}{2}\log|\symbf{\Sigma}|
+-\frac{1}{2}\operatorname{tr}(\symbf{\Sigma}^{-1} \mathbf{A})
+ \\
+=
+-\frac{np}{2}\log(2\pi)
++\frac{n}{2}\log|\symbf{\Sigma}^{-1}|
+-\frac{1}{2}\operatorname{tr}(\symbf{\Sigma}^{-1} \mathbf{A})
+\end{align*}
+
+
+where,
+$$\mathbf{A} = 
+\sum_{i=1}^{n} (\symbf{x}_i - \bar{\symbf{x}})(\symbf{x}_i - \bar{\symbf{x}})'$$
+
+
+Differentiating the log-likelihood with respect to $\symbf{\Sigma}^{-1}$,
+$$
+\frac{\partial \ell}{\partial \symbf{\Sigma}^{-1}}
+=
+\frac{n}{2} \symbf{\Sigma} - \frac{1}{2} \mathbf{A}
+$$
+
+
+Set equal to zero:
+$$
+\frac{n}{2} \hat{\symbf{\Sigma}} - \frac{1}{2} \mathbf{A} = \mathbf{0}
+$$
+
+
+
+The maximum likelihood estimate of $\symbf{\Sigma}$ is
+$$
+\hat{\symbf{\Sigma}}_{\text{MLE}} =
+\frac{1}{n} \mathbf{A} =
+\frac{1}{n} \sum_{i=1}^{n} (\symbf{x}_i - \bar{\symbf{x}}) (\symbf{x}_i - \bar{\symbf{x}})' =
+\frac{n-1}{n} \mathbf{S}
+$$
+
+
+## Showing the MLE is biased
+
+
+An unbiased estimator satisfies the condition that;
+$$
+\mathbb{E}[\hat{\symbf{\Sigma}}_{\text{MLE}}] = \symbf{\Sigma}
+$$
+
+
+Computing the expectation of the resulted MLE,
+$$
+\mathbb{E}[\hat{\symbf{\Sigma}}_{\text{MLE}}]
+=
+\frac{1}{n} \mathbb{E} \Big[
+\sum_{i=1}^{n} (\symbf{x}_i - \bar{\symbf{x}}) (\symbf{x}_i - \bar{\symbf{x}})'
+\Big]
+$$
+$$
+\mathbb{E}[\hat{\symbf{\Sigma}}_{\text{MLE}}] = \frac{n-1}{n} \symbf{\Sigma} \neq \symbf{\Sigma}
+$$
+
+
+Since, $\mathbb{E}[\hat{\symbf{\Sigma}}_{\text{MLE}}] \neq \symbf{\Sigma}$, the maximum likelihood estimator of $\symbf{\Sigma}$ is biased.
+
+
+## Computing the Bias
+\begin{align*}
+\text{Bias}(\hat{\symbf{\Sigma}}_{\text{MLE}}) 
+&= \mathbb{E}[\hat{\symbf{\Sigma}}_{\text{MLE}}] - \symbf{\Sigma} \\
+&= \frac{n-1}{n} \symbf{\Sigma} - \symbf{\Sigma} \\
+&= -\frac{1}{n} \symbf{\Sigma}
+\end{align*}
+
+\newpage
+
+## Question 2
+```{r}
+library(knitr)
+library(dplyr)
+skulls = read.csv("CA1.csv")
+
+skullsTP2 = skulls %>% 
+  filter(TimePeriod == 2) %>% 
+  select(1:4)
+
+n = nrow(skullsTP2)
+p = (1:n - 0.5)/n
+theory = qnorm(p)
+
+corrVector = numeric(4)
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+
+for(i in 1:4){
+  devs = (skullsTP2[,i] - mean(skullsTP2[,i])) / sd(skullsTP2[,i])
+  ord_devs = sort(devs)
+  
+  plot(
+    theory, ord_devs,
+    pch = 16,
+    main = colnames(skullsTP2)[i],
+    xlab = "Theoretical Quantiles",
+    ylab = "Ordered Z-scores"
+  )
+  
+  abline(a = 0, b = 1, col = "red")
+  corrVector[i] = cor(ord_devs, theory)
+}
+```
+
+All four marginal plots appear to be approximately normally distributed as in all four marginal QQ plots the points lie close to the reference line with only small deviations in the tails. However there seems to be slightly more deviation in the QQ plot for MaxBreadth
+
+\newpage
+
+```{r}
+CVS = t(c(30, 0.9479, 0.9652, 0.9715))
+df <- data.frame(CVS)
+colnames(df) <- c("Sample Size(n)", "Alpha = 0.01", "Alpha = 0.05", "Alpha = 0.1")
+
+kable(df)
+Variables = c("MaxBreadth", "BasHeight", "BasLength", "NasHeight")
+df2 = data.frame("Correlation" = round(corrVector,4), Variables)
+kable(df2)
+```
+
+For BasHeight, BasLength and NasHeight, the correlation values are 0.9845, 0.9909 and 0.9848 respectively. Comparing these with the critical values in the table, we see that normality would not be rejected for any of the provided alpha values. Therefore, there is not enough evidence to reject the assumption of normality for BasHeight, BasLength or NasHeight. Additionally the correlation values are quite close to 1 which provides further support for the assumption of normality.
+
+For MaxBreadth, the correlation value is 0.9573. Comparing this with the critical values in the table, we see that normality is not rejected at the 1% significance level, but is rejected at the 5% and 10% significance levels. Thus, the evidence for normality is weaker for MaxBreadth than for the other variables. Although the QQ-plot is still fairly close to a straight line and the correlation value is fairly close to 1, there are slightly larger deviations from normality than for the other three variables. Nevertheless, MaxBreadth may still be regarded as approximately normally distributed.
+
+```{r}
+Xbar = colMeans(skullsTP2)
+S = cov(skullsTP2)
+
+d2 = mahalanobis(skullsTP2, Xbar, S)
+ord_d2 = sort(d2)
+
+p = (1:n - 0.5)/n
+theoryChi = qchisq(p, 4)
+plot(theoryChi, ord_d2, pch = 16, 
+     xlab = "Theoretical quantiles",
+     ylab = "Ordered Mahalanobis distances",
+     main = "Chi-square QQ-plot for multivariate normality")
+abline(a = 0, b = 1, col = "red")
+```
+
+In the chi-squared QQ-plot above it can be seen that most of the values are on the reference line thus apart from some slight deviation in the tails there is no strong evidence against the assumption of multivariate normality in the skulls data set within time period two.
+
+```{r}
+cutoff = qchisq(0.5, 4)
+prop = mean(d2 <= cutoff)
+
+df = data.frame("Proportion" = round(prop,4))
+kable(df)
+
+```
+
+Furthermore, Since the proportion inside the Chi-squared 50% cutoff is close to 0.50 it is consistent with what we would expect under multivariate normality and thus provides more support for the assumption of multivariate normality within the skulls data set under time period two. 

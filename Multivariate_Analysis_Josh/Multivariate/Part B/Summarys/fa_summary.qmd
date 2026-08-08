@@ -1,0 +1,228 @@
+---
+title: "Factor Analysis Summary"
+format: pdf
+editor: visual
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+# Load air pollution data
+if (!requireNamespace("DataTidy23RodoSTA2005SAssignment", quietly = TRUE)) {
+  if (!requireNamespace("remotes", quietly = TRUE)) {
+    utils::install.packages("remotes")
+  }
+  remotes::install_github("MiguelRodo/DataTidy23RodoSTA2005SAssignment")
+}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+  install.packages("tibble")
+}
+library(tibble) 
+library(knitr)
+data("data_tidy_yield", package = "DataTidyRodoSTA2005S")
+
+library(readr)
+dat2 = read_csv("../../../../Section_B/Lecture_9/CA9/Air Pollution Data .csv")
+ap <- dat2
+```
+
+# The Orthogonal Factor Model
+
+The orthogonal factor model (OFM) decomposes observed variables $\mathbf{X}$ as:
+
+$$\mathbf{X} - \boldsymbol{\mu} = \mathbf{L}\mathbf{F} + \boldsymbol{\epsilon}$$
+
+where $\mathbf{X}$ is $p \times 1$, $\mathbf{F}$ is $m \times 1$ (unobserved common factors), $\boldsymbol{\epsilon}$ is $p \times 1$ (specific factors), and $\mathbf{L}$ is the $p \times m$ loadings matrix.
+
+**Assumptions:**
+
+-   $E[\mathbf{F}] = \mathbf{0}$, $\text{Var}[\mathbf{F}] = \mathbf{I}$
+-   $E[\boldsymbol{\epsilon}] = \mathbf{0}$, $\text{Var}[\boldsymbol{\epsilon}] = \boldsymbol{\Psi}$ (diagonal)
+-   $\text{Cov}[\mathbf{F}, \boldsymbol{\epsilon}] = \mathbf{0}$
+
+The implied covariance structure is:
+
+$$\text{Cov}[\mathbf{X}] = \mathbf{L}\mathbf{L}' + \boldsymbol{\Psi}$$
+
+with $\text{Var}(X_i) = \sum_{j=1}^m l_{ij}^2 + \psi_{ii}$ and $\text{Cov}(X_i, X_j) = \sum_{k=1}^m l_{ik}l_{jk}$.
+
+The covariance between observed and unobserved variables is $\text{Cov}[\mathbf{X}, \mathbf{F}] = \mathbf{L}$.
+
+# Communality and Specific Variance
+
+Working on the correlation matrix (standardised data), $\text{Var}(X_i) = 1$, so:
+
+$$1 = h_i^2 + \psi_{ii}$$
+
+where $h_i^2 = \sum_{j=1}^m l_{ij}^2$ is the **communality** (variance explained by the common factors) and $\psi_{ii} = 1 - h_i^2$ is the **specific variance**.
+
+# Non-Uniqueness and Rotation
+
+For any $m \times m$ orthonormal matrix $\mathbf{T}$ (i.e. $\mathbf{T}\mathbf{T}' = \mathbf{I}$), the rotated solution $\mathbf{L}^* = \mathbf{L}\mathbf{T}$ is equivalent because:
+
+$$\mathbf{L}^*\mathbf{L}^{*'} + \boldsymbol{\Psi} = \mathbf{L}\mathbf{T}\mathbf{T}'\mathbf{L}' + \boldsymbol{\Psi} = \mathbf{L}\mathbf{L}' + \boldsymbol{\Psi}$$
+
+This means we can rotate the loading matrix to improve interpretability --- seeking a solution where each factor loads strongly on a few variables and weakly on the rest --- without changing the model fit or $\boldsymbol{\Psi}$.
+
+# Method 1: Principal Component Method
+
+The PC method approximates $\mathbf{L}$ using the eigendecomposition of the sample correlation matrix $\mathbf{R} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}'$.
+
+The loadings for $m$ factors are:
+
+$$\hat{\mathbf{L}} = \mathbf{V}_m \boldsymbol{\Lambda}_m^{1/2}$$
+
+where $\mathbf{V}_m$ contains the top $m$ eigenvectors and $\boldsymbol{\Lambda}_m = \text{diag}(\lambda_1, \ldots, \lambda_m)$.
+
+The communalities and specific variances are then:
+
+$$\hat{h}_i^2 = \sum_{j=1}^m \hat{l}_{ij}^2, \qquad \hat{\psi}_{ii} = 1 - \hat{h}_i^2$$
+
+```{r pc-method}
+# Correlation matrix
+R <- cor(ap)
+
+# Eigendecomposition
+eig <- eigen(R)
+p <- ncol(ap)
+m <- 2  # number of factors
+
+# Loadings: p x m
+V_m <- eig$vectors[, 1:m]
+Lambda_m <- diag(sqrt(eig$values[1:m]))
+L_pc <- V_m %*% Lambda_m
+rownames(L_pc) <- colnames(ap)
+colnames(L_pc) <- paste0("Factor", 1:m)
+
+# Communalities and specific variances
+h2_pc <- rowSums(L_pc^2)
+psi_pc <- 1 - h2_pc
+
+# Reconstructed correlation matrix
+R_hat_pc <- L_pc %*% t(L_pc) + diag(psi_pc)
+
+kable(
+  data.frame(L_pc, Communality = h2_pc, Specific = psi_pc),
+  digits = 3,
+  caption = "PC Method: Loadings, Communalities, and Specific Variances"
+)
+```
+
+```{r pc-reconstructed}
+kable(
+  round(R - R_hat_pc, 3),
+  caption = "Residual: Sample minus PC-implied Correlation Matrix"
+)
+```
+
+# Method 2: Maximum Likelihood
+
+ML factor analysis assumes $\mathbf{X} \sim N_p(\boldsymbol{\mu}, \mathbf{L}\mathbf{L}' + \boldsymbol{\Psi})$ and finds $\hat{\mathbf{L}}$ and $\hat{\boldsymbol{\Psi}}$ that maximise the likelihood. This allows formal likelihood ratio testing of the number of factors.
+
+```{r ml-method}
+FA <- factanal(ap, factors = m, rotation = "none")
+
+L_ml <- as.matrix(FA$loadings[, 1:m])
+colnames(L_ml) <- paste0("Factor", 1:m)
+uniq <- FA$uniquenesses
+h2_ml <- 1 - uniq
+
+kable(
+  data.frame(L_ml, Communality = h2_ml, Specific = uniq),
+  digits = 3,
+  caption = "ML Method: Loadings, Communalities, and Specific Variances"
+)
+```
+
+```{r ml-reconstructed}
+R_hat_ml <- L_ml %*% t(L_ml) + diag(uniq)
+kable(
+  round(R - R_hat_ml, 3),
+  caption = "Residual: Sample minus ML-implied Correlation Matrix"
+)
+```
+
+# Comparison of PC and ML Methods
+
+```{r comparison}
+df_compare <- data.frame(
+  PC_F1      = L_pc[, 1],
+  PC_F2      = L_pc[, 2],
+  PC_h2      = h2_pc,
+  ML_F1      = L_ml[, 1],
+  ML_F2      = L_ml[, 2],
+  ML_h2      = h2_ml
+)
+kable(df_compare, digits = 3,
+      caption = "Comparison of PC and ML Loadings and Communalities")
+```
+
+The PC method greedily maximises variance explained sequentially, tending to produce higher communalities. ML is more conservative, penalising poor-fitting variables with higher specific variances.
+
+# Varimax Rotation
+
+Varimax rotation finds the orthonormal $\mathbf{T}$ that maximises the variance of the squared loadings within each factor, pushing each factor toward having a few large and many near-zero loadings.
+
+```{r rotation}
+# Rotate PC loadings
+L_pc_rot <- varimax(L_pc)$loadings
+L_pc_rot <- as.matrix(L_pc_rot)
+colnames(L_pc_rot) <- paste0("Factor", 1:m)
+
+# Rotate ML loadings
+FA_rot <- factanal(ap, factors = m, rotation = "varimax")
+L_ml_rot <- as.matrix(FA_rot$loadings[, 1:m])
+colnames(L_ml_rot) <- paste0("Factor", 1:m)
+
+kable(
+  data.frame(L_pc_rot, row.names = colnames(ap)),
+  digits = 3,
+  caption = "Varimax-Rotated PC Loadings"
+)
+
+kable(
+  data.frame(L_ml_rot, row.names = colnames(ap)),
+  digits = 3,
+  caption = "Varimax-Rotated ML Loadings"
+)
+```
+
+Note that communalities are unchanged by rotation: $h_i^2 = \sum_j l_{ij}^{*2} = \sum_j l_{ij}^2$.
+
+# Factor Scores (WLS)
+
+Given estimated loadings $\hat{\mathbf{L}}$ and specific variances $\hat{\boldsymbol{\Psi}}$, the weighted least squares factor scores for a mean-centred observation are:
+
+$$\hat{\mathbf{F}} = (\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}\hat{\mathbf{L}})^{-1}\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}(\mathbf{x} - \bar{\mathbf{x}})$$
+
+Variables with small specific variance get more weight as they are more reliably driven by the common factors.
+
+```{r factor-scores}
+# Refit on raw data for score computation
+FA_raw <- factanal(ap, factors = m, rotation = "none")
+L_fs   <- as.matrix(FA_raw$loadings[, 1:m])
+Psi_inv <- diag(1 / FA_raw$uniquenesses)
+
+# WLS coefficient matrix
+A      <- t(L_fs) %*% Psi_inv %*% L_fs
+B      <- solve(A) %*% t(L_fs) %*% Psi_inv
+
+# Standardise data and compute scores
+Z      <- scale(ap)
+scores <- Z %*% t(B)
+colnames(scores) <- paste0("Factor", 1:m)
+
+kable(
+  head(round(scores, 3), 10),
+  caption = "WLS Factor Scores (ML, first 10 observations)"
+)
+```
+
+```{r factor-scores-plot}
+plot(scores[, 1], scores[, 2],
+     xlab = "Factor 1", ylab = "Factor 2",
+     main = "Factor Scores: Factor 1 vs Factor 2",
+     pch = 19, col = "steelblue")
+abline(h = 0, v = 0, col = "gray60", lty = 2)
+```
+
+A random scatter with no visible pattern in this plot indicates the factors are approximately uncorrelated, as assumed by the OFM.

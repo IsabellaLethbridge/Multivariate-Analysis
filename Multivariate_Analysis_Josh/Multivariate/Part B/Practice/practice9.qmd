@@ -1,0 +1,75 @@
+---
+title: "practice9"
+format: html
+---
+
+```{r}
+library(dplyr)
+library(knitr)
+```
+
+# Q1
+
+Hob gob
+
+# Q2
+
+## a)
+
+```{r}
+dat = read.csv("Air Pollution Data.csv")
+dat = scale(dat, center = T, scale = T)
+corr_mat = cor(dat)
+df = data.frame(corr_mat)
+kable(df, digits  = 4)
+```
+
+## b)
+
+```{r}
+e = eigen(corr_mat)
+L = e$vectors %*% diag(sqrt(e$values))
+df1 = data.frame(L[,1])
+df2 = data.frame(L[,1:2])
+kable(df1, digits = 4, caption = "M=1")
+kable(df2, digits = 4, caption = "M=2")
+```
+
+## c)
+
+```{r}
+FA = factanal(covmat = corr_mat, factors = 2, rotation = "none")
+df = data.frame(as.matrix(FA$loadings[1:7,]))
+kable(df)
+```
+
+## d)
+
+no
+
+## e)
+
+```{r}
+L_pc = L[,1:2]
+L_pc_rot = varimax(L_pc)
+df5 = data.frame(as.matrix(L_pc_rot$loadings[1:7,]))
+kable(df5, digits = 4)
+```
+
+## f)
+
+```{r}
+#psi = 1 - communlaity (h) or uniqueness
+psi = FA$uniquenesses
+psi_inv = diag(1/psi)
+L_mle = as.matrix(FA$loadings[1:7, 1:2])
+
+A = t(L_mle) %*% psi_inv %*% L_mle
+B = solve(A) %*% t(L_mle) %*% psi_inv
+
+Z = scale(dat)
+scores = Z %*% t(B)
+
+df = data.frame(scores)
+kable(df, digits = 3)
+```

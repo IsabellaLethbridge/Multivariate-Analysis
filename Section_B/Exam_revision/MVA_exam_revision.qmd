@@ -1,0 +1,143 @@
+---
+title: "Multivariate Analysis Exam Revision"
+format: html
+---
+
+# Question 1
+## Question 1.1
+
+```{r}
+library(readr)
+data_tidy_stress=read_csv("data_tidy_stress.csv")
+```
+
+### a
+The data should be standardised as the different predictors are measured on different scales.
+Age is measured in years whereas annual income in measured in dollars. 
+* If you don't standardise the data, variables with large absolute values will dominate the total variance. 
+
+```{r}
+# Standardise data:
+dat1 = as.data.frame(scale(data_tidy_stress))
+```
+
+### b
+```{r}
+# Obtain predictor variables:
+X_dat = dat1[,-6]
+
+# Obtain correlation matrix:
+cor_mat = cov(X_dat)
+
+# Eigen decomposition:
+eig = eigen(cor_mat)
+
+# Extract eigen values and eigen vectors:
+eig_vec = eig$vectors
+eig_val = eig$values
+
+# Loadings: 
+loadings = eig_vec
+loadingsdf = as.data.frame(loadings)
+knitr::kable(
+  signif(loadingsdf,2)
+)
+
+# Scores:
+scores = as.matrix(X_dat)%*%loadings
+scoresdf = as.data.frame(scores)
+colnames(scoresdf) = c(paste0("PC",seq(1:ncol(scores))))
+
+knitr::kable(
+  signif(scoresdf,2)
+)
+
+# Proportion of variance explained:
+total_var = sum(eig_val)
+prop_var = eig_val/total_var
+pc_seq = seq(1:ncol(scores))
+
+plot(pc_seq,prop_var,
+     type='b',
+     col='deeppink',
+     xlab="PC",
+     ylab="Proportion of variance explained")
+```
+
+### c
+Based on the elbow plot in b(iii), the optimal number of principle components is 3. This is where the plot elbows and the inclusion of an additional principle component does not contribute to big increase in variance explained. 
+
+### d
+```{r}
+PC1 = scores[,1]
+PC2 = scores[,2]
+
+# Eigen values:
+eig_val1 = eig_val[1]
+eig_val2 = eig_val[2]
+
+# Eigen vectors:
+eig_vec1 = eig_vec[,1]
+eig_vec2 = eig_vec[,2]
+eig_vec12 = eig_vec[,1:2]
+
+sig1 = var(dat1$age)
+sig2 = var(dat1$income)
+sig3 = var(dat1$satisfaction)
+sig4 = var(dat1$experience)
+sig5 = var(dat1$hours)
+sig = c(sig1,sig2,sig3,sig4,sig5)
+
+
+rho = matrix(NA,nrow=2,ncol=5)
+  
+for (i in 1:2){
+  for (j in 1:5){
+    rho[i,j] = (sqrt(eig_val[j])*eig_vec12[j,i])/sqrt(sig[i])
+  }
+}
+rho
+rownames(rho) = c("PC1","PC2")
+colnames(rho) = colnames(dat1[,-6])
+
+knitr::kable(
+  signif(rho,3)
+)
+```
+
+### e
+```{r}
+# Correlations:
+knitr::kable(
+  signif(rho,3)
+)
+
+# Loadings:
+loadingsdf = as.data.frame(loadings)
+knitr::kable(
+  loadingsdf
+)
+```
+
+
+# Question 2
+## Question 2.3 
+```{r}
+# Read in data:
+data_tidy_lum = read_csv("data_tidy_lum_response.csv")
+data_tidy_lum_meta = read_csv("data_tidy_lum_meta.csv")
+
+# Standardise data:
+library(tidyr)
+library(tidyverse)
+lum_response_mat_std = data_tidy_lum|>
+  select(crp:scd40l)|>
+  mutate(across(everything(),~(.-mean(.))/sd(.)))|>
+  as.matrix()
+```
+
+### a
+```{r}
+# Obtain first canonical correlation and associated coefficients:
+mod2.3 = cancor(x=data_)
+```

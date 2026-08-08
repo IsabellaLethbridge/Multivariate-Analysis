@@ -1,0 +1,118 @@
+---
+title: "practice11"
+format: html
+---
+
+```{r}
+library(ca)
+library(dplyr)
+library(knitr)
+library(ggplot2)
+```
+
+```{r}
+ratings <- structure(
+c(
+50, 30, 10, 1, 60, 80, 40, 2,
+40, 60, 20, 1, 10, 30, 50, 4),
+dim = c(4L, 4L),
+dimnames = list(
+c("High School", "Bachelor's", "Master's", "Doctorate"),
+c("Action", "Drama", "Comedy", "Documentary"))
+)
+```
+
+# Question 1
+
+```{r}
+P = ratings/sum(ratings)
+
+rowTot = rowSums(P)
+colTot = colSums(P)
+
+Dr = diag(rowTot)
+Dr_sqrt = diag(sqrt(1/rowTot))
+Dc = diag(colTot)
+Dc_sqrt = diag(sqrt(1/colTot))
+
+rp = solve(Dr) %*% P
+rp
+
+cp = solve(Dc) %*% t(P) # cols must trnaspoise
+cp
+```
+
+# b)
+
+```{r}
+chi_row = as.matrix(dist(rp %*% diag(sqrt(1/colTot))))
+chi_col = as.matrix(dist(cp %*% diag(sqrt(1/rowTot))))
+
+rownames(chi_row) = colnames(chi_row) = 
+  c("High School", "Bachelor's", "Master's", "Doctorate")
+colnames(chi_col) = rownames(chi_col) = 
+  c("Action", "Drama", "Comedy", "Documentary")
+
+ggplot(melt(chi_row), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2)), size = 3) +
+  scale_fill_gradient(low = "yellow", high = "darkred") +
+  theme_minimal()
+
+ggplot(melt(chi_col), aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2)), size = 3) +
+  scale_fill_gradient(low = "yellow", high = "darkred") +
+  theme_minimal()
+
+```
+
+# c)
+
+ee
+
+# d)
+
+```{r}
+S = Dr_sqrt %*% (P - rowTot %*% t(colTot)) %*% Dc_sqrt
+svdS = svd(S)
+
+F_mat = as.data.frame((Dr_sqrt %*% svdS$u %*% diag(svdS$d))[,1:2])
+G_mat = as.data.frame((Dc_sqrt %*% svdS$v %*% diag(svdS$d))[,1:2])
+labels = c("High School", "Bachelor's", "Master's", "Doctorate", "Action", "Drama", "Comedy", "Documentary")
+
+coords = rbind(F_mat, G_mat)
+coords = cbind(coords, c(0,0,0,0,1,1,1,1), labels)
+colnames(coords) = c("Dim1", "Dim2", "type")
+
+
+ggplot(coords, aes(Dim1, Dim2, colour = as.factor(type), labels = labels)) +
+  geom_point() +
+  theme_minimal() +
+  geom_text() +
+  geom_vline(aes(xintercept = 0)) +
+  geom_hline(aes(yintercept = 0))
+```
+
+# e)
+
+```{r}
+summary(ca(ratings))
+```
+
+# f)
+
+```{r}
+pca_plot = prcomp(ratings)
+biplot(pca_plot)
+```
+
+# g)
+
+```{r}
+plot(ca(ratings),
+     mass = TRUE,
+     contrib = "absolute",
+     map = "rowprincipal",
+     arrows = c(TRUE,TRUE))
+```

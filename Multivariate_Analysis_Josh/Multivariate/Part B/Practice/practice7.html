@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>practice7</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="practice7_files/libs/clipboard/clipboard.min.js"></script>
+<script src="practice7_files/libs/quarto-html/quarto.js"></script>
+<script src="practice7_files/libs/quarto-html/popper.min.js"></script>
+<script src="practice7_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="practice7_files/libs/quarto-html/anchor.min.js"></script>
+<link href="practice7_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="practice7_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="practice7_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="practice7_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="practice7_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">practice7</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">"remotes"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"remotes"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># be sure to install from `2024` branch (code below does this)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"MiguelRodo/DataTidy23RodoHonsMult@2024"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Skipping install of 'DataTidy23RodoHonsMult' from a github remote, the SHA1 (31ac32de) has not changed since last install.
+  Use `force = TRUE` to force installation</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"data_tidy_mali"</span>, <span class="at">package =</span> <span class="st">"DataTidy23RodoHonsMult"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="q1" class="level1">
+<h1>Q1</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> data_tidy_mali</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat<span class="sc">$</span>family <span class="sc">~</span> dat<span class="sc">$</span>dist_rd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat<span class="sc">$</span>dist_rd <span class="sc">~</span> dat<span class="sc">$</span>cattle)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(dat<span class="sc">$</span>cattle <span class="sc">&lt;</span> <span class="dv">40</span>, dat<span class="sc">$</span>dist_rd <span class="sc">&lt;</span> <span class="dv">200</span>, dat<span class="sc">$</span>family <span class="sc">&lt;</span> <span class="dv">100</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat<span class="sc">$</span>family <span class="sc">~</span> dat<span class="sc">$</span>dist_rd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dat<span class="sc">$</span>dist_rd <span class="sc">~</span> dat<span class="sc">$</span>cattle)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-3-4.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="q2" class="level1">
+<h1>Q2</h1>
+<p>We need to standardise as the predictors are on very different scales</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> <span class="fu">scale</span>(dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="q3" class="level1">
+<h1>Q3</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cor_mat <span class="ot">=</span> <span class="fu">cor</span>(dat)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>eigen <span class="ot">=</span> <span class="fu">eigen</span>(cor_mat)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>total_var <span class="ot">=</span> <span class="fu">sum</span>(eigen<span class="sc">$</span>values)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>prop <span class="ot">=</span> eigen<span class="sc">$</span>values <span class="sc">/</span> total_var</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prop, <span class="at">type =</span> <span class="st">'b'</span>, <span class="at">xlab =</span> <span class="st">"PCs"</span>, <span class="at">ylab =</span> <span class="st">"Prop var"</span>, <span class="at">main =</span> <span class="st">"Scree plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We choose 2 PCs</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>PC1 <span class="ot">=</span> eigen<span class="sc">$</span>vectors[,<span class="dv">1</span>]</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>PC2 <span class="ot">=</span> eigen<span class="sc">$</span>vectors[,<span class="dv">2</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>PCs <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="st">"PC1"</span> <span class="ot">=</span> PC1, <span class="st">"PC2"</span> <span class="ot">=</span> PC2)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(PCs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">PC1</th>
+<th style="text-align: right;">PC2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.4338427</td>
+<td style="text-align: right;">0.0650887</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0075870</td>
+<td style="text-align: right;">-0.4966709</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.4461403</td>
+<td style="text-align: right;">-0.0089173</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.3522284</td>
+<td style="text-align: right;">-0.3525715</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.2036221</td>
+<td style="text-align: right;">0.6036674</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.2403611</td>
+<td style="text-align: right;">0.4151595</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.4452737</td>
+<td style="text-align: right;">-0.0680425</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.3554115</td>
+<td style="text-align: right;">-0.2844734</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.2545495</td>
+<td style="text-align: right;">0.0486683</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>score1 <span class="ot">=</span> dat <span class="sc">%*%</span> PC1</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>score2 <span class="ot">=</span> dat <span class="sc">%*%</span> PC2</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>scores <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="st">"Score1"</span> <span class="ot">=</span> score1, <span class="st">"Score2"</span> <span class="ot">=</span> score2)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(scores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Score1</th>
+<th style="text-align: right;">Score2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">-1.3039315</td>
+<td style="text-align: right;">-0.9979375</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.3889033</td>
+<td style="text-align: right;">-2.2890650</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.2767930</td>
+<td style="text-align: right;">-0.6012014</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.9100053</td>
+<td style="text-align: right;">-0.5056065</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.8689120</td>
+<td style="text-align: right;">-2.6146994</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0729325</td>
+<td style="text-align: right;">-0.9786708</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.5176626</td>
+<td style="text-align: right;">-1.1937194</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0220060</td>
+<td style="text-align: right;">-0.7411196</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.3424444</td>
+<td style="text-align: right;">-1.4681479</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.5973991</td>
+<td style="text-align: right;">-0.8581933</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8190363</td>
+<td style="text-align: right;">-0.0581044</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.5334166</td>
+<td style="text-align: right;">-0.0563457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.5696887</td>
+<td style="text-align: right;">0.7000945</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.6503289</td>
+<td style="text-align: right;">0.7472508</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.9360185</td>
+<td style="text-align: right;">1.3974513</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.3914410</td>
+<td style="text-align: right;">0.1403006</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7692066</td>
+<td style="text-align: right;">0.4037531</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-2.1658077</td>
+<td style="text-align: right;">0.2355989</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2.3045988</td>
+<td style="text-align: right;">-1.0104099</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4142084</td>
+<td style="text-align: right;">0.0264250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.7602729</td>
+<td style="text-align: right;">0.1758117</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.3495676</td>
+<td style="text-align: right;">0.4832734</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.6051762</td>
+<td style="text-align: right;">-0.6051459</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.1495632</td>
+<td style="text-align: right;">1.7685337</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8494051</td>
+<td style="text-align: right;">0.3794495</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0006237</td>
+<td style="text-align: right;">0.5083480</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7861726</td>
+<td style="text-align: right;">0.9230039</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.6096620</td>
+<td style="text-align: right;">1.4020457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5.3046487</td>
+<td style="text-align: right;">2.4154700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.9528797</td>
+<td style="text-align: right;">0.7326084</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.3997300</td>
+<td style="text-align: right;">1.4192752</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.7929580</td>
+<td style="text-align: right;">0.5638193</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8183471</td>
+<td style="text-align: right;">0.6264232</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.1874935</td>
+<td style="text-align: right;">-0.0027213</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.2648299</td>
+<td style="text-align: right;">0.4880589</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.0831253</td>
+<td style="text-align: right;">0.7562457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.3368056</td>
+<td style="text-align: right;">-0.2053830</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.3779653</td>
+<td style="text-align: right;">0.5009580</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1356315</td>
+<td style="text-align: right;">-0.3895871</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.2843468</td>
+<td style="text-align: right;">1.0655210</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.2302231</td>
+<td style="text-align: right;">0.0580324</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.5997646</td>
+<td style="text-align: right;">-0.3682753</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4.2008951</td>
+<td style="text-align: right;">-0.2718888</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.5248977</td>
+<td style="text-align: right;">0.8007207</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.9200514</td>
+<td style="text-align: right;">0.5189108</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.1401890</td>
+<td style="text-align: right;">0.5656238</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1329525</td>
+<td style="text-align: right;">0.6282543</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.7942621</td>
+<td style="text-align: right;">1.1352857</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1486760</td>
+<td style="text-align: right;">0.7399276</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6.8415535</td>
+<td style="text-align: right;">3.7263935</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.4864289</td>
+<td style="text-align: right;">0.3644593</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.2411126</td>
+<td style="text-align: right;">0.4676074</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.4112447</td>
+<td style="text-align: right;">0.1218684</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.2289126</td>
+<td style="text-align: right;">0.4067442</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4.4130558</td>
+<td style="text-align: right;">-0.1062057</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.8657056</td>
+<td style="text-align: right;">-0.0112802</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.4974250</td>
+<td style="text-align: right;">1.0571272</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0924696</td>
+<td style="text-align: right;">0.1366299</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.3197950</td>
+<td style="text-align: right;">-0.2649961</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4.4782488</td>
+<td style="text-align: right;">-2.9375411</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7430514</td>
+<td style="text-align: right;">0.2815856</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4872175</td>
+<td style="text-align: right;">-0.8307609</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.1643955</td>
+<td style="text-align: right;">-0.6321593</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.5086233</td>
+<td style="text-align: right;">-0.5378430</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.0875211</td>
+<td style="text-align: right;">0.3755987</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4077696</td>
+<td style="text-align: right;">-0.3312419</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.1974856</td>
+<td style="text-align: right;">0.6346894</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.9398258</td>
+<td style="text-align: right;">1.1631118</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.9319904</td>
+<td style="text-align: right;">-2.0489748</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.6763285</td>
+<td style="text-align: right;">-3.2256043</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7121561</td>
+<td style="text-align: right;">-1.4881594</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.7429288</td>
+<td style="text-align: right;">-3.4113015</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="q4" class="level1">
+<h1>Q4</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Note so either take eigen(cov) or svd(data)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>svd_result <span class="ot">=</span> <span class="fu">svd</span>(dat)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>loadings <span class="ot">=</span> svd_result<span class="sc">$</span>v</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>df_loading <span class="ot">=</span> <span class="fu">data.frame</span>(loadings[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(df_loading)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">X1</th>
+<th style="text-align: right;">X2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.4338427</td>
+<td style="text-align: right;">0.0650887</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.0075870</td>
+<td style="text-align: right;">-0.4966709</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.4461403</td>
+<td style="text-align: right;">-0.0089173</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.3522284</td>
+<td style="text-align: right;">-0.3525715</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.2036221</td>
+<td style="text-align: right;">0.6036674</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.2403611</td>
+<td style="text-align: right;">0.4151595</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.4452737</td>
+<td style="text-align: right;">-0.0680425</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.3554115</td>
+<td style="text-align: right;">-0.2844734</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.2545495</td>
+<td style="text-align: right;">0.0486683</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>alt_PCscore <span class="ot">=</span> dat <span class="sc">%*%</span> svd_result<span class="sc">$</span>v</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="st">"score1"</span> <span class="ot">=</span> alt_PCscore[,<span class="dv">1</span>], <span class="st">"score2"</span> <span class="ot">=</span> alt_PCscore[,<span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        score1       score2
+1  -1.30393150 -0.997937492
+2   3.38890329 -2.289065005
+3  -2.27679296 -0.601201365
+4  -0.91000528 -0.505606461
+5   1.86891203 -2.614699367
+6  -1.07293246 -0.978670824
+7  -1.51766264 -1.193719433
+8  -1.02200598 -0.741119577
+9   1.34244440 -1.468147899
+10 -0.59739906 -0.858193282
+11 -1.81903630 -0.058104437
+12 -1.53341661 -0.056345705
+13 -1.56968870  0.700094472
+14 -0.65032892  0.747250828
+15  1.93601846  1.397451310
+16 -1.39144099  0.140300610
+17 -0.76920659  0.403753059
+18 -2.16580770  0.235598890
+19  2.30459885 -1.010409917
+20 -1.41420842  0.026425006
+21 -1.76027288  0.175811717
+22 -0.34956763  0.483273356
+23  1.60517622 -0.605145924
+24 -0.14956323  1.768533674
+25 -1.84940513  0.379449549
+26 -1.00062374  0.508348024
+27 -0.78617265  0.923003877
+28  0.60966202  1.402045737
+29  5.30464872  2.415470010
+30 -1.95287973  0.732608390
+31 -0.39972997  1.419275150
+32 -0.79295797  0.563819339
+33 -1.81834706  0.626423244
+34  0.18749349 -0.002721338
+35 -1.26482993  0.488058875
+36  2.08312533  0.756245687
+37 -2.33680563 -0.205383020
+38 -1.37796526  0.500958042
+39 -1.13563154 -0.389587079
+40  1.28434683  1.065521044
+41 -1.23022312  0.058032397
+42  1.59976459 -0.368275303
+43  4.20089514 -0.271888825
+44 -1.52489770  0.800720720
+45 -1.92005139  0.518910778
+46  0.14018905  0.565623819
+47 -1.13295246  0.628254294
+48 -0.79426207  1.135285728
+49 -1.14867601  0.739927553
+50  6.84155345  3.726393451
+51 -1.48642891  0.364459341
+52 -0.24111256  0.467607427
+53 -2.41124468  0.121868401
+54  3.22891255  0.406744200
+55  4.41305579 -0.106205703
+56  0.86570556 -0.011280239
+57 -0.49742503  1.057127191
+58 -0.09246961  0.136629876
+59  0.31979498 -0.264996109
+60  4.47824881 -2.937541122
+61 -0.74305138  0.281585558
+62 -1.48721747 -0.830760946
+63  0.16439555 -0.632159327
+64  0.50862329 -0.537842954
+65 -1.08752106  0.375598730
+66 -1.40776960 -0.331241897
+67 -0.19748557  0.634689449
+68  3.93982583  1.163111842
+69 -1.93199041 -2.048974819
+70  0.67632855 -3.225604330
+71 -0.71215607 -1.488159399
+72  3.74292878 -3.411301548</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>scores <span class="ot">=</span> svd_result<span class="sc">$</span>u <span class="sc">%*%</span> <span class="fu">diag</span>(svd_result<span class="sc">$</span>d)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>svd_pc <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="st">"score1"</span> <span class="ot">=</span> scores[,<span class="dv">1</span>], <span class="st">"score2"</span> <span class="ot">=</span> scores[,<span class="dv">2</span>])</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(svd_pc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">score1</th>
+<th style="text-align: right;">score2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">-1.3039315</td>
+<td style="text-align: right;">-0.9979375</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.3889033</td>
+<td style="text-align: right;">-2.2890650</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.2767930</td>
+<td style="text-align: right;">-0.6012014</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.9100053</td>
+<td style="text-align: right;">-0.5056065</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.8689120</td>
+<td style="text-align: right;">-2.6146994</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0729325</td>
+<td style="text-align: right;">-0.9786708</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.5176626</td>
+<td style="text-align: right;">-1.1937194</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0220060</td>
+<td style="text-align: right;">-0.7411196</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.3424444</td>
+<td style="text-align: right;">-1.4681479</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.5973991</td>
+<td style="text-align: right;">-0.8581933</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8190363</td>
+<td style="text-align: right;">-0.0581044</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.5334166</td>
+<td style="text-align: right;">-0.0563457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.5696887</td>
+<td style="text-align: right;">0.7000945</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.6503289</td>
+<td style="text-align: right;">0.7472508</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.9360185</td>
+<td style="text-align: right;">1.3974513</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.3914410</td>
+<td style="text-align: right;">0.1403006</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7692066</td>
+<td style="text-align: right;">0.4037531</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-2.1658077</td>
+<td style="text-align: right;">0.2355989</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2.3045988</td>
+<td style="text-align: right;">-1.0104099</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4142084</td>
+<td style="text-align: right;">0.0264250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.7602729</td>
+<td style="text-align: right;">0.1758117</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.3495676</td>
+<td style="text-align: right;">0.4832734</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.6051762</td>
+<td style="text-align: right;">-0.6051459</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.1495632</td>
+<td style="text-align: right;">1.7685337</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8494051</td>
+<td style="text-align: right;">0.3794495</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.0006237</td>
+<td style="text-align: right;">0.5083480</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7861726</td>
+<td style="text-align: right;">0.9230039</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.6096620</td>
+<td style="text-align: right;">1.4020457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5.3046487</td>
+<td style="text-align: right;">2.4154700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.9528797</td>
+<td style="text-align: right;">0.7326084</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.3997300</td>
+<td style="text-align: right;">1.4192752</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.7929580</td>
+<td style="text-align: right;">0.5638193</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.8183471</td>
+<td style="text-align: right;">0.6264232</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.1874935</td>
+<td style="text-align: right;">-0.0027213</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.2648299</td>
+<td style="text-align: right;">0.4880589</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.0831253</td>
+<td style="text-align: right;">0.7562457</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.3368056</td>
+<td style="text-align: right;">-0.2053830</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.3779653</td>
+<td style="text-align: right;">0.5009580</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1356315</td>
+<td style="text-align: right;">-0.3895871</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.2843468</td>
+<td style="text-align: right;">1.0655210</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.2302231</td>
+<td style="text-align: right;">0.0580324</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.5997646</td>
+<td style="text-align: right;">-0.3682753</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4.2008951</td>
+<td style="text-align: right;">-0.2718888</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.5248977</td>
+<td style="text-align: right;">0.8007207</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.9200514</td>
+<td style="text-align: right;">0.5189108</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.1401890</td>
+<td style="text-align: right;">0.5656238</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1329525</td>
+<td style="text-align: right;">0.6282543</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.7942621</td>
+<td style="text-align: right;">1.1352857</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.1486760</td>
+<td style="text-align: right;">0.7399276</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6.8415535</td>
+<td style="text-align: right;">3.7263935</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.4864289</td>
+<td style="text-align: right;">0.3644593</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.2411126</td>
+<td style="text-align: right;">0.4676074</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-2.4112447</td>
+<td style="text-align: right;">0.1218684</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.2289126</td>
+<td style="text-align: right;">0.4067442</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4.4130558</td>
+<td style="text-align: right;">-0.1062057</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.8657056</td>
+<td style="text-align: right;">-0.0112802</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.4974250</td>
+<td style="text-align: right;">1.0571272</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-0.0924696</td>
+<td style="text-align: right;">0.1366299</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.3197950</td>
+<td style="text-align: right;">-0.2649961</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4.4782488</td>
+<td style="text-align: right;">-2.9375411</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7430514</td>
+<td style="text-align: right;">0.2815856</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4872175</td>
+<td style="text-align: right;">-0.8307609</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.1643955</td>
+<td style="text-align: right;">-0.6321593</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.5086233</td>
+<td style="text-align: right;">-0.5378430</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.0875211</td>
+<td style="text-align: right;">0.3755987</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-1.4077696</td>
+<td style="text-align: right;">-0.3312419</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.1974856</td>
+<td style="text-align: right;">0.6346894</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.9398258</td>
+<td style="text-align: right;">1.1631118</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-1.9319904</td>
+<td style="text-align: right;">-2.0489748</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.6763285</td>
+<td style="text-align: right;">-3.2256043</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">-0.7121561</td>
+<td style="text-align: right;">-1.4881594</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.7429288</td>
+<td style="text-align: right;">-3.4113015</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="section" class="level1">
+<h1>5</h1>
+<p>nah</p>
+</section>
+<section id="section-1" class="level1">
+<h1>6</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># correlation is with score not loading</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>corPC1 <span class="ot">=</span> <span class="fu">cor</span>(score1, dat)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> <span class="fu">data.frame</span>(corPC1)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 10%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">family</th>
+<th style="text-align: right;">dist_rd</th>
+<th style="text-align: right;">cotton</th>
+<th style="text-align: right;">maize</th>
+<th style="text-align: right;">sorg</th>
+<th style="text-align: right;">millet</th>
+<th style="text-align: right;">bull</th>
+<th style="text-align: right;">cattle</th>
+<th style="text-align: right;">goats</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.8875378</td>
+<td style="text-align: right;">0.0155212</td>
+<td style="text-align: right;">0.9126957</td>
+<td style="text-align: right;">0.7205745</td>
+<td style="text-align: right;">0.4165618</td>
+<td style="text-align: right;">0.491721</td>
+<td style="text-align: right;">0.9109228</td>
+<td style="text-align: right;">0.7270865</td>
+<td style="text-align: right;">0.5207471</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>We can see the PC is positively correlated with each var which makes sense as we saw that its loading from each var was positive. Additionally the vars that loaded the storngest on PC1 are the vars that are more correlated with it.</p>
+</section>
+<section id="q7" class="level1">
+<h1>Q7</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Just learn prcomp much easier for this part</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>pca_prcomp <span class="ot">=</span> <span class="fu">prcomp</span>(dat, <span class="at">scale. =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot</span>(pca_prcomp, <span class="at">choices =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot</span>(<span class="at">x =</span> scores, <span class="at">y =</span> loadings)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="practice7_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>if orthogonal to PC then doesnt load on it or barely, if parallel to PC then loads a lot on it. zthen always spea baout the points too if they are clustered together which PC has more variability shown with the points etc etc.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

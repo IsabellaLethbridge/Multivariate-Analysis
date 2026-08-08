@@ -1,0 +1,96 @@
+---
+title: "FIsherLDA"
+format: html
+---
+
+```{r}
+set.seed(2025)
+library(ggplot2); library(cowplot)
+
+# Simulate five groups, p = 10
+n <- 20       # observations per group
+p <- 10       # number of variables
+
+# Common covariance: diagonal matrix with variance 3 on X1, and 1 on X2–X10
+Sigma <- diag(c(3, rep(1, p - 1)))
+
+# Define group means so that they differ along the first five dimensions
+means <- lapply(1:5, function(i) {
+  mu <- rep(0, p)
+  mu[i] <- 3 * (i - 3)    # shifts: −6, −3, 0, 3, 6 on dimension i
+  mu
+})
+
+# Simulate the data
+dat <- do.call(rbind, lapply(1:5, function(i) {
+  data.frame(
+    group = factor(i),
+    MASS::mvrnorm(n, mu = means[[i]], Sigma = Sigma)
+  )
+}))
+
+# Name the columns X1…X10
+colnames(dat)[-1] <- paste0("X", seq_len(p))
+
+# Peek at the first few rows
+head(dat)
+dat_original = dat
+```
+# Compute B and W
+```{r}
+X = as.matrix(dat[,-1]) # remove groups
+g = length(unique(dat$group)) # gets number of groups
+n_i = table(dat$group) # gets number of ns in each group
+
+overall_mean = colMeans(X)
+group_means = dat %>% 
+  group_by(group) %>% 
+  summarise(across(everything(), mean), .groups = 'drop') %>% 
+  select(-group) %>% 
+  as.matrix()
+
+B = matrix(0 , ncol(X), ncol(X))
+W = matrix(0 , ncol(X), ncol(X))
+
+for(i in 1:g){
+  diff = group_means[i,] - overall_mean
+  B = B + n_i[i] * (diff %*% t(diff)) 
+  
+  Xi = X[dat$group == i,]
+  W = W + cov(Xi) * (nrow(Xi) - 1)
+}
+```
+
+# Eigen decomp
+```{r}
+library(knitr)
+eig = eigen(solve(W) %*% B)
+eig_mat = eig$vectors %>%  Re()
+S_pooled = W / (sum(n_i) - g)
+sd = diag(sqrt(t(eig_mat) %*% S_pooled %*% eig_mat))
+eig_mat = (eig_mat %*% diag(1/sd))[,1:2]
+
+df = data.frame(
+  LD1 = eig_mat[,1],
+  LD2 = eig_mat[,2]
+)
+
+kable(df, digits = 3)
+```
+
+#Scores
+```{r}
+dat$LD1 = as.numeric(X %*% eig_mat[,1])
+dat$LD2 = as.numeric(X %*% eig_mat[,2])
+
+ggplot(dat, aes(x = LD1, y = LD2, colour = group)) +
+  geom_point()
+```
+
+# LDA from MASS, on original dat
+```{r}
+library(MASS)
+lda_check = lda(group ~ ., data = dat_original)
+lda_check$scaling[, 1:2] %>% kable(digits = 3)
+```
+

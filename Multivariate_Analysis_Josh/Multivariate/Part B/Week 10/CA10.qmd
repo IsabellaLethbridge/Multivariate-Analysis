@@ -1,0 +1,192 @@
+---
+title: "CA10 - CCA"
+author: "Joshua Orelowitz & Aaisha Saban"
+format: pdf
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(dplyr)
+library(knitr)
+```
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+if (!requireNamespace("DataTidy23RodoHonsMult", quietly = TRUE)) {
+# note that you'll need to reinstall the package
+# to get the latest version (as of 24 April 2024)
+# with the data set
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+}
+data("corr_mat_profit", package = "DataTidy23RodoHonsMult")
+```
+
+# Question 1
+
+```{r}
+#| layout-ncol: 2
+Cov11 = corr_mat_profit[1:6, 1:6]
+Cov22 = corr_mat_profit[7:8, 7:8]
+Cov12 = corr_mat_profit[1:6, 7:8]
+Cov21 = t(Cov12)
+
+kable(data.frame(Cov11), caption = "Cor11")
+kable(data.frame(Cov12), caption = "Cor12")
+kable(data.frame(Cov21), caption = "Cor21")
+kable(data.frame(Cov22), caption = "Cor22")
+
+## Helper function
+mat_sqrt_inv <- function(M){
+  e = eigen(M)
+  temp = e$vectors %*% diag(1/sqrt(e$values)) %*% t(e$vectors)
+  return(temp)
+}
+```
+
+## a)
+
+```{r}
+Cov11_Sqrt_Inv = mat_sqrt_inv(Cov11)
+K = Cov11_Sqrt_Inv %*% Cov12 %*% solve(Cov22) %*% Cov21 %*% Cov11_Sqrt_Inv
+a1 = Cov11_Sqrt_Inv %*% eigen(K)$vectors[,1]
+kable(data.frame(a1), digits = 4)
+```
+
+## b)
+
+```{r}
+rho1 = sqrt(eigen(K)$values[1])
+b1_unscaled = solve(Cov22) %*% Cov21 %*% a1
+b1 = b1_unscaled * (1 / rho1)
+kable(data.frame(b1), digits = 4)
+```
+
+# c)
+
+```{r}
+kable(data.frame(rho1), digits = 4)
+```
+
+This is the first canonical correlation
+
+## d)
+
+```{r}
+#| layout-ncol: 2
+kable(data.frame(a1), digits = 4, caption = "a1 coefficients ($U_1$)")
+kable(data.frame(b1), digits = 4, caption = "b1 coefficients ($V_1$)")
+```
+
+Our first variate for $U_1$ has a high negative coefficient of 2.7 on $X_4$ and then a large positive coefficient on $X_5$ these two dominate this variate. Meaning that the contrast between $X_4$ and $X_5$ drive the accounting variate. For $V_1$ we can see that this variate only has two coefficients which is dominated by the negative 1.38 in $X_1$ meaning the market variate is driven by $X_1$. We also note that as some of the values are very high values and opposite in sign ($X_4$ and $X_5$) and this is calculated on the correlation matrix this hints at multicollinearity.
+
+## e)
+
+The canonical loadings are:
+
+```{r}
+#| layout-ncol: 2
+rho_U1 = Cov11 %*% a1
+rho_V1 = Cov22 %*% b1
+
+kable(data.frame(rho_U1), digits = 4, caption = "Correlations between U1 and X(1)")
+kable(data.frame(rho_V1), digits = 4, caption = "Correlations between V1 and X(2)")
+```
+
+All loadings are negative, which is arbitrary and simply reflects the direction in which the canonical variates are defined. Interpretation is based on magnitude. For $\rho_{U_1, \mathbf{X}^{(1)}}$ The strongest loadings are for $X_4$, $X_1$ and $X_6$. Since all loadings load in the same direction and most are strong. Thus $U_1$ represents a general accounting profitability factor. For $\rho_{V_1, \mathbf{X}^{(1)}}$ both market values load very strongly but again in the same direction. Thus indicating that $V_1$ represents overall market-value profitability.
+
+# Question 2
+
+## a)
+
+CCA maximizes the correlation between sets, not variance within sets. Looking at $\Sigma_{12}$, there is only one non-zero cross-covariance: $\text{Cov}(X_2^{(1)}, X_1^{(2)}) = 0.95$.
+
+$X_1^{(1)}$ has covariance 0 with both $X_1^{(2)}$ and $X_2^{(2)}$, so it is completely unrelated to Set 2. $X_2^{(2)}$ has covariance 0 with both $X_1^{(1)}$ and $X_2^{(1)}$, so it is completely unrelated to Set 1. $X_2^{(1)}$ and $X_1^{(2)}$ share the only bridge between the two sets with covariance 0.95.
+
+Therefore, CCA has no choice: the first canonical variate pair must be $U_1 = X_2^{(1)}$ and $V_1 = X_1^{(2)}$. Individual variances (100 vs 1) are irrelevant because CCA cares about shared movement, not individual spread.
+
+## b)
+
+Currently, $\text{Cov}(X_2^{(1)}, X_1^{(2)}) = 0.95$ and both variances are 1, so $\text{Corr} = 0.95$.
+
+If this correlation is reduced to 0, then $\text{Cov}(X_2^{(1)}, X_1^{(2)}) = 0$. This makes all off-diagonal blocks of $\Sigma$ equal to zero:
+
+$$
+\Sigma_{12} = \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}
+$$
+
+When $\Sigma_{12} = 0$, the two sets are completely independent. The maximum possible correlation between any linear combinations of the two sets is 0. Therefore, the first canonical correlation becomes exactly 0.
+
+## c)
+
+Correlation is scale-invariant. If you multiply a variable by any positive constant, its correlation with another variable does not change.
+
+Since $U_1 = X_2^{(1)}$ and $V_1 = X_1^{(2)}$, the canonical correlation is simply $\text{Corr}(X_2^{(1)}, X_1^{(2)})$. Doubling the variances of $X_2^{(1)}$ and $X_1^{(2)}$ does not change their correlation, provided the covariance scales proportionally.
+
+If the underlying linear relationship remains the same, the covariance will also double, keeping the correlation unchanged at 0.95. CCA automatically adjusts the coefficients to maintain $\text{Var}(U_1) = \text{Var}(V_1) = 1$, but this adjustment does not affect the correlation itself.
+
+## d)
+
+The coefficient vector $\mathbf{a}_1$ for $U_1 = X_2^{(1)}$ originally has a 1 for $X_2^{(1)}$ and 0 for $X_1^{(1)}$, so its length (norm) is 1.
+
+If $\text{Var}[X_2^{(1)}]$ doubles, the variable becomes more spread out. CCA requires $\text{Var}(U_1) = 1$. To achieve this, the coefficient cannot remain at 1 because multiplying a more spread-out variable by the same weight yields a variance larger than 1. The weight must shrink.
+
+The new coefficient becomes $1/\sqrt{2}$, which is smaller than 1. Since the other coefficient remains 0, the length (norm) of $\mathbf{a}_1$ decreases. The same logic applies to $\mathbf{b}_1$ and $X_1^{(2)}$.
+
+# Question 3
+
+By definition of standardization:
+
+$$
+Z_i^{(1)} = \frac{X_i^{(1)} - \bar{X}_i^{(1)}}{s_i}
+$$
+
+Ignoring means (which do not affect correlation), we have:
+
+$$
+\mathbf{Z}^{(1)} = \mathbf{V}_{11}^{-1} \mathbf{X}^{(1)}
+$$
+
+Therefore:
+
+$$
+\mathbf{X}^{(1)} = \mathbf{V}_{11} \mathbf{Z}^{(1)}
+$$
+
+Whether we use original variables or standardized variables, the canonical variate $U$ represents the same underlying linear combination of information from Set 1. That is:
+
+$$
+U = \mathbf{a}' \mathbf{X}^{(1)} = \mathbf{a}' (\mathbf{V}_{11} \mathbf{Z}^{(1)}) = (\mathbf{V}_{11} \mathbf{a})' \mathbf{Z}^{(1)}
+$$
+
+But when we work with standardized variables, we also write:
+
+$$
+U = \mathbf{a}^{z'} \mathbf{Z}^{(1)}
+$$
+
+Equating these two expressions for $U$:
+
+$$
+\mathbf{a}^{z'} = \mathbf{a}' \mathbf{V}_{11}
+$$
+
+Taking transposes (since both sides are column vectors):
+
+$$
+\mathbf{a}^z = \mathbf{V}_{11} \mathbf{a}
+$$
+
+If we simply used the same coefficients $\mathbf{a}$ on the standardized variables, we would get:
+
+$$
+\mathbf{a}' \mathbf{Z}^{(1)} = \mathbf{a}' \mathbf{V}_{11}^{-1} \mathbf{X}^{(1)}
+$$
+
+This is different from $\mathbf{a}' \mathbf{X}^{(1)}$ unless $\mathbf{V}_{11}^{-1}$ is the identity matrix (i.e., all original variables already have unit variance). So the coefficients must scale with the standard deviations to keep the canonical variate unchanged.
+
+The relevant property from the slides is that canonical variates are scale-invariant up to a normalization. If we scale the original variables (change their units), the canonical variates themselves do not change. However, the coefficients must adjust inversely to the scaling of the variables. Since standardization scales each variable by $1/s_i$, the coefficients must scale by $s_i$ to compensate.
+
+Therefore, $\mathbf{a}^z = \mathbf{V}_{11} \mathbf{a}$ because the same canonical variate $U$ must be expressible in both original and standardized units.

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Multivariate Analysis Mock Exam</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="MockExam_files/libs/clipboard/clipboard.min.js"></script>
+<script src="MockExam_files/libs/quarto-html/quarto.js"></script>
+<script src="MockExam_files/libs/quarto-html/popper.min.js"></script>
+<script src="MockExam_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="MockExam_files/libs/quarto-html/anchor.min.js"></script>
+<link href="MockExam_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="MockExam_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="MockExam_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="MockExam_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="MockExam_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Multivariate Analysis Mock Exam</h1>
+<p class="subtitle lead">STA2005S — Practice Paper (based on breakdown discussion)</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<section id="instructions" class="level2">
+<h2 class="anchored" data-anchor-id="instructions">Instructions</h2>
+<p>To start:</p>
+<ol type="1">
+<li>Place this file in a project folder alongside a <code>data/</code> subfolder containing: <code>pollution_data.csv</code>, <code>complaints_data.csv</code>, <code>yield_data.csv</code>, <code>student_data.csv</code>, <code>pcr_pls_data.csv</code>, <code>lda_data.csv</code>.</li>
+<li>Open this <code>.qmd</code> in RStudio and render periodically to check it works.</li>
+</ol>
+</section>
+<section id="desired-answers" class="level2">
+<h2 class="anchored" data-anchor-id="desired-answers">Desired answers</h2>
+<p>Each question has leading indicators telling you what should be reflected in your write-up:</p>
+<ul>
+<li><strong>R code</strong>: your R code should be typeset (<code>echo = TRUE</code>). Where a question says “from first principles”, you must obtain the output using the underlying formulae rather than a wrapper function (e.g. not <code>lm()</code>, not <code>lda()</code>), unless a part explicitly allows a package function for cross-checking.</li>
+<li><strong>Plot</strong>: display a plot with labelled axes.</li>
+<li><strong>Table</strong>: display a table (<code>kable()</code> is fine, but not required).</li>
+<li><strong>Typed response</strong>: a short paragraph-style answer, typically one mark per point made.</li>
+</ul>
+</section>
+<section id="exam-composition" class="level2">
+<h2 class="anchored" data-anchor-id="exam-composition">Exam composition</h2>
+<table class="table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 50%">
+<col style="width: 24%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Section</th>
+<th>Topic</th>
+<th>Marks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q1</td>
+<td>Factor Analysis</td>
+<td>13</td>
+</tr>
+<tr class="even">
+<td>Q2</td>
+<td>Correspondence Analysis</td>
+<td>6</td>
+</tr>
+<tr class="odd">
+<td>Q3.1</td>
+<td>Regression</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>Q3.2</td>
+<td>Canonical Correlation Analysis (first principles)</td>
+<td>7</td>
+</tr>
+<tr class="odd">
+<td>Q3.3</td>
+<td>PCA / PCR / PLS</td>
+<td>15</td>
+</tr>
+<tr class="even">
+<td>Q3.4</td>
+<td>Fisher’s LDA / CDA</td>
+<td>12</td>
+</tr>
+<tr class="odd">
+<td>MCQ</td>
+<td>Multiple choice</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td><strong>Total available</strong></td>
+<td></td>
+<td><strong>63</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>Marked out of</strong></td>
+<td></td>
+<td><strong>60</strong></td>
+</tr>
+</tbody>
+</table>
+<p>You have five hours to complete the exam.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+</section>
+</section>
+<section id="question-1-factor-analysis-13" class="level1">
+<h1>Question 1 — Factor Analysis (13)</h1>
+<p>We use <code>data/pollution_data.csv</code>: 150 days of measurements on 8 air-quality and weather variables (<code>no2</code>, <code>so2</code>, <code>co</code>, <code>pm10</code>, <code>temp</code>, <code>humidity</code>, <code>windspeed</code>, <code>pressure</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pollution &lt;- read.csv("data/pollution_data.csv")</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(pollution)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>pollution <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/pollution_data.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 150 Columns: 8
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (8): no2, so2, co, pm10, temp, humidity, windspeed, pressure
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">View</span>(pollution)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol type="a">
+<li><strong>R code + typed response:</strong> Motivate why these data should be standardised before factor analysis. Standardise the data. (2)</li>
+</ol>
+<p>The data must be standardised when on different scales. The following data is measured on different scale. Mention example.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> <span class="fu">scale</span>(pollution)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="2" type="a">
+<li><strong>R code + table:</strong> From first principles, using the correlation matrix and its eigendecomposition, extract the <strong>first factor only</strong> via the principal-component method. Report its loadings, the communalities, and the proportion of total variance it explains. (4)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate correlation matrix: </span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>cor_mat <span class="ot">=</span> <span class="fu">cor</span>(dat)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Eigen decomposition: </span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>eig_mat <span class="ot">=</span> <span class="fu">eigen</span>(cor_mat)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>eig_val <span class="ot">=</span> eig_mat<span class="sc">$</span>values</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>eig_vec <span class="ot">=</span> <span class="fu">as.matrix</span>(eig_mat<span class="sc">$</span>vectors)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate loadings: </span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>loadings <span class="ot">=</span> eig_vec[,<span class="dv">1</span>]<span class="sc">%*%</span><span class="fu">diag</span>(<span class="fu">sqrt</span>(eig_val[<span class="dv">1</span>]))</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings,<span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       [,1]
+[1,] 0.3561
+[2,] 0.3647
+[3,] 0.3963
+[4,] 0.3493
+[5,] 0.3778
+[6,] 0.3744
+[7,] 0.2558
+[8,] 0.3358</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate communalities:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>h <span class="ot">=</span> <span class="fu">diag</span>(loadings<span class="sc">%*%</span><span class="fu">t</span>(loadings))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.12680518 0.13297409 0.15707754 0.12197871 0.14272663 0.14019807 0.06545412
+[8] 0.11278565</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Variance explained:</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>tot_var  <span class="ot">=</span> <span class="fu">sum</span>(eig_val)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>prop_var <span class="ot">=</span> eig_val<span class="sc">/</span>tot_var</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(prop_var[<span class="dv">1</span>],<span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.3928</code></pre>
+</div>
+</div>
+<ol start="3" type="a">
+<li><strong>R code:</strong> Fit a two-factor model to the standardised data using the ML approach (<code>factanal</code>). (2)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit ML model using factanal:</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>fa_fit <span class="ot">=</span> <span class="fu">factanal</span>(dat,<span class="at">factors=</span><span class="dv">2</span>,<span class="at">rotation=</span><span class="st">'none'</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>fa_fit<span class="sc">$</span>loadings</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Loadings:
+          Factor1 Factor2
+no2        0.622  -0.507 
+so2        0.579  -0.369 
+co         0.647  -0.365 
+pm10       0.619  -0.561 
+temp       0.639   0.521 
+humidity   0.584   0.448 
+windspeed  0.377   0.526 
+pressure   0.563   0.594 
+
+               Factor1 Factor2
+SS loadings      2.732   1.942
+Proportion Var   0.341   0.243
+Cumulative Var   0.341   0.584</code></pre>
+</div>
+</div>
+<ol start="4" type="a">
+<li><strong>R code + table:</strong> From first principles, calculate Bartlett’s WLS factor scores for the two-factor ML solution above, i.e. <span class="math display">\[\hat{\mathbf{F}} = (\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}\hat{\mathbf{L}})^{-1}\hat{\mathbf{L}}'\hat{\boldsymbol{\Psi}}^{-1}(\mathbf{x}-\bar{\mathbf{x}})\]</span> Display the first six rows of scores. (4)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>L <span class="ot">=</span> <span class="fu">as.matrix</span>(fa_fit<span class="sc">$</span>loadings)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">=</span> fa_fit<span class="sc">$</span>uniquenesses</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>psi_mat <span class="ot">=</span> <span class="fu">diag</span>(psi)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>x_std <span class="ot">=</span> <span class="fu">as.matrix</span>(dat)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate factor scores:</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>f_hat <span class="ot">=</span> <span class="fu">solve</span>(<span class="fu">t</span>(L)<span class="sc">%*%</span><span class="fu">solve</span>(psi_mat)<span class="sc">%*%</span>L)<span class="sc">%*%</span><span class="fu">t</span>(L)<span class="sc">%*%</span><span class="fu">solve</span>(psi_mat)<span class="sc">%*%</span><span class="fu">t</span>(x_std)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">t</span>(f_hat),<span class="dv">4</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     Factor1 Factor2
+[1,]  1.1079 -2.2189
+[2,] -0.7895 -1.7441
+[3,]  0.9887  0.0347
+[4,]  0.8740  0.9744
+[5,]  1.2688  0.3429
+[6,] -0.3956  0.1469</code></pre>
+</div>
+</div>
+<ol start="5" type="a">
+<li><strong>Typed response:</strong> Based on the loadings, suggest a name for each factor. (1)</li>
+</ol>
+<p>No</p>
+<hr>
+</section>
+<section id="question-2-correspondence-analysis-6" class="level1">
+<h1>Question 2 — Correspondence Analysis (6)</h1>
+<p>We use <code>data/complaints_data.csv</code>: complaint counts (Billing, Staff, Product, Delivery) logged at four store branches.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>complaints <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/complaints_data.csv"</span>, <span class="at">row.names =</span> <span class="dv">1</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(complaints)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Billing</th>
+<th style="text-align: right;">Staff</th>
+<th style="text-align: right;">Product</th>
+<th style="text-align: right;">Delivery</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Claremont</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rondebosch</td>
+<td style="text-align: right;">81</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Observatory</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">81</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Bellville</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">65</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<ol type="a">
+<li><strong>R code + plot:</strong> Produce a symmetric CA biplot of this table. (2)</li>
+<li><strong>Typed response:</strong> Interpret the plot. Use language such as “drives separation along” or “contributes to inertia” rather than “associated with”. (2)</li>
+<li><strong>R code + table:</strong> Using <code>summary(ca(complaints))</code>, identify which branch contributes most to the inertia of the first dimension, and report its mass, quality (<code>qlt</code>), and contribution (<code>ctr</code>) on that dimension. (2)</li>
+</ol>
+<hr>
+</section>
+<section id="question-3" class="level1">
+<h1>Question 3</h1>
+<section id="regression-5" class="level2">
+<h2 class="anchored" data-anchor-id="regression-5">3.1 — Regression (5)</h2>
+<p>We use <code>data/yield_data.csv</code>: crop yield with soil pH and rainfall as predictors.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>yield_dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/yield_data.csv"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(yield_dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   soil_ph rainfall    yield
+1 5.695064 975.6657 38.49557
+2 6.776846 935.6707 45.80271
+3 7.004966 716.0285 39.92634
+4 6.331517 928.9132 39.40496
+5 5.557437 849.7850 33.65302
+6 7.403106 851.6575 42.49757</code></pre>
+</div>
+</div>
+<ol type="a">
+<li><strong>R code + table:</strong> From first principles, fit a multivariate… (here, simple) linear regression of <code>yield</code> on <code>soil_ph</code> and <code>rainfall</code>. Display the estimated regression coefficients. (2)</li>
+<li><strong>R code + output:</strong> From first principles, construct a 95% confidence interval for the slope on <code>soil_ph</code>. (2)</li>
+<li><strong>Typed response:</strong> Interpret the interval. (1)</li>
+</ol>
+</section>
+<section id="canonical-correlation-analysis-7" class="level2">
+<h2 class="anchored" data-anchor-id="canonical-correlation-analysis-7">3.2 — Canonical Correlation Analysis (7)</h2>
+<p>We use <code>data/student_data.csv</code>: an “academic” set of variables (<span class="math inline">\(X^{(1)}\)</span>: <code>gpa</code>, <code>test_score</code>, <code>attendance</code>, <code>study_hrs</code>) and a “lifestyle” set (<span class="math inline">\(X^{(2)}\)</span>: <code>sleep_hrs</code>, <code>exercise_hrs</code>, <code>stress</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>student <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/student_data.csv"</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(student)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       gpa test_score attendance study_hrs sleep_hrs exercise_hrs   stress
+1 2.472021   44.88605   66.13718  8.548003  4.118988     2.619057 7.943406
+2 3.413858   67.54172   83.69887 11.382488  6.418556     6.020176 4.423463
+3 2.969083   76.12700   83.16482 11.073013  7.057402     4.492541 6.444590
+4 3.508381   75.61346   91.16486 16.642311  6.510766     2.517052 7.436207
+5 3.426051   60.59579   83.56215 10.200802  7.618963     4.213792 5.975793
+6 3.092449   56.66548   86.85714 13.987187  7.650641     4.501010 4.384290</code></pre>
+</div>
+</div>
+<ol type="a">
+<li><strong>R code + output:</strong> From first principles, obtain the first canonical correlation and the associated coefficient vectors <span class="math inline">\(\mathbf{a}_1\)</span>, <span class="math inline">\(\mathbf{b}_1\)</span>. (3)</li>
+<li><strong>R code + output:</strong> Compute the canonical loadings and cross-loadings for the first pair of canonical variates. (2)</li>
+<li><strong>R code + output:</strong> Verify your first canonical correlation using <code>cancor()</code>. (2)</li>
+</ol>
+</section>
+<section id="pca-pcr-pls-15" class="level2">
+<h2 class="anchored" data-anchor-id="pca-pcr-pls-15">3.3 — PCA / PCR / PLS (15)</h2>
+<p>We use <code>data/pcr_pls_data.csv</code>: a response <code>y</code> and ten correlated predictors <code>x1</code>–<code>x10</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>pcr_dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/pcr_pls_data.csv"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(pcr_dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           x1         x2          x3          x4         x5         x6
+1  0.05975352 -0.4694840 -0.48754363  0.07316868 -0.4172426  1.1353810
+2  1.00004993  0.3563030  0.39892890  1.41100044  0.3379899  0.5464934
+3 -1.24423453 -0.2233116 -1.06819034 -2.16900685 -0.7161039 -1.0720632
+4 -0.87506669  0.4938453  0.09223401 -0.07107246  0.7576607  0.1115115
+5  0.13830342 -0.3749849 -1.00618093  0.28225871  0.1267864  1.3649124
+6 -0.56548574  0.5631223 -1.77110238  0.09880568  0.5954242  1.1361716
+           x7         x8          x9         x10         y
+1 -0.00511333  0.4120179  0.21452165  1.21767710  3.620837
+2  0.51988434 -0.9142609  1.19905661  0.40959982 11.975044
+3  0.48517487  0.6125134 -0.09033798  0.64689322  5.215086
+4 -0.18434224  2.0180442  0.87818839 -0.06968016  1.083173
+5  0.76039254 -0.5194873 -0.06792794  2.22734766 -3.436157
+6  0.36927396  1.9280992  0.42846682  1.06877843  3.265774</code></pre>
+</div>
+</div>
+<ol type="a">
+<li><strong>R code + plot:</strong> Standardise the predictors, perform PCA from first principles, and produce a scree plot. State how many components you would retain. (3)</li>
+<li><strong>R code + table:</strong> From first principles, fit principal component regression (PCR) of <code>y</code> on your retained components. Report <span class="math inline">\(R^2\)</span>.
+<ol start="4" type="1">
+<li></li>
+</ol></li>
+<li><strong>R code + table:</strong> Fit a partial least squares (PLS) regression of <code>y</code> on the ten predictors using the <code>pls</code> package, with the same number of components. Report <span class="math inline">\(R^2\)</span>. (4)</li>
+<li><strong>Typed response:</strong> Compare the <span class="math inline">\(R^2\)</span> values from PCR, PLS, and a full multiple regression using all ten predictors. Explain why PLS typically needs fewer components than PCR to achieve comparable predictive performance. (4)</li>
+</ol>
+</section>
+<section id="fishers-lda-cda-12" class="level2">
+<h2 class="anchored" data-anchor-id="fishers-lda-cda-12">3.4 — Fisher’s LDA / CDA (12)</h2>
+<p>We use <code>data/lda_data.csv</code>: four groups (<code>G1</code>–<code>G4</code>), 20 observations per group, and 6 variables (<code>x1</code>–<code>x6</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>lda_dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/lda_data.csv"</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(lda_dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  group        x1         x2        x3         x4         x5          x6
+1    G1 -5.556482  1.4123417  1.339500  1.9171219  0.7394433  2.51050832
+2    G1 -2.599107  0.9824689 -4.505943 -2.7969497 -2.7196529 -0.07328372
+3    G1 -4.772024  1.0086017  2.819267 -0.8348143  0.4747758 -0.21181923
+4    G1 -4.417127 -0.5762293 -1.506249  0.6277286 -0.7755646 -0.70322016
+5    G1 -5.790967  1.5556326  1.740616  0.3405192  0.5355312  1.93532294
+6    G1 -2.990734  0.5277979 -0.255626  1.8775088 -0.9244795  1.50908190</code></pre>
+</div>
+</div>
+<ol type="a">
+<li><strong>R code:</strong> From first principles, code up the full Fisher’s LDA algorithm: compute <span class="math inline">\(\mathbf{B}\)</span> and <span class="math inline">\(\mathbf{W}\)</span>, obtain the eigendecomposition of <span class="math inline">\(\mathbf{W}^{-1}\mathbf{B}\)</span>, and scale the eigenvectors so that <span class="math inline">\(\mathbf{a}_k'\mathbf{S}_{pooled}\mathbf{a}_k = 1\)</span>. Display the resulting discriminant loadings. (6)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 1: Calculate everything we need for LDA</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> lda_dat</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>group <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">as.factor</span>(dat<span class="sc">$</span>group))</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>X   <span class="ot">=</span> <span class="fu">as.matrix</span>(dat[,<span class="sc">-</span><span class="dv">1</span>]) <span class="co"># variables </span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>g   <span class="ot">=</span> <span class="fu">length</span>(<span class="fu">unique</span>(dat<span class="sc">$</span>group))</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>n_i <span class="ot">=</span> <span class="fu">table</span>(dat<span class="sc">$</span>group)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>bar_overall <span class="ot">=</span> <span class="fu">colMeans</span>(X)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>bar_group <span class="ot">=</span> dat <span class="sc">|&gt;</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(group) <span class="sc">|&gt;</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">across</span>(<span class="fu">everything</span>(),mean),</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups=</span><span class="st">'drop'</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>group) <span class="sc">|&gt;</span></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 2: Calculate B</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">=</span> <span class="fu">Reduce</span>(<span class="st">`</span><span class="at">+</span><span class="st">`</span>,<span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span>g,<span class="cf">function</span>(i){</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  n_i[i]<span class="sc">*</span>(bar_group[i,]<span class="sc">-</span>bar_overall)<span class="sc">%*%</span><span class="fu">t</span>(bar_group[i,]<span class="sc">-</span>bar_overall)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>}))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 3: Calculate W</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>W <span class="ot">=</span> <span class="fu">Reduce</span>(<span class="st">`</span><span class="at">+</span><span class="st">`</span>,<span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span>g,<span class="cf">function</span>(i){</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  Xi <span class="ot">=</span> X[dat<span class="sc">$</span>group<span class="sc">==</span>i,]</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cov</span>(Xi)<span class="sc">*</span>(n_i[i]<span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>}))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 4: Eigen decomposition</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">=</span> <span class="fu">solve</span>(W)<span class="sc">%*%</span>B</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>eig_mat <span class="ot">=</span> <span class="fu">eigen</span>(mat)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>eig_vec <span class="ot">=</span> eig_mat<span class="sc">$</span>vectors <span class="sc">|&gt;</span> <span class="fu">Re</span>()</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>eig_val <span class="ot">=</span> eig_mat<span class="sc">$</span>values</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>S_pooled <span class="ot">=</span> W<span class="sc">/</span>(<span class="fu">sum</span>(n_i)<span class="sc">-</span>g)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>sd_vec <span class="ot">=</span> <span class="fu">diag</span>(<span class="fu">t</span>(eig_vec)<span class="sc">%*%</span>S_pooled<span class="sc">%*%</span>eig_vec) <span class="sc">|&gt;</span> <span class="fu">sqrt</span>()</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>sol <span class="ot">=</span> eig_vec<span class="sc">%*%</span><span class="fu">diag</span>(<span class="dv">1</span><span class="sc">/</span>sd_vec)</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>sol[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            [,1]         [,2]
+[1,] -0.21701097  0.654855216
+[2,]  0.14097196 -0.256379899
+[3,]  0.10167297  0.144819580
+[4,] -0.79534358 -0.181299602
+[5,] -0.12817137  0.010920432
+[6,] -0.05464956 -0.002046995</code></pre>
+</div>
+</div>
+<ol start="2" type="a">
+<li><strong>R code + plot + typed response:</strong> Compute the discriminant scores and produce a scatterplot of the first two discriminants, coloured by group. Using the loadings, interpret the plot: state which discriminant separates which group(s), and which variables are driving that separation. (4)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate scores:</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>score1 <span class="ot">=</span> X<span class="sc">%*%</span>sol[,<span class="dv">1</span>]</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>score2 <span class="ot">=</span> X<span class="sc">%*%</span>sol[,<span class="dv">2</span>]</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>LD1 <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">as.matrix</span>(score1))</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>LD2 <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">as.matrix</span>(score2))</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>col_vec <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#1b9e77"</span>,</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#d95f02"</span>,</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#7570b3"</span>,</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#e7298a"</span>,</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"#66a61e"</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">toupper</span>()</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>dat,</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">mapping=</span><span class="fu">aes</span>(<span class="at">x=</span>LD1,</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>                   <span class="at">y=</span>LD2,</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>                   <span class="at">colour=</span><span class="fu">as.factor</span>(group)))<span class="sc">+</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="dv">3</span>,<span class="at">alpha=</span><span class="fl">0.8</span>)<span class="sc">+</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(</span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">values=</span>col_vec,</span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">name=</span><span class="st">'Group'</span></span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="MockExam_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ol start="3" type="a">
+<li><strong>Typed response:</strong> Fisher’s LDA as coded in (a) will not always work. Describe, in general, the condition under which the algorithm breaks down, and why. (2)</li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="multiple-choice-4" class="level1">
+<h1>Multiple choice (4)</h1>
+<p><strong>Question A (1)</strong> Suppose there is no correlation between any variables from two sets of variables. If we applied canonical correlation analysis, what would the values of the left canonical variate loadings be for the first pair?</p>
+<ol type="a">
+<li>Arbitrary, i.e.&nbsp;any vector in <span class="math inline">\(\mathbb{R}^p\)</span> that preserves unit variance</li>
+<li>0</li>
+<li>Impossible to say</li>
+<li>Proportional to a vector with <span class="math inline">\(1/\sqrt{p}\)</span> in every entry</li>
+</ol>
+<p><strong>Question B (1)</strong> Which scenario is likely to result in the largest canonical correlation, all other things being equal?</p>
+<ol type="a">
+<li><span class="math inline">\(X^{(1)}: 1 \times 1\)</span> and <span class="math inline">\(X^{(2)}: 1 \times 1\)</span></li>
+<li><span class="math inline">\(X^{(1)}: 10 \times 1\)</span> and <span class="math inline">\(X^{(2)}: 1 \times 1\)</span></li>
+<li><span class="math inline">\(X^{(1)}: 10 \times 1\)</span> and <span class="math inline">\(X^{(2)}: 10 \times 1\)</span></li>
+<li><span class="math inline">\(X^{(1)}: 10 \times 1\)</span> and <span class="math inline">\(X^{(2)}: 100 \times 1\)</span></li>
+</ol>
+<p><strong>Question C (1)</strong> Suppose we post-multiply the loadings matrix of an orthogonal factor analysis by some orthonormal <span class="math inline">\(\mathbf{Q}\)</span>. What happens to the implied factors?</p>
+<ol type="a">
+<li>Unchanged, as <span class="math inline">\(\mathbf{Q}\)</span> is orthonormal</li>
+<li>Unchanged, as the factors are never observed</li>
+<li>Pre-multiplied by <span class="math inline">\(\mathbf{Q}'\)</span> (i.e.&nbsp;become <span class="math inline">\(\mathbf{Q}'\mathbf{F}\)</span>)</li>
+<li>Post-multiplied by <span class="math inline">\(\mathbf{Q}'\)</span> (i.e.&nbsp;become <span class="math inline">\(\mathbf{F}\mathbf{Q}'\)</span>)</li>
+</ol>
+<p><strong>Question D (1)</strong> In Fisher’s LDA, if the pooled within-group SSCP matrix <span class="math inline">\(\mathbf{W}\)</span> is singular, which of the following is true?</p>
+<ol type="a">
+<li>LDA can proceed exactly as usual since <span class="math inline">\(\mathbf{B}\)</span> is unaffected</li>
+<li>Some form of dimension reduction or regularisation is needed before <span class="math inline">\(\mathbf{W}\)</span> can be inverted</li>
+<li><span class="math inline">\(\mathbf{B}\)</span> automatically becomes full rank to compensate</li>
+<li>The discriminant functions default to the first principal component only</li>
+</ol>
+<p><strong>Question E (1)</strong> A PCA scree plot is essentially flat (all eigenvalues are roughly equal in size). What does this suggest?</p>
+<ol type="a">
+<li>The variables are highly correlated, so a single PC will suffice</li>
+<li>The variables are close to uncorrelated with similar variances, so there is little redundancy for PCA to exploit and dimension reduction will not help much</li>
+<li>The data should not have been standardised before running PCA</li>
+<li>The first PC will still explain more than 90% of the total variance</li>
+</ol>
+<hr>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

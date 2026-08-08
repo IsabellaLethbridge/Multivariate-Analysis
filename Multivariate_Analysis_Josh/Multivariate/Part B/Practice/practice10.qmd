@@ -1,0 +1,86 @@
+---
+title: "practice10"
+format: html
+---
+
+# Question 1
+
+```{r}
+library(knitr)
+```
+
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+if (!requireNamespace("DataTidy23RodoHonsMult", quietly = TRUE)) {
+# note that you'll need to reinstall the package
+# to get the latest version (as of 24 April 2024)
+# with the data set
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+}
+data("corr_mat_profit", package = "DataTidy23RodoHonsMult")
+corr_mat_profit
+```
+
+```{r}
+#|layout-ncol: 2
+Cor11 = corr_mat_profit[1:6, 1:6]
+Cor22 = corr_mat_profit[7:8, 7:8]
+Cor12 = corr_mat_profit[1:6, 7:8]
+Cor21 = corr_mat_profit[7:8, 1:6]
+
+kable(Cor11)
+kable(Cor12)
+kable(Cor21)
+kable(Cor22)
+```
+
+# a)
+
+```{r}
+rho11_inv = solve(Cor11)
+eig11 = eigen(rho11_inv)
+rho11_inv_sqrt = eig11$vectors %*% diag(sqrt(eig11$values)) %*% t(eig11$vectors)
+
+rho22_inv = solve(Cor22)
+# eig22 = eigen(rho22_inv)
+# rho22_inv_sqrt = eig22$vectors %*% diag(sqrt(eig22$values)) %*% t(eig22$vectors)
+
+R = rho11_inv_sqrt %*% Cor12 %*% rho22_inv %*% Cor21 %*% rho11_inv_sqrt
+eigR = eigen(R)
+
+a1 = (rho11_inv_sqrt %*% eigR$vectors)[,1]
+df_a1 = data.frame(a1)
+kable(df_a1, digits = 4)
+```
+
+# b)
+
+```{r}
+
+b_1 = rho22_inv %*% Cor21 %*% a1
+standardiser = sqrt(diag(t(b_1) %*% Cor22 %*% b_1)) 
+b1 = b_1 / standardiser
+df_b1 = data.frame(b1)
+kable(df_b1, digits = 4)
+```
+
+# c)
+
+```{r}
+can_corr = sqrt(eigR$values)
+kable(data.frame(can_corr[1]), digits = 4)
+```
+
+# d)
+
+no
+
+# e)
+
+```{r}
+U1_X1 = t(a1) %*% Cor11
+V1_X2 = t(b1) %*% Cor22
+
+kable(U1_X1)
+kable(V1_X2)
+```

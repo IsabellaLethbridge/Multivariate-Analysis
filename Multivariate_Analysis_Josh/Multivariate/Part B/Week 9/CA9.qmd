@@ -1,0 +1,190 @@
+---
+title: "Multivariate Analysis"
+subtitle: "Continuous Assessment 9"
+author: "Josh Orelowitz, Aaron George"
+
+format:
+  pdf:
+    documentclass: article
+    number-sections: false
+    toc: false
+    fontsize: 10pt
+    geometry: margin=1in
+    fig-align: center
+execute:
+  warning: false
+  message: false
+editor: visual
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# libraries
+library(tidyverse)
+library(tinytex)
+```
+
+# Question 1
+
+Given the following standardized random variables: $$
+\begin{aligned}
+Z_1&=0.9F_1+e_1\\
+Z_2&=0.7F_1+e_2\\
+Z_3&=0.5F_1+e_3\\
+\text{in form }\mathbf{Z}&=\mathbf{L}F_1+\mathbf{e}\\
+\text{where } \mathbf{L}&= [0.9, 0.7,0.5]^T\\
+\text{and }\mathbf{e}&=[e_1,e_2,e_3]^T
+\end{aligned}
+$$ and the following covariance matrices: $$
+\boldsymbol{\Psi}=Cov(\mathbf{e})=\begin{bmatrix}0.19&0&0\\0&0.51&0\\0&0&0.75\end{bmatrix}\\
+\boldsymbol{\rho}=Cov(\mathbf{Z})=\begin{bmatrix}1&0.63&0.45\\0.63&1&0.35\\0.45&0.35&1\end{bmatrix}
+$$ it can be shown that $\boldsymbol{\rho}= \mathbf{L}\mathbf{L}^T+\boldsymbol{\Psi}$.
+
+First we calculate the following: $$
+\begin{aligned}
+\mathbf{L}\mathbf{L}^T&=\begin{bmatrix}0.9\\0.7\\0.5\end{bmatrix}\begin{bmatrix}0.9&0.7&0.5\end{bmatrix}\\
+&=\begin{bmatrix}0.81&0.63&0.45\\0.63&0.49&0.35\\0.45&0.35&0.25\end{bmatrix}
+\end{aligned}
+$$ then $$
+\begin{aligned}
+\mathbf{L}\mathbf{L}^T+\boldsymbol{\Psi}&=
+\begin{bmatrix}0.81&0.63&0.45\\0.63&0.49&0.35\\0.45&0.35&0.25\end{bmatrix}+
+\begin{bmatrix}0.19&0&0\\0&0.51&0\\0&0&0.75\end{bmatrix}\\
+&=\begin{bmatrix}1&0.63&0.45\\0.63&1&0.35\\0.45&0.35&1\end{bmatrix}\\
+&=\boldsymbol{\rho}
+\end{aligned}
+$$ as we wanted.
+
+# Question 2
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# Load dataset
+air_data<-read.csv("Air Pollution Data .csv")
+```
+
+Factor analysis is performed on air pollution data in the following manner:
+
+## a) Sample correlation matrix generation
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+# Create Sample correlation matrix
+
+sam_corr_mat<-cor(air_data)
+```
+
+From the data a sample correlation matrix, $\mathbf{R}$, is created.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+# Output sample correlation matrix
+colnames(sam_corr_mat)<-c("Wind","Rad","CO","NO","NO2","O3","HC")
+sam_corr_mat |> round(2) |> knitr::kable(caption = "Sample Correlation Matrix")
+```
+
+## b) Principal Component solution
+
+We now perform eigendecomposition on $\mathbf{R}$ to obtain eigenvalues and eigenvectors. The loadings are then $\mathbf{L}_{p\times j}=[\sqrt{\lambda_j}ej]$ for $m=j$ where $m$ is bound by the number of eigenvalues greater than 1. We provide loadings for an $m=1 \text{ and }m=2$ model.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+# Eigendecomp
+corr_decomp<-eigen(sam_corr_mat)
+# Display eigenvalues and eigenvectors
+corr_decomp$values |> round(2) |> t() |> knitr::kable(caption="Eigenvalues of Sample Correlation matrix")
+corr_decomp$vectors |> round(2)|> knitr::kable(caption="Eigenvectors of Sample Correlation matrix")
+# Create Loadings for m=7
+L<-corr_decomp$vectors%*%diag(sqrt(corr_decomp$values))
+# Display loading for m=1
+L[,1] |> round(2) |> knitr::kable(caption="Factor Loading for m=1")
+# Display loading for m=1
+L[,1:2] |> round(2) |> knitr::kable(caption="Factor Loadings for m=2")
+```
+
+## c) Maximum Likelihood estimation of $\tilde{\mathbf{L}}$ and $\tilde{\boldsymbol{\Psi}}$
+
+We now use numerical methods to obtain mles for the loadings assuming that $F_j\text{ and }e_j$ are normally distributed.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+# Obtain loadings using factanal
+Mle<-factanal(covmat = sam_corr_mat,correlation,factors = 2,rotation = "none")
+# Display Loadings
+Mle$loadings |> round(2) |> print(cutoff = 0)
+```
+
+## d) Comparision
+
+From above we notice that the loadings obtained in b) are larger than those obtained in c). This follows since the PCA method, computes total variance i.e. the shared and unique variance of variables. In contrast the maximum likelihood method focuses on the proportion of variance due to the factors i.e. discards the error variance in calculations and hence will have smaller loadings.
+
+Using the PC approach we weighted all variables but wind negatively in our first factor with CO, NO and NO2 and contributing the most. Our second factor weighed Radiation, CO2 and O3 negatively and everything else positively. Its biggest contributors were radiation and O3.
+
+Using the mle approach wind and O3 weighed negatively while all other observed variables weighed positively. Just like the PC approach the largest loadings for factor 1 were CO, NO and NO2. Our second factor put a large positive weighting on O3 and our next two highest loadings are again radiation and CO.
+
+Both methods struggle to fit wind into either of their factors. This is shown by its small loadings across both factors in both methods. It thus has high uniqueness.
+
+## e) Varimax rotation
+
+In order to make interpretation easier, we now perform orthogonal rotation on the PCA loading results using varimax.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+
+# PCA Rotation
+Pc_rot<-varimax(L[,1:2])
+Pc_rot$loadings
+```
+
+From the above output we notice the following: For Factor 1, the absolute value of the loadings are high for variables CO (carbon monoxide), NO (nitric oxide), NO2 (nitrogen dioxide) as well as HC (hydrocarbons) i.e. these variables are uniquely represented by Factor 1. This means that Factor 1 can be interpreted as index of Air quality, as higher levels of these gases (often byproducts of combustion i.e. traffic exhaust, manufacturing etc) result in lower quality. It can also be thought of as measuring Emissions if signs are flipped. For Factor 2s important variables, Wind is positive whilst Radiation, CO and O3 (ozone) are negative. We can thus interpret Factor 2 as a measure of Pollution dispersion. When scores are high then either Wind dominates and sweeps away pollution or the level of pollutants is low, indicating clear windy days. If scores are low, then Wind levels are low or Radiation, CO and O3 levels are high, indicating sunny days with no wind to sweep away smog. Lastly, we notice that CO loads onto both variables even though it is more strongly associated with Factor 1. This follows since it is a direct byproduct of emissions, but the levels measured in the air also depend on atmospheric conditions.
+
+## f) Factor scores for MLE method using least squares (m=2)
+
+Factor scores are calculated using the following: $$
+\begin{aligned}
+\mathbf{F}&=(\mathbf{L}^T\boldsymbol{\Psi}^{-1}\mathbf{L})^{-1}\mathbf{L}^T\boldsymbol{\Psi}^{-1}\mathbf{Z}\\
+\text{where }\mathbf{Z}&=\mathbf{V}^{-1}(\mathbf{X}-\boldsymbol{\mu})
+\end{aligned}
+$$ The first few factor scores are given below:
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# Factor scores manually
+# Extract 2 loadings
+L2<-as.matrix(Mle$loadings[,1:2])
+# Create inverse Psi matrix
+Psi_in<-diag(1/Mle$uniquenesses)
+# Scale dataset
+Z<-scale(air_data)
+
+# Obtain Factor scores
+Fac_score<- Z%*%t(solve(t(L2) %*% Psi_in %*% L2)%*%t(L2)%*%Psi_in)
+Fac_score |> round(2) |> head()|> knitr::kable(caption="Factor Scores using least squares")
+```

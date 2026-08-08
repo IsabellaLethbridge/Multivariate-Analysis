@@ -1,0 +1,135 @@
+---
+title: "CA5"
+format: html
+---
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+```
+
+## Question 1
+
+```{r}
+datRaw = read.csv("CA1.csv")
+dat = datRaw %>% filter(TimePeriod == 1) %>% select(-5)
+n = nrow(dat)
+p = ncol(dat)
+alpha = 0.05
+xbar = colMeans(dat)
+S = var(dat)
+
+# One at a time intervals
+tStat = qt(1 - (alpha / 2) , n - 1)
+indiv_Upper = xbar + tStat * sqrt(diag(S) / n)
+indiv_Lower = xbar - tStat * sqrt(diag(S) / n)
+
+indiv_CI = data.frame(
+  Lower = round(indiv_Lower, 3),
+  Upper = round(indiv_Upper, 3)
+)
+#View(indiv_CI)
+
+# Simultaneuos
+c2 = ((n - 1) * p) / (n - p) * qf((1 - alpha), p, n - p)
+simul_lower = xbar - sqrt(c2) * sqrt(diag(S) / n)
+simul_upper = xbar + sqrt(c2) * sqrt(diag(S) / n)
+
+simul_CI = data.frame(
+  Lower = round(simul_lower, 3),
+  Upper = round(simul_upper, 3)
+)
+#View(simul_CI)
+
+# Bonferonni
+tcrit = qt(1 - alpha / (2 * p), n - 1)
+
+bon_lower = xbar - tcrit * sqrt(diag(S) / n)
+bon_upper = xbar + tcrit * sqrt(diag(S) / n)
+
+bon_CI <- data.frame(
+  Lower = round(bon_lower, 3),
+  Upper = round(bon_upper, 3)
+)
+#View(bon_CI)
+
+ci_plot = bind_rows(
+  indiv_CI %>%
+    mutate(Variable = names(xbar), Method = "Individual t", Mean = xbar),
+  simul_CI %>%
+    mutate(Variable = names(xbar), Method = "Simultaneous T2", Mean = xbar),
+  bon_CI %>%
+    mutate(Variable = names(xbar), Method = "Bonferroni", Mean = xbar)
+)
+
+ggplot(ci_plot, aes(x = Variable, y = Mean, colour = Method)) +
+  geom_point(position = position_dodge(width = 0.3), size = 2) +
+  geom_errorbar(
+    aes(ymin = Lower, ymax = Upper),
+    position = position_dodge(width = 0.3),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  labs(
+    title = "95% Confidence Intervals for Period 1 Mean Skull Measurements",
+    x = "Variable",
+    y = "Mean"
+  ) +
+  theme_minimal()
+
+ci_table = data.frame(
+  Variable = names(xbar),
+  Indiv_Lower = indiv_CI$Lower,
+  Indiv_Upper = indiv_CI$Upper,
+  Simul_Lower = simul_CI$Lower,
+  Simul_Upper = simul_CI$Upper,
+  Bon_Lower = bon_CI$Lower,
+  Bon_Upper = bon_CI$Upper
+)
+
+kable(
+  ci_table,
+  digits = 3,
+  caption = "95% confidence intervals for the period 1 mean skull measurements."
+)
+```
+
+## Question 2
+
+```{r}
+diet = read.csv("CA5.txt")
+n = nrow(diet)
+p = ncol(diet)
+
+xbar = colMeans(diet)
+S = var(diet)
+
+C = rbind(
+  c(1, -1, 0, 0, 0),
+  c(1, 0, -1, 0, 0),
+  c(1, 0, 0, -1, 0),
+  c(1, 0, 0, 0, -1)
+)
+
+Cxbar = C %*% xbar
+CS = C %*% S %*% t(C)
+q = ncol(C)
+
+T2 = n*t(Cxbar) %*% solve(CS) %*% (Cxbar)
+pval = 1 - pf(T2*(n-q+1)/((n-1)*(q-1)), q-1, n-q+1)
+
+results_table = data.frame(
+  Statistic = c("Hotelling's T2", "p-value"),
+  Value = c(T2, pval)
+)
+
+kable(
+  results_table,
+  digits = 4,
+  caption = "Test statistic and pvalue"
+)
+```
+
+### Interpretation
+The goal of the diet was to lose weight

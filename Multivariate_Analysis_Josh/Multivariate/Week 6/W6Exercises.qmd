@@ -1,0 +1,181 @@
+---
+title: "W6Exercises"
+format: html
+---
+
+## Exercise 1
+
+```{r}
+m = read.table("T6-11.dat", col.names = c("Tail", "Wing"))
+f = read.table("T5-12.dat", col.names = c("Tail", "Wing"))
+m = m[-31, ]
+# a
+plot(m$Wing, m$Tail, pch = 16, col = "blue")
+# Definetly has an outlier
+
+
+
+
+```
+
+## 1.B
+
+```{r}
+#b
+X1 = as.matrix(m)
+X2 = as.matrix(f)
+
+p = ncol(X1)
+g = 2
+
+n1 = nrow(X1)
+n2 = nrow(X2)
+nl = c(n1, n2)
+n = sum(nl)
+
+X1_bar = apply(X1, 2, mean)
+X2_bar = apply(X2, 2, mean)
+Xbar = (nl[1] * X1_bar + nl[2] * X2_bar) / n
+
+X1_tr = X1_bar - Xbar
+X2_tr = X2_bar - Xbar
+
+X1_res = X1 - matrix(rep(X1_bar, each = nl[1]), nl[1])
+X2_res = X2 - matrix(rep(X2_bar, each = nl[2]), nl[2])
+
+X1_tot = X1 - matrix(rep(Xbar, each = nl[1]), nl[1])
+X2_tot = X2 - matrix(rep(Xbar, each = nl[2]), nl[2])
+
+B <- nl[1]*X1_tr%*%t(X1_tr) + nl[2]*X2_tr%*%t(X2_tr)
+W <- t(X1_res)%*%X1_res + t(X2_res)%*%X2_res
+SSP_tot <- t(X1_tot)%*%X1_tot + t(X2_tot)%*%X2_tot
+
+#Check that it matches sum
+#B + W
+
+(Lam = det(W)/det(W + B))
+(F = (sum(nl) - p - 1)/p * (1-Lam)/(Lam))
+(pval = 1 - pf(F, p, (sum(nl) - p - 1)))
+
+# Easy way
+X <- rbind(X1, X2)
+group <- c(rep(1, nl[1]), rep(2, nl[2]))
+group <- as.factor(group)
+fit <- manova(X ~ group) 
+summary(fit, 'Wilks')
+summary.aov(fit)
+```
+
+## c
+
+```{r}
+tau_12 = X1_bar - X2_bar
+
+alpha = 0.05
+
+CI_12 = 
+  cbind(tau_12, tau_12) +
+  qt(1 - alpha/(p * g * (g - 1)), n - g) *
+  sqrt(diag(W)/(n - g) * (1/nl[1] + 1/nl[2])) %*% t(c(-1, 1))
+
+rownames(CI_12) = colnames(X1)
+colnames(CI_12) = c("Lower", "Upper")
+
+CI_12
+
+# nice way to do it
+# S1 = var(X1)
+# S2 = var(X2)
+# 
+# Sp = ((n1 - 1) * S1 + (n2 - 1) * S2) / (n1 + n2 - 2)
+# 
+# alpha = 0.05
+# tcrit = qt(1 - alpha / (2 * p), df = n1 + n2 - 2)
+# 
+# tau_12 = X1_bar - X2_bar
+# SE = sqrt(diag(Sp) * (1/n1 + 1/n2))
+# 
+# CI_12 = cbind(
+#   Lower = tau_12 - tcrit * SE,
+#   Upper = tau_12 + tcrit * SE
+# )
+# 
+# rownames(CI_12) = colnames(X1)
+# CI_12
+
+# Both contain 0 and thus we know both are equal which we knew from examining pval from above
+```
+
+## Question 2
+
+```{r}
+peanut = read.table("T6-17.dat", col.names = c("Location", "Variety", "Yield", "SMK", "Seed"))
+
+peanut$Location = as.factor(peanut$Location)
+peanut$Variety = as.factor(peanut$Variety)
+
+X = cbind(peanut$Yield, peanut$SMK, peanut$Seed)
+
+fit1 <- manova(X ~ peanut$Location*peanut$Variety)
+(summary1 <- summary(fit1, test = 'Wilks'))
+summary.aov(fit1)
+
+# multivariate normality of residuals
+# equal covariance matrices across treatment combinations
+# independence
+# no serious outliers
+# roughly linear / stable behaviour within groups\
+E = resid(fit1)
+
+par(mfrow = c(3,2), mar = c(4,4,2,1))
+
+plot(fitted(fit1)[,1], E[,1], main = "Yield: Residuals vs Fitted",
+     xlab = "Fitted", ylab = "Residuals")
+abline(h = 0, lty = 2)
+
+qqnorm(E[,1], main = "Yield: QQ-plot")
+qqline(E[,1])
+
+plot(fitted(fit1)[,2], E[,2], main = "SMK: Residuals vs Fitted",
+     xlab = "Fitted", ylab = "Residuals")
+abline(h = 0, lty = 2)
+
+qqnorm(E[,2], main = "SMK: QQ-plot")
+qqline(E[,2])
+
+plot(fitted(fit1)[,3], E[,3], main = "Seed size: Residuals vs Fitted",
+     xlab = "Fitted", ylab = "Residuals")
+abline(h = 0, lty = 2)
+
+qqnorm(E[,3], main = "Seed size: QQ-plot")
+qqline(E[,3])
+
+par(mfrow = c(3,1))
+
+interaction.plot(peanut$Variety, peanut$Location, peanut$Yield,
+                 ylab = expression(bar(X)[1]), xlab = "Variety", trace.label = "Location")
+
+interaction.plot(peanut$Variety, peanut$Location, peanut$SMK,
+                 ylab = expression(bar(X)[2]), xlab = "Variety", trace.label = "Location")
+
+interaction.plot(peanut$Variety, peanut$Location, peanut$Seed,
+                 ylab = expression(bar(X)[3]), xlab = "Variety", trace.label = "Location")
+
+# library(heplots)
+# Y = peanut[, c("Yield", "SMK", "Seed")]
+# grp = interaction(peanut$Variety, peanut$Location)
+
+# boxM(Y, grp)
+```
+
+```{r}
+library(DescTools)
+
+# two-way ANOVA for kernels weight (X2 = SMK), including interaction
+fit_smk <- aov(SMK ~ Location * Variety, data = peanut)
+
+summary(fit_smk)
+
+# Bonferroni pairwise intervals/tests for Variety
+PostHocTest(fit_smk, which = "Variety", method = "bonferroni")
+```

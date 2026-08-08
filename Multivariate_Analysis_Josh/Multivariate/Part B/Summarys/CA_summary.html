@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correspondence Analysis — Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #16161a;
+    --border: #2a2a32;
+    --accent: #c8a96e;
+    --accent2: #6e9ec8;
+    --accent3: #c86e8a;
+    --text: #e8e6e0;
+    --muted: #888880;
+    --good: #6ec88a;
+    --bad: #c86e6e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    padding: 3rem 1.5rem;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.75rem;
+  }
+
+  section { margin-bottom: 3rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card p { color: #ccc8c0; font-size: 0.95rem; }
+
+  .math {
+    font-family: 'IBM Plex Mono', monospace;
+    background: #1e1e24;
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin: 0.75rem 0;
+    overflow-x: auto;
+  }
+
+  .steps {
+    counter-reset: step;
+    list-style: none;
+  }
+
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+
+  .steps li::before {
+    content: counter(step);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--accent);
+    min-width: 2rem;
+    line-height: 1;
+  }
+
+  .steps li .content { font-size: 0.95rem; color: #ccc8c0; }
+  .steps li .content strong { color: var(--text); font-weight: 500; }
+
+  /* Plot comparison grid */
+  .plot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 600px) { .plot-grid { grid-template-columns: 1fr; } }
+
+  .plot-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .plot-card.full { grid-column: 1 / -1; }
+
+  .plot-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .plot-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .badge-sym { background: #2a3a2a; color: var(--good); border: 1px solid var(--good); }
+  .badge-row { background: #2a2a3a; color: var(--accent2); border: 1px solid var(--accent2); }
+  .badge-col { background: #3a2a3a; color: #c86ec8; border: 1px solid #c86ec8; }
+  .badge-rg  { background: #3a342a; color: var(--accent); border: 1px solid var(--accent); }
+
+  .plot-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .plot-body { padding: 1.25rem; }
+
+  .coord-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .coord-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .coord-table td {
+    padding: 0.4rem 0.5rem 0.4rem 0;
+    color: #ccc8c0;
+    border-bottom: 1px solid #1e1e24;
+    vertical-align: top;
+  }
+
+  .coord-table td:first-child { color: var(--text); font-weight: 500; }
+
+  .tick { color: var(--good); }
+  .cross { color: var(--bad); }
+  .partial { color: var(--accent); }
+
+  .valid-list { list-style: none; font-size: 0.9rem; }
+  .valid-list li { padding: 0.2rem 0; color: #ccc8c0; }
+  .valid-list li::before { margin-right: 0.5rem; }
+  .valid-list li.yes::before { content: "✓"; color: var(--good); }
+  .valid-list li.no::before  { content: "✗"; color: var(--bad); }
+  .valid-list li.part::before { content: "~"; color: var(--accent); }
+
+  /* Visual encoding section */
+  .encoding-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 600px) { .encoding-grid { grid-template-columns: 1fr; } }
+
+  .enc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .enc-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .enc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .enc-card p { font-size: 0.85rem; color: #ccc8c0; }
+
+  /* Key concepts */
+  .concept-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 600px) { .concept-row { grid-template-columns: 1fr; } }
+
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem;
+  }
+
+  .concept h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+  }
+
+  .concept p { font-size: 0.9rem; color: #ccc8c0; }
+
+  .inertia-bar {
+    margin-top: 1rem;
+    background: #1e1e24;
+    border-radius: 2px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .inertia-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+  }
+
+  .inertia-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="tag">STA2005S · Multivariate Methods · Lecture 11</div>
+    <h1>Correspondence<br><span>Analysis</span></h1>
+    <p class="subtitle">A graphical method for displaying associations in count/abundance tables</p>
+  </header>
+
+  <!-- PIPELINE -->
+  <section>
+    <h2>The CA Pipeline</h2>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem;">Everything up to the SVD is data preparation. CA itself begins with the SVD on <strong style="color:var(--accent); font-family:'IBM Plex Mono',monospace;">S</strong>.</p>
+    <ol class="steps">
+      <li>
+        <div class="content">
+          <strong>Form the correspondence matrix P</strong><br>
+          Divide each count by the grand total n. Each entry p<sub>ij</sub> = x<sub>ij</sub>/n is now a joint proportion.
+          <div class="math">P_ij = x_ij / n</div>
+        </div>
+      </li>
+      <li>
+        <div class="content">
+          <strong>Compute row and column margins</strong><br>
+          r = P·1 (row totals of P), c = P'·1 (column totals of P). These are the marginal proportions.
+        </div>
+      </li>
+      <li>
+        <div class="content">
+          <strong>Compute residuals from independence</strong><br>
+          If P were independent, it would equal rc'. Subtracting removes the trivial marginal structure and isolates the actual row–column associations.
+          <div class="math">P − rc'</div>
+        </div>
+      </li>
+      <li>
+        <div class="content">
+          <strong>Standardise for abundance (form S)</strong><br>
+          Divide each residual by √(r_i · c_j) so that abundant rows/columns don't dominate. Motivated by Poisson: variance = mean, so this gives unit-variance residuals.
+          <div class="math">S = D_r^{−1/2} (P − rc') D_c^{−1/2}</div>
+        </div>
+      </li>
+      <li>
+        <div class="content">
+          <strong>SVD of S → low-rank approximation</strong><br>
+          Decompose S = UΛV'. Keep the first s singular values/vectors (usually s = 2 for a biplot). The rank-s approximation minimises the weighted least-squares error.
+        </div>
+      </li>
+      <li>
+        <div class="content">
+          <strong>Choose coordinate scaling and plot</strong><br>
+          Convert singular vectors to row and column coordinates. The choice of scaling determines what can and cannot be interpreted in the biplot.
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- KEY CONCEPTS -->
+  <section>
+    <h2>Key Quantities</h2>
+    <div class="concept-row">
+      <div class="concept">
+        <h4>Row Profiles</h4>
+        <p>The i-th row of D_r⁻¹P. Each entry is x_ij / (row total), so the row profile sums to 1. It tells you the <em>conditional distribution</em> of columns given that row.</p>
+        <div class="math">r̃_i = row i of D_r⁻¹P</div>
+      </div>
+      <div class="concept">
+        <h4>Column Profiles</h4>
+        <p>Analogous to row profiles but for columns. The j-th column of D_c⁻¹P'. Each column profile tells you the conditional distribution of rows given that column.</p>
+        <div class="math">c̃_j = col j of D_c⁻¹P'</div>
+      </div>
+    </div>
+    <div class="concept-row">
+      <div class="concept">
+        <h4>χ² Distance</h4>
+        <p>A weighted Euclidean distance between two row profiles that down-weights <em>abundant</em> columns — a difference in a rare column is more informative than the same difference in a common column.</p>
+        <div class="math">Σ_j (r̃_ij − r̃_i'j)² / c_j</div>
+      </div>
+      <div class="concept">
+        <h4>Total Inertia</h4>
+        <p>The total association in the table — how much the data deviates from independence. Equivalent to χ²/n and to the sum of squared singular values of S.</p>
+        <div class="math">Inertia = χ²/n = tr[SS'] = Σ λ_k²</div>
+        <div class="inertia-bar"><div class="inertia-fill" style="width:100%"></div></div>
+        <div class="inertia-label">all components combined = total inertia</div>
+        <div class="inertia-bar"><div class="inertia-fill" style="width:60%"></div></div>
+        <div class="inertia-label">rank-2 approximation captures proportion (λ₁² + λ₂²) / Σλ_k²</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLOT COMPARISON -->
+  <section>
+    <h2>Biplot Types — What Can You Interpret?</h2>
+
+    <div class="plot-grid">
+
+      <div class="plot-card">
+        <div class="plot-header">
+          <span class="plot-badge badge-sym">Symmetric</span>
+          <span class="plot-title">Both Principal</span>
+        </div>
+        <div class="plot-body">
+          <table class="coord-table">
+            <tr><th>Set</th><th>Coordinates</th></tr>
+            <tr><td>Rows</td><td>D_r^{−1/2} U Λ</td></tr>
+            <tr><td>Cols</td><td>D_c^{−1/2} V Λ</td></tr>
+          </table>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">Display type: <strong style="color:var(--text)">dots only, no arrows</strong></p>
+          <ul class="valid-list">
+            <li class="yes">χ² distances between rows are correct</li>
+            <li class="yes">χ² distances between columns are correct</li>
+            <li class="no">Cannot cross-interpret rows vs. columns</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="plot-card">
+        <div class="plot-header">
+          <span class="plot-badge badge-row">Row-Principal</span>
+          <span class="plot-title">Asymmetric</span>
+        </div>
+        <div class="plot-body">
+          <table class="coord-table">
+            <tr><th>Set</th><th>Coordinates</th></tr>
+            <tr><td>Rows</td><td>D_r^{−1/2} U Λ &nbsp;<span style="color:var(--good); font-size:0.75rem">principal</span></td></tr>
+            <tr><td>Cols</td><td>D_c^{−1/2} V &nbsp;<span style="color:var(--accent3); font-size:0.75rem">standard</span></td></tr>
+          </table>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">Display type: <strong style="color:var(--text)">arrows for both</strong></p>
+          <ul class="valid-list">
+            <li class="yes">χ² distances between rows are correct</li>
+            <li class="yes">Can interpret rows relative to columns (angles)</li>
+            <li class="no">χ² distances between columns are NOT correct</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="plot-card">
+        <div class="plot-header">
+          <span class="plot-badge badge-col">Column-Principal</span>
+          <span class="plot-title">Asymmetric</span>
+        </div>
+        <div class="plot-body">
+          <table class="coord-table">
+            <tr><th>Set</th><th>Coordinates</th></tr>
+            <tr><td>Rows</td><td>D_r^{−1/2} U &nbsp;<span style="color:var(--accent3); font-size:0.75rem">standard</span></td></tr>
+            <tr><td>Cols</td><td>D_c^{−1/2} V Λ &nbsp;<span style="color:var(--good); font-size:0.75rem">principal</span></td></tr>
+          </table>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">Display type: <strong style="color:var(--text)">arrows for both</strong></p>
+          <ul class="valid-list">
+            <li class="yes">χ² distances between columns are correct</li>
+            <li class="yes">Can interpret columns relative to rows (angles)</li>
+            <li class="no">χ² distances between rows are NOT correct</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="plot-card">
+        <div class="plot-header">
+          <span class="plot-badge badge-rg">Rowgreen</span>
+          <span class="plot-title">Contribution Biplot</span>
+        </div>
+        <div class="plot-body">
+          <table class="coord-table">
+            <tr><th>Set</th><th>Coordinates</th></tr>
+            <tr><td>Rows</td><td>D_r^{−1/2} U Λ &nbsp;<span style="color:var(--good); font-size:0.75rem">principal</span></td></tr>
+            <tr><td>Cols</td><td>standard, scaled by mass</td></tr>
+          </table>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem;">Display type: <strong style="color:var(--text)">arrows scaled by inertia contribution</strong></p>
+          <ul class="valid-list">
+            <li class="yes">χ² distances between rows are correct</li>
+            <li class="yes">Arrow length = contribution to inertia</li>
+            <li class="yes">Fixes scale problem of raw asymmetric plot</li>
+            <li class="no">χ² distances between columns still NOT correct</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Standard coordinates explanation -->
+    <div class="card">
+      <h3>What do standard coordinates represent?</h3>
+      <p>In row-principal, the column standard coordinates are <strong style="color:var(--text)">"extreme profiles"</strong> — each column point represents a hypothetical row whose entire mass sits on that one column. For example, the "heavy" column point represents a job group that is 100% heavy smokers (row profile = [0, 0, 0, 1]).<br><br>
+      Real row points are interpreted by which column pole they point towards. If SM lies on the "heavy" arrow, 100% of senior managers are heavy smokers. The further a row is in the direction of a column, the more that column dominates its profile.<br><br>
+      You read associations via <strong style="color:var(--text)">angles</strong>: a small angle between a row arrow and column arrow = strong association.</p>
+    </div>
+  </section>
+
+  <!-- VISUAL ENCODING -->
+  <section>
+    <h2>Visual Encoding in R (mass = TRUE, contrib = "absolute")</h2>
+    <div class="encoding-grid">
+      <div class="enc-card">
+        <div class="enc-icon">⬤</div>
+        <div class="enc-label">Size / Thickness</div>
+        <p>Proportional to <strong style="color:var(--text)">mass</strong> — the relative frequency (r_i for rows, c_j for columns). A thick point is abundant in the data.</p>
+      </div>
+      <div class="enc-card">
+        <div class="enc-icon" style="opacity:0.4">⬤</div>
+        <div class="enc-label">Colour Intensity</div>
+        <p>Proportional to <strong style="color:var(--text)">quality of representation</strong> or absolute contribution to the 2D plane. A faded point is poorly captured in 2D — interpret with caution.</p>
+      </div>
+      <div class="enc-card">
+        <div class="enc-icon">→</div>
+        <div class="enc-label">Arrow Length (rowgreen)</div>
+        <p>Proportional to <strong style="color:var(--text)">contribution to inertia</strong>. A long arrow drives the association structure; a short arrow (near origin) contributes little.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Correspondence Analysis · STA2005S · Summary compiled from Lecture 11
+  </footer>
+
+</div>
+</body>
+</html>

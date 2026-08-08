@@ -1,0 +1,798 @@
+---
+title: "Multivariate Analysis Practical Exam Revision"
+format: html
+---
+
+```{r}
+#| echo: FALSE 
+#| warning: FALSE
+
+# load required libraries: 
+library(knitr)
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+library(MASS)
+```
+
+## Principal Component Analysis
+
+### PCA from first principles
+
+If the scree plot is flat from the first component. All eigenvalues are approximately equal, PCA offers little dimension reduction benefit. Discarded variables are roughly uncorrelated (those not included in PC1) \newline 
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+# be sure to install from `2024` branch (code below does this)
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+
+# View(data_tidy_mali)
+dat = data_tidy_mali
+dat = dat|>
+  filter(family<=100)|>
+  filter(dist_rd<=200)|>
+  filter(cattle<=60)
+```
+
+STEP 1: Obtain correlation matrix
+
+```{r}
+cor_mat = cor(dat) 
+round(cor_mat,4)
+```
+
+```{r}
+
+```
+
+## Regression
+
+### Multivariate regression from first principles
+
+STEP 1: Extract predictor and response matrices
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+data(
+"data_tidy_paper",
+package = "DataTidy23RodoHonsMult"
+)
+```
+
+```{r}
+# Response matrix: 
+Y = cbind(data_tidy_paper$paper_1,
+          data_tidy_paper$paper_2,
+          data_tidy_paper$paper_3,
+          data_tidy_paper$paper_4) |>
+  as.matrix()
+
+# Predictor matrix: 
+X = cbind(1,
+          data_tidy_paper$pulp_1,
+          data_tidy_paper$pulp_2,
+          data_tidy_paper$pulp_3,
+          data_tidy_paper$pulp_4) |>
+  as.matrix()
+```
+
+STEP 2: Obtain regression coefficients
+
+```{r}
+beta_hat = solve(t(X)%*%X)%*%t(X)%*%Y
+round(beta_hat,4)
+```
+
+STEP 3: Simultaneous hypothesis testing \newline 
+
+To conduct an F-test you need to remove the variables you are interested in (to see if they make a difference).
+
+```{r}
+# Extract data for predictor matrix excluding pulp_2 and pulp_3:
+X2 <- X[,c(1,2,5), drop = FALSE]
+beta_hat2 = solve(t(X2)%*%X2)%*%t(X2)%*%Y
+
+n = nrow(Y)          # no. observations
+k = ncol(X)          # no. predictors 
+q = ncol(X)-ncol(X2) # no. regression parameters being estimated 
+r = ncol(Y)
+p = k-1
+
+# Calculate variance:
+yhat = X%*%beta_hat
+S = (t(Y-yhat)%*%(Y-yhat))/(n)
+
+yhat2 = X2%*%beta_hat2
+S2 = (t(Y-yhat2)%*%(Y-yhat2))/(n)
+
+lambda = (det(S)/det(S2))
+lambda
+
+chisq_stat = -(n-k-0.5*(r-p+q+1))*log(lambda)
+chisq_stat
+
+p_val = pchisq(chisq_stat,r*q,lower.tail=FALSE)
+p_val
+```
+
+### PCR
+
+PCR is simply regressing principal components. \newline 
+
+STEP 1: Perform PCA on scaled data \newline
+
+STEP 2: Choose k principal components \newline
+
+STEP 3: Perform regression on components \newline 
+
+### PLS
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+library(pls)
+```
+
+```{r}
+# pls_fit = plsr()
+```
+
+## Factor Analysis
+
+### FA from first principles
+
+STEP 1: Obtain correlation matrix
+
+```{r}
+cor_mat = matrix(c(1,0.02,0.96,0.42,0.01,0.02,1,0.13,0.71,0.85,0.96,0.13,
+                   1,0.5,0.11,0.42,0.71,0.5,1,0.79,0.01,0.85,0.11,0.79,1), 
+                 nrow = 5, 
+                 ncol = 5, 
+                 byrow = TRUE)
+```
+
+STEP 2: Eigen decomposition
+
+```{r}
+eig_mat = eigen(cor_mat)
+eig_val = eig_mat$values # do not wrap this in as.matrix()!!  
+eig_vec = as.matrix(eig_mat$vectors)
+```
+
+```{r}
+round(eig_val,4)
+
+tot_var  = sum(eig_val)
+prop_var = eig_val/tot_var
+round(prop_var,4)
+```
+
+Eigenvalues describe the proportion of variance explained by that factor. \newline
+
+STEP 3: Obtain factor loadings \newline 
+
+To do this we need to scale the eigenvectors.
+
+```{r}
+loadings = eig_vec%*%diag(sqrt(eig_val))
+round(loadings[,1:2],4)
+```
+
+STEP 4: Calculate communalities
+
+```{r}
+h = diag(loadings[,1:2]%*%t(loadings[,1:2]))
+round(h,4)
+```
+
+Communality is the sum of squared loadings. \newline 
+
+STEP 5: Calculate $\Psi$
+
+```{r}
+Psi = 1-h
+round(Psi,4)
+```
+
+STEP 6: Re-create correlation matrix
+
+```{r}
+psi_mat = diag(Psi)
+
+cor_new = loadings[,1:2]%*%t(loadings[,1:2])+psi_mat
+round(cor_new,4)
+```
+
+To compare the re-constructed correlation matrix to the original correlation matrix and determine the goodness of fit we can calculate the matrix of residuals and the root mean squared residual.
+
+```{r}
+cor_res = cor_mat - cor_new
+cor_res
+
+rmsr = sqrt(mean(cor_res[upper.tri(cor_res)]^2))
+rmsr
+```
+
+The small rmsr indicates that a two factor model is a good fit and captures the vast majority of shared relationships across the variables.
+
+STEP 7: Calculate factor scores
+
+```{r}
+# Simulate data with same correlation matrix:
+dat = mvrnorm(n=400,
+              mu=rep(0,5),
+              Sigma=cor_mat,
+              empirical=TRUE)
+
+x_std = t(scale(dat,center=TRUE,scale=TRUE))
+L     = as.matrix(loadings)
+
+f_hat = solve(t(L)%*%solve(psi_mat)%*%L)%*%t(L)%*%solve(psi_mat)%*%x_std
+round(head(t(f_hat)),4)
+```
+
+STEP 8: Varimax rotation
+
+```{r}
+L2 = L[,1:2]
+var_res = varimax(L2)
+
+print(var_res$loadings,cutoff=0)
+```
+
+IMPORTANT: How to get back to original data
+
+```{r}
+# Standard deviations:
+col_sd = apply(dat,2,sd)
+
+# Means:
+col_mean = apply(dat,2,mean)
+
+Z = t(f_hat)%*%t(L) # remember f_hat was transposed above, "undo" it
+X = Z*col_sd+col_mean
+head(X)
+
+head(round(X,4)==round(dat,4))
+```
+
+### FA using built-in functions
+
+```{r}
+fa_fit = factanal(dat,factors=2,rotation='none',scores='Bartlett')
+var_rot = varimax(loadings(fa_fit))
+print(var_rot,cutoff=0)
+
+head(fa_fit$scores)
+```
+
+## Canonical Correlation Analysis
+
+### CCA from first principles
+
+STEP 1: Obtain correlation matrix
+
+```{r}
+rho = matrix(c(1,0.4,0.5,0.6,0.4,1.0,0.3,0.4,0.5,0.3,1.0,0.2,0.6,0.4,0.2,1.0),
+             nrow=4,
+             ncol=4,
+             byrow=T)
+rho
+```
+
+STEP 2: Partition correlation matrix
+
+```{r}
+p = 2
+q = 2
+
+rho11 = rho[1:p,1:p]
+rho12 = rho[1:p,(p+1):(p+q)]
+rho21 = rho[(p+1):(p+q),1:p]
+rho22 = rho[(p+1):(p+q),(p+1):(p+q)]
+# rho11;rho12;rho21;rho22
+```
+
+STEP 3: Calculate intermediate matrices
+
+```{r}
+# Calculate inverse: 
+rho11_inv = solve(rho11)
+rho22_inv = solve(rho22)
+
+# Perfrom eigen-decomposition:
+rho11_eig = eigen(rho11_inv)
+rho22_eig = eigen(rho22_inv) 
+
+# Calculate inv_sqrt:
+rho11_inv_sqrt = rho11_eig$vectors%*%diag(sqrt(rho11_eig$values))%*%t(rho11_eig$vectors)
+rho22_inv_sqrt = rho22_eig$vectors%*%diag(sqrt(rho22_eig$values))%*%t(rho22_eig$vectors)
+```
+
+STEP 4: Compute matrix R and eigen-decomposition
+
+```{r}
+R = rho11_inv_sqrt%*%rho12%*%rho22_inv%*%rho21%*%rho11_inv_sqrt
+R_eig = eigen(R)
+```
+
+STEP 5: Obtain canonical correlations
+
+```{r}
+R_star = sqrt(R_eig$values)
+R_star
+```
+
+This describes the strength of the linear relationship between the two canonical variates. \newline
+
+STEP 6: Obtain canonical coefficients for U \newline 
+
+Canonical coefficients act like regression coefficients, however, avoid interpretation due to multicollinearity.
+
+```{r}
+A = -1*rho11_inv_sqrt%*%R_eig$vectors
+A
+```
+
+As variables 1 and 2 increase, U1 increases. Variable 1 had the largest effect. \newline
+
+STEP 7: Unstandardised canonical coefficients for V
+
+```{r}
+B_p = rho22_inv%*%rho21%*%A
+B_p
+```
+
+As variables 1 and 2 increase, V1 increases. Both variables 1 and 2 have similar effects. \newline
+
+STEP 8: Standardise B (to ensure unit variance)
+
+```{r}
+sf = sqrt(diag(t(B_p)%*%rho22%*%B_p))
+B  = B_p/matrix(sf,
+                nrow=nrow(B_p),
+                ncol=ncol(B_p),
+                byrow=TRUE)
+B
+```
+
+STEP 9: Canonical loadings
+
+```{r}
+loadings_U = t(A)%*%rho11
+loadings_U 
+```
+
+Canonical loadings provide only univariate information describing the correlation between a variable set and the corresponding canonical variate. The loadings tell you how much a particular variable correlates with the composite variate. Unaffected by multicollinearity issues that can distort the coefficients. Which original variables are best represented by this canonical variate? How much information Uk captures about Xj(1)?
+
+```{r}
+loadings_V = t(B)%*%rho22
+loadings_V
+```
+
+STEP 10: Cross-loadings \newline 
+
+Cross-loadings tell you how much X bleeds into V via the canonical correlation.
+
+```{r}
+cross_U = t(A)%*%rho12
+cross_U
+```
+
+```{r}
+cross_V = t(B)%*%rho21
+cross_V
+```
+
+### CCA using cancor()
+
+```{r}
+# Read in data: 
+dat = read.table("chickenbone.txt")
+skull = dat[,2:3]
+bones = dat[,4:5]
+```
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+require(CCA)
+```
+
+```{r}
+# Examine correlations: 
+CCA_mod = matcor(skull,bones)
+CCA_mod
+```
+
+STEP 1: Fit model using cancor() function
+
+```{r}
+CCA_fit = cancor(skull,bones)
+CCA_fit$cor
+```
+
+Relatively strong correlation between first pair of variates. \newline 
+
+STEP 2: Extract canonical coefficients (these are your A and B values)
+
+```{r}
+A = CCA_fit$xcoef
+A
+B = CCA_fit$ycoef
+B
+```
+
+STEP 3: Standardized canonical coefficients. \newline 
+
+```{r}
+sA = diag(sqrt(diag(cov(skull))))
+sA%*%A
+
+sB = diag(sqrt(diag(cov(bones))))
+sB%*%B
+```
+
+This now gives the impact of measured variables on canonical variates as opposed to measured units.
+
+STEP 4: Obtain canonical variate scores
+
+```{r}
+# Centre data:
+# We do this since the canonical coefficients were calculated based on centred data
+skull_c = as.matrix(scale(skull,center=CCA_fit$xcenter,scale=FALSE))
+bones_c = as.matrix(scale(bones,center=CCA_fit$ycenter,scale=FALSE))
+
+# Calculate scores:
+A_mat = as.matrix(A)
+U = skull_c%*%A_mat
+
+B_mat = as.matrix(B)
+V = bones_c%*%B_mat
+
+# This is done as cancor() uses raw linear combinations, where Var(U) = 1/(n-1)
+head(U*sqrt(nrow(skull)-1))
+head(V*sqrt(nrow(bones)-1))
+```
+
+## Linear Discriminant Analysis
+
+### LDA from first principles
+
+```{r}
+# Simulate data: 
+set.seed(2025)
+
+# Simulate five groups, p = 10: 
+n = 20       # observations per group
+p = 10       # number of variables
+
+# Common covariance: diagonal matrix with variance 3 on X1, and 1 on X2–X10
+Sigma = diag(c(3, rep(1, p - 1)))
+
+# Define group means so that they differ along the first five dimensions:
+means = lapply(1:5, function(i) {
+  mu = rep(0, p)
+  mu[i] = 3 * (i - 3)    # shifts: −6, −3, 0, 3, 6 on dimension i
+  mu
+})
+
+# Simulate the data
+dat = do.call(rbind, lapply(1:5, function(i) {
+  data.frame(
+    group = factor(i),
+    MASS::mvrnorm(n, mu = means[[i]], Sigma = Sigma)
+  )
+}))
+
+# Name the columns X1…X10
+colnames(dat)[-1] = paste0("X", seq_len(p))
+
+# Peek at the first few rows
+head(dat)
+dat_original = dat
+```
+
+STEP 1: Obtain g, ni, x_bar and xi
+
+```{r}
+X = as.matrix(dat[,-1]) # exclude column corresponding to groups 
+
+g   = length(unique(dat$group)) # g = no. groups
+n_i = table(dat$group) # how many obs in each group 
+
+bar_overall = colMeans(X) # overall mean (per column) 
+bar_group   = dat |>
+  dplyr::group_by(group) |>
+  dplyr::summarise(
+    dplyr::across(everything(),mean),
+    .groups='drop'
+  ) |>
+  dplyr::select(-group) |>
+  as.matrix()
+```
+
+STEP 2: Calculate B
+
+```{r}
+B = Reduce(`+`,
+           lapply(1:g,function(i){
+             n_i[i]*(bar_group[i,]-bar_overall)%*%t(bar_group[i,]-bar_overall)
+           }))
+```
+
+STEP 3: Calculate W
+
+```{r}
+W = Reduce(`+`,
+           lapply(1:g,function(i){
+             Xi = X[dat$group==i,]
+             cov(Xi)*(n_i[i]-1)
+           }))
+```
+
+STEP 4: Eigen decomposition
+
+```{r}
+mat     = solve(W)%*%B
+eig_mat = eigen(mat)
+eig_vec = eig_mat$vectors |> Re()
+
+S_pooled = W/(sum(n_i)-g)
+
+sd_vec = diag(t(eig_vec)%*%S_pooled%*%eig_vec) |> sqrt()
+
+sol = eig_vec%*%diag(1/sd_vec)
+sol = sol[,1:2]
+```
+
+STEP 5: Display results
+
+```{r}
+display_tbl = data.frame(
+  "Variable" = paste0("V",seq_len(nrow(sol))),
+  "LD1"=sol[,1] |> signif(2),
+  "LD2"=sol[,2] |> signif(2)
+)
+
+display_tbl |>
+  knitr::kable(
+    col.names = c("Variable","LD1","LD2"),
+    caption = "Scaled EIgenvectors of $W^{-1}B$ (Loading Vectors)"
+  )
+```
+
+STEP 6: LDA Projection
+
+```{r}
+dat$LD1 = as.numeric(as.matrix(X)%*%sol[,1])
+dat$LD2 = as.numeric(as.matrix(X)%*%sol[,2])
+
+col_vec <- c(
+  "#1b9e77",
+  "#d95f02",
+  "#7570b3",
+  "#e7298a",
+  "#66a61e"
+) |>
+  toupper()
+
+ggplot(data=dat,
+       mapping=aes(x=LD1,y=LD2,colour=group))+
+  geom_point(size=3,
+             alpha=0.8)+
+  theme_cowplot()+
+  background_grid(major='xy')+
+  labs(
+    title='LDA Projection (first two discriminants)',
+    x = "LD1",
+    y = "LD2"
+  )+
+  scale_colour_manual(
+    values=col_vec,
+    name="Group"
+  )
+```
+
+LD1 separates group 5 group 5 from the rest of the groups. This indicates that group 5 is characterised by high levels of variable 5. LD2 separates group 1 from the rest. This indicates that group 1 is characterised by high levels of V1 and V4. Groups 2,3 and 4 are not well separated by LD1 and LD2.
+
+### LDA using MASS::lda
+
+```{r}
+lda_fit = MASS::lda(group~.,data=dat[,1:11])
+
+lda_pred = predict(lda_fit)
+
+scores_df = data.frame(
+  group = dat$group,
+  lda_pred$x[,1:2]
+)
+
+ggplot(data=scores_df,
+       mapping=aes(x=LD1,
+                   y=LD2,
+                   colour=factor(group)))+
+  geom_point(size=3,
+             alpha=0.8)+
+  theme_cowplot()+
+  background_grid(major='xy')+
+  labs(
+    title='LDA Projection using MASS::lda',
+    x = "LD1",
+    y = "LD2"
+  )+
+  scale_colour_manual(
+    values=col_vec,
+    name="Group"
+  )
+
+MASS::lda(
+  group~.,data=dat[,1:11])$scaling[,1:2] |>
+    signif(2) |>
+    knitr::kable(
+      col.names = c("LD1","LD2"),
+      caption = "Loading vectors from `MASS::lda`"
+    )
+```
+
+### LDA example
+
+```{r}
+# Simulate data: 
+library(MASS)
+library(dplyr)
+library(knitr)
+
+set.seed(42)
+
+vars = c("avg_spend","visit_freq","discount_use","loyalty_score",
+          "online_ratio","basket_size","return_rate","brand_pref",
+          "session_len","age_score")
+
+segments = c("Budget shoppers","Loyal regulars","Premium buyers",
+              "Young trendsetters","Occasional browsers")
+
+# Group sizes (unequal)
+ns = c(80,120,50,95,65)
+
+# Group means (10-dimensional)
+  mu1 = c(-2.5,-1.5,2.0,-1.0,-0.5,-1.5,0.5,-1.5,-1.0,1.5)  # Budget shoppers
+  mu2 = c(0.5,2.5,0.0,2.5,-0.5,0.5,-0.5,0.5,1.0,-0.5)      # Loyal regulars
+  mu3 = c(3.0,-1.0,-1.5,1.0,-1.0,2.5,-1.5,2.0,-0.5,-1.5)   # Premium buyers
+  mu4 = c(1.0,1.0,0.5,-0.5,2.5,0.0,0.5,-1.0,2.5,-2.0)      # Young trendsetters
+  mu5 = c(-0.5,-1.5,0.5,-1.5,1.0,-1.0,1.0,-0.5,-1.5,0.5)   # Occasional browsers
+means = list(mu1, mu2, mu3, mu4, mu5)
+
+# Common covariance
+Sigma = diag(10)
+
+dat = do.call(rbind, lapply(seq_along(segments), function(i){
+  data.frame(
+    segment = factor(segments[i], levels = segments),
+    as.data.frame(mvrnorm(ns[i], mu = means[[i]], Sigma = Sigma))
+  )
+}))
+colnames(dat)[-1] = vars
+
+# Quick checks
+table(dat$segment)
+head(dat)
+```
+
+STEP 1: Compute g, ni, x_bar, xi
+
+```{r}
+dat$group = as.numeric(as.factor(dat$segment))
+X = dat[,-1]
+X = as.matrix(X[,-11])
+
+g   = length(unique(dat$segment))
+n_i = table(dat$segment)
+
+bar_overall = colMeans(X)
+bar_groups  = dat |>
+  dplyr::group_by(segment) |>
+  dplyr::summarise(
+    dplyr::across(everything(),mean),
+    .groups='drop'
+  ) |>
+  dplyr::select(-segment) |>
+  dplyr::select(-group) |>
+  as.matrix()
+```
+
+STEP 2: Calculate B
+
+```{r}
+B = Reduce(`+`,lapply(1:g,function(i){
+  n_i[i]*(bar_groups[i,]-bar_overall)%*%t(bar_groups[i,]-bar_overall)
+}))
+
+```
+
+STEP 3: Calculate W
+
+```{r}
+W = Reduce(`+`,lapply(1:g,function(i){
+  Xi = X[dat$group==i,]
+  cov(Xi)*(n_i[i]-1)
+}))
+
+```
+
+STEP 4: Eigen decomposition
+
+```{r}
+mat = solve(W)%*%B
+
+eig_mat = eigen(mat)
+eig_vec = eig_mat$vectors |> Re()
+
+S_pooled = W/(sum(n_i)-g)
+
+sd_vec = diag(t(eig_vec)%*%S_pooled%*%eig_vec) |> sqrt()
+
+sol = eig_vec%*%diag(1/sd_vec)
+sol = sol[,1:2]
+sol
+
+```
+
+STEP 5: Display results
+
+```{r}
+display_tbl = as.data.frame(sol)
+colnames(display_tbl) = c("LD1","LD2")
+rownames(display_tbl) = colnames(X)
+
+knitr::kable(
+  display_tbl |> signif(2),
+  caption = 'Scaled EIgenvectors of $W^{-1}B$ (Loading Vectors)'
+)
+```
+
+STEP 6: LDA Projection
+
+```{r}
+dat$LD1 = as.numeric(as.matrix(X)%*%sol[,1])
+dat$LD2 = as.numeric(as.matrix(X)%*%sol[,2])
+
+col_vec <- c(
+  "#1b9e77",
+  "#d95f02",
+  "#7570b3",
+  "#e7298a",
+  "#66a61e"
+) |>
+  toupper()
+
+ggplot(data=dat,
+       mapping=aes(x=LD1,
+                   y=LD2,
+                   colour=segment))+
+  geom_point(size=3,
+             alpha=0.8)+
+  theme_cowplot()+
+  background_grid(major='xy')+
+  labs(
+    title = 'LDA Projection (first two discriminants)',
+    x = 'LD1',
+    y = 'LD2'
+  )+
+  scale_colour_manual(
+    values = col_vec,
+    name = "Group"
+  )
+
+```
+
+LD1 separates Budget shoppers and Occasional browsers from the other groups. This indicates that BS and OB have low values of average spend and visiting frequency. LD2 separates Young trendsetters from the other groups. Both LD1 and LD2 separate YT from the remaining groups. This indicates that YT have high values of average spend and visiting frequency as well as high values of online ratio and session length. BS and OB both have similar values of variables and are difficult to distinguish. Similarly, LR and PR have similar values for both LD1 and LD2. \newline 
+
+When does the LDA algorithm break down? \newline W becomes singular when group sizes are small relative to the number of variables. solve(W) from first principles will throw an error since W is not of full rank.

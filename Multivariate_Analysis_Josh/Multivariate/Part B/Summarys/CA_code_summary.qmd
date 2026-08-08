@@ -1,0 +1,472 @@
+---
+title: "Correspondence Analysis — Code Summary"
+subtitle: "STA2005S · Multivariate Methods · Lecture 11"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    theme: cosmo
+    highlight-style: github
+    code-fold: false
+    self-contained: true
+execute:
+  eval: false
+  echo: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## Overview
+
+Correspondence analysis (CA) is a graphical technique for displaying the
+associations between rows and columns of a non-negative, same-unit
+matrix --- typically count or abundance data. The key requirement is
+that **proportions make sense**: there must be a natural zero, and
+entries must be in the same units.
+
+**Typical applications:**
+
+-   Species counts at different sites
+-   Consumer ratings of brands on a set of attributes
+-   Immune cell type frequencies across tissue compartments
+
+------------------------------------------------------------------------
+
+## 1. From Scratch in R
+
+### The Data
+
+We use the classic smoking dataset: rows are job groups (SM, JM, SE, JE,
+SC), columns are smoking levels (none, light, medium, heavy).
+
+``` r
+library(ca)
+
+# Raw count matrix
+N <- smoke    # built-in dataset in the ca package
+N
+```
+
+### Step 1 --- Correspondence Matrix $\mathbf{P}$
+
+Divide every element by the grand total $n$. Each entry
+$P_{ij} = x_{ij}/n$ is a joint proportion.
+
+``` r
+P <- N / sum(N)
+P
+```
+
+### Step 2 --- Row and Column Margins
+
+`rm` gives the row totals of $\mathbf{P}$ (row "masses"), `cm` the
+column totals. These are the marginal proportions $\mathbf{r}$ and
+$\mathbf{c}$.
+
+``` r
+rm <- apply(P, 1, sum)   # row margins  (r)
+cm <- apply(P, 2, sum)   # column margins (c)
+```
+
+### Step 3 --- Diagonal Weight Matrices
+
+``` r
+Dr <- diag(rm)   # D_r = diag(r)
+Dc <- diag(cm)   # D_c = diag(c)
+```
+
+### Step 4 --- Matrix of Standardised Residuals $\mathbf{S}$
+
+We subtract the independence model $\mathbf{r}\mathbf{c}'$ and then
+standardise by $\sqrt{r_i c_j}$, which removes the effect of row and
+column abundance.
+
+$$\mathbf{S} = \mathbf{D}_r^{-1/2}(\mathbf{P} - \mathbf{r}\mathbf{c}')\mathbf{D}_c^{-1/2}$$
+
+``` r
+S <- diag(sqrt(1/rm)) %*% (as.matrix(P) - rm %*% t(cm)) %*% diag(sqrt(1/cm))
+```
+
+**Why subtract** $\mathbf{r}\mathbf{c}'$? If $\mathbf{P}$ were
+independent, it would equal $\mathbf{r}\mathbf{c}'$ exactly. By
+subtracting it we remove the trivial first singular value (which just
+reflects the marginal structure) and leave only the genuine row-column
+associations. This is analogous to centring in PCA.
+
+### Step 5 --- SVD of $\mathbf{S}$
+
+``` r
+svdS <- svd(S)
+svdS$d   # singular values λ_k
+svdS$u   # left singular vectors
+svdS$v   # right singular vectors
+```
+
+The singular values $\lambda_k$ satisfy
+$\sum_k \lambda_k^2 = \text{total inertia}$.
+
+### Step 6 --- Total Inertia
+
+Total inertia measures the overall deviation from independence. It
+equals $\chi^2/n$ and the sum of squared singular values of
+$\mathbf{S}$.
+
+$$\text{Total inertia} = \frac{\chi^2}{n} = \text{tr}[\mathbf{S}\mathbf{S}'] = \sum_k \lambda_k^2$$
+
+``` r
+sum(svdS$d^2)   # total inertia
+```
+
+The proportion of inertia captured by the first $s$ dimensions is:
+$$\frac{\sum_{k=1}^s \lambda_k^2}{\sum_k \lambda_k^2}$$
+
+This tells you how well your 2D biplot represents the full association
+structure.
+
+### Step 7 --- Principal Coordinates
+
+These are used for plotting. The row and column principal coordinates
+absorb the singular values $\mathbf{\Lambda}$.
+
+``` r
+# Row principal coordinates:    F = D_r^{-1/2} U Λ
+smoke_F <- diag(1/sqrt(rm)) %*% svdS$u %*% diag(svdS$d)
+
+# Column principal coordinates: G = D_c^{-1/2} V Λ
+smoke_G <- diag(1/sqrt(cm)) %*% svdS$v
+```
+
+------------------------------------------------------------------------
+
+## 2. Using the `ca` Package
+
+In practice, use the `ca` package rather than computing from scratch.
+
+``` r
+library(ca)
+
+ca_smoke <- ca(smoke)
+summary(ca_smoke)
+```
+
+------------------------------------------------------------------------
+
+## 3. Interpreting `summary(ca(...))`
+
+Running `summary()` on a `ca` object gives three blocks of output.
+
+### Principal Inertias (Eigenvalues) Block
+
+```         
+Principal inertias (eigenvalues):
+
+dim    value      %    cum%   scree plot
+1   0.074759   87.8   87.8   **********************
+2   0.010017   11.8   99.5   ***
+3   0.000414    0.5  100.0
+         -----  -----
+Total:  0.085190  100.0
+```
+
+-   **`dim`** --- dimension number (corresponds to $k$-th singular
+    value)
+-   **`value`** --- $\lambda_k^2$, the inertia explained by that
+    dimension
+-   **`%`** --- percentage of total inertia explained by that dimension
+-   **`cum%`** --- cumulative percentage; you want this to be high for
+    your chosen rank-$s$ representation
+-   **Total** --- total inertia $= \chi^2/n$
+
+In this example, dimension 1 alone explains 87.8% of all association, so
+a 1D representation would already be very good. The 2D biplot captures
+99.5%.
+
+### Rows and Columns Blocks
+
+```         
+Rows:
+ name  mass   qlt  inr   k=1 cor ctr   k=2 cor ctr
+   SM    57   893   31    -66  92   3  -194 800 214
+   JM    93   991  139    259 526  84  -243 465 551
+   SE   264  1000  450   -381 999 512    -11   1   3
+   JE   456  1000  308    233 942 331     58  58 152
+   SC   130   999   71   -201 865  70     79 133  81
+```
+
+Each column is explained below.
+
+**`mass`** --- the row mass $r_i \times 1000$. This is how abundant that
+row is as a proportion of the total. JE has mass 456, meaning JE makes
+up about 45.6% of all observations. This also controls point size when
+`mass = TRUE` in `plot.ca`.
+
+**`qlt`** (Quality) --- how well that point is represented in the chosen
+2D display, scaled $\times 1000$. Defined as:
+
+$$\text{qlt} = \frac{\text{squared distance of point from origin in 2 dimensions}}{\text{squared distance of point from origin in maximum dimensions}}$$
+
+A value of 1000 means perfect representation in 2D. A low value (e.g. SM
+has 893) means that point has structure in dimensions beyond 2 ---
+interpret it with caution. SE and JE are essentially perfectly
+represented (1000).
+
+**`inr`** (Relative Inertia) --- the proportion of total inertia
+accounted for by that row, $\times 1000$. SE has inertia 450, meaning SE
+alone accounts for 45% of the total inertia. High inertia rows are the
+main drivers of association in the table.
+
+**`k=1 cor`** and **`k=2 cor`** (Correlation with dimension) --- how
+much of that **point's** structure is explained by that dimension,
+$\times 1000$. In other words: *of this point's total quality, how much
+comes from this dimension?* SM has `k=1 cor = 92` --- dimension 1
+explains almost none of SM's position. SM has `k=2 cor = 800` --- most
+of SM's structure lives on dimension 2. Note that `k=1 cor + k=2 cor`
+adds up to (or approaches) `qlt`, since quality accumulates across
+dimensions.
+
+**`k=1 ctr`** and **`k=2 ctr`** (Contribution) --- how much of that
+**dimension's** inertia is accounted for by that point, $\times 1000$.
+In other words: *of this dimension's total inertia, how much does this
+point contribute?* SE has `k=1 ctr = 512` --- SE alone accounts for
+51.2% of dimension 1's inertia, so SE is essentially *defining*
+dimension 1. The `ctr` values across all points sum to 1000 for each
+dimension.
+
+The key distinction:
+
+-   **`cor`** --- dimension → point: how much does this dimension
+    explain this point?
+-   **`ctr`** --- point → dimension: how much does this point define
+    this dimension?
+
+Points with high `ctr` on a dimension are the most meaningful to discuss
+when interpreting what that dimension represents.
+
+**`k=1`** and **`k=2`** --- the actual plotting coordinates on each
+dimension (principal coordinates $\times 1000$).
+
+::: callout-note
+**Key interpretation rule:** If `cor` is low for a point on a dimension,
+that point is not well represented in that direction --- don't
+over-interpret its position on that axis. For example, SM has very low
+`cor` on dimension 1, so its position along the first axis is not
+meaningful.
+:::
+
+The **Columns** block has exactly the same structure, with $c_j$ masses
+instead of $r_i$.
+
+### Worked Example --- Reading the Full Table
+
+Using the smoke data output from `summary(ca(smoke))`:
+
+```         
+Rows:
+ name  mass   qlt  inr   k=1 cor ctr   k=2 cor ctr
+   SM    57   893   31    -66  92   3  -194 800 214
+   JM    93   991  139    259 526  84  -243 465 551
+   SE   264  1000  450   -381 999 512    -11   1   3
+   JE   456  1000  308    233 942 331     58  58 152
+   SC   130   999   71   -201 865  70     79 133  81
+
+Columns:
+ name  mass   qlt  inr   k=1 cor ctr   k=2 cor ctr
+ none   316  1000  577   -393 994 654    -30   6  29
+ lght   233   984   83     99 327  31    141 657 463
+ medm   321   983  148    196 982 166      7   1   2
+ hevy   130   995  192    294 684 150   -198 310 506
+```
+
+**Interpreting SE:**
+
+-   `mass = 264` → SE makes up 26.4% of all observations --- a fairly
+    abundant group
+-   `qlt = 1000` → SE is perfectly represented in 2D; its full structure
+    is captured by dimensions 1 and 2 combined
+-   `inr = 450` → SE accounts for 45% of the total inertia --- it is the
+    single biggest driver of association in the table
+-   `k=1 cor = 999` → 99.9% of SE's quality comes from dimension 1; SE
+    is almost entirely a dimension-1 phenomenon
+-   `k=2 cor = 1` → dimension 2 explains essentially none of SE's
+    position
+-   `k=1 ctr = 512` → SE defines 51.2% of dimension 1's inertia; it is
+    the dominant point shaping that axis
+-   `k=2 ctr = 3` → SE contributes almost nothing to dimension 2
+-   `k=1 = -381` → SE sits far to the left on dimension 1
+
+**Interpreting SM:**
+
+-   `mass = 57` → SM is a relatively small group (5.7% of observations)
+-   `qlt = 893` → SM is reasonably but not perfectly represented in 2D;
+    some of its structure lives in dimension 3
+-   `inr = 31` → SM contributes only 3.1% of total inertia --- it is not
+    a major driver of association
+-   `k=1 cor = 92` → dimension 1 explains almost none of SM's position
+    --- **do not over-interpret SM's position along dimension 1**
+-   `k=2 cor = 800` → most of SM's structure lives on dimension 2
+-   `k=1 ctr = 3` → SM contributes almost nothing to dimension 1
+-   `k=2 ctr = 214` → SM contributes 21.4% of dimension 2's inertia ---
+    a meaningful contributor to that axis
+
+**Interpreting "none" (columns block):**
+
+-   `mass = 316` → "none" is the most common smoking category (31.6% of
+    observations)
+-   `qlt = 1000` → perfectly represented in 2D
+-   `inr = 577` → "none" accounts for 57.7% of total inertia --- the
+    single biggest driver of association overall
+-   `k=1 cor = 994`, `k=1 ctr = 654` → "none" is almost entirely a
+    dimension-1 phenomenon and defines 65.4% of that axis. Dimension 1
+    is essentially a "none vs. smoking" contrast.
+
+**Summary of what each dimension represents:**
+
+-   **Dimension 1 (87.8% of inertia):** Driven by SE (`ctr = 512`) on
+    the row side and "none" (`ctr = 654`) on the column side. This axis
+    contrasts non-smokers (SE, "none") against smokers (JE, JM).
+-   **Dimension 2 (11.8% of inertia):** Driven by JM (`ctr = 551`) on
+    the row side and "heavy" (`ctr = 506`) and "light" (`ctr = 463`) on
+    the column side. This axis separates heavy smokers from light
+    smokers.
+
+------------------------------------------------------------------------
+
+## 4. Plotting
+
+### Symmetric Plot --- Both Principal Coordinates
+
+Both rows and columns use principal coordinates. Produces dots only (no
+arrows).
+
+``` r
+plot(ca_smoke, map = "symmetric", col = c("green", "brown"))
+```
+
+**What you can interpret:**
+
+-   Distance between two row points ✓ --- approximates $\chi^2$ distance
+    between their row profiles
+-   Distance between two column points ✓ --- approximates $\chi^2$
+    distance between their column profiles\
+-   Distance from a row/column point to the **origin** --- how different
+    that profile is from the average profile
+-   Distance between a row point and a column point ✗ --- **not valid**;
+    they are on different scales
+
+**Example interpretation (smoke data):**
+
+-   Dimension 1 contrasts "none" against all other smoking categories
+-   SE lies in the "none" region → senior employees tend not to smoke
+-   JE lies near "medium" → junior employees tend to be medium smokers
+-   JM lies near "heavy" → junior managers tend to be heavy smokers
+
+### Row-Principal Asymmetric Plot
+
+Rows in principal coordinates, columns in standard coordinates. Columns
+represent "extreme profiles" --- the direction a row would point if 100%
+of its mass were on that category alone.
+
+``` r
+plot(ca_smoke, mass = TRUE, contrib = "absolute",
+     map = "rowprincipal", arrows = c(TRUE, TRUE))
+```
+
+**What you can interpret:**
+
+-   Distance between two row points ✓ --- $\chi^2$ distances between
+    rows are correct
+-   Angle between a row arrow and a column arrow ✓ --- small angle means
+    strong association
+-   A row point *on* a column point → that row profile is 100% that
+    category
+-   Distance between two column points ✗ --- column standard coordinate
+    distances are not valid
+
+**Example interpretation (smoke data):**
+
+-   SE and the "none" arrow point in the same direction → SE profiles
+    are dominated by non-smokers
+-   JM and SM point toward "heavy" → these groups have relatively more
+    heavy smokers
+-   The angle between JE and "medium" is small → JE is associated with
+    medium smoking
+
+### Column-Principal Asymmetric Plot
+
+The mirror image of row-principal: columns in principal coordinates,
+rows in standard. Valid for column-column distances and column-row
+angles; row-row distances are not valid.
+
+``` r
+plot(ca_smoke, mass = TRUE, contrib = "absolute",
+     map = "colprincipal", arrows = c(TRUE, TRUE))
+```
+
+### Contribution Biplot (Rowgreen)
+
+Row-principal with column arrows additionally scaled by their
+contribution to inertia. This fixes the scale problem of the raw
+asymmetric plot --- everything is on a more comparable scale, and column
+arrow length becomes directly interpretable.
+
+``` r
+plot(ca_smoke, mass = TRUE, contrib = "absolute",
+     map = "rowgreen", arrows = c(TRUE, TRUE))
+```
+
+**What arrow length tells you:**
+
+-   A long column arrow → that category contributes a lot to total
+    inertia (drives the association)
+-   A short column arrow (near origin) → contributes little; less
+    important for interpretation
+
+**Example interpretation (smoke data):**
+
+-   "none" and "medium" are close to dimension 1 → they drive the first
+    axis
+-   "light" is close to dimension 2 → it drives the second axis
+-   Column points nearer the origin contribute less than those further
+    away
+
+------------------------------------------------------------------------
+
+## 5. Visual Encoding (`mass = TRUE`, `contrib = "absolute"`)
+
+| Visual Property                     | What It Encodes                                                                                                     |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| **Point size / arrow thickness**    | Mass --- relative abundance ($r_i$ for rows, $c_j$ for columns)                                                     |
+| **Colour intensity / transparency** | Quality of representation (`qlt`) or absolute contribution to the 2D plane. A faded point is poorly captured in 2D. |
+| **Arrow length** (rowgreen only)    | Contribution to inertia --- how much that category drives the overall association                                   |
+
+------------------------------------------------------------------------
+
+## 6. Quick Reference --- Plot Type Comparison
+
+| Plot Type      | Row Coords | Col Coords | Row--Row dist | Col--Col dist | Row--Col angles        |
+|----------------|------------|------------|---------------|---------------|------------------------|
+| `symmetric`    | Principal  | Principal  | ✓             | ✓             | ✗                      |
+| `rowprincipal` | Principal  | Standard   | ✓             | ✗             | ✓                      |
+| `colprincipal` | Standard   | Principal  | ✗             | ✓             | ✓                      |
+| `rowgreen`     | Principal  | Std × mass | ✓             | ✗             | ✓ (+ length = inertia) |
+
+------------------------------------------------------------------------
+
+## 7. Summary of Key Formulae
+
+| Quantity                      | Formula                                                                                   |
+|-------------------------------|-------------------------------------------------------------------------------------------|
+| Correspondence matrix         | $P_{ij} = x_{ij}/n$                                                                       |
+| Row profiles                  | $\tilde{r}_{ij} = P_{ij}/r_i$ --- row of $\mathbf{D}_r^{-1}\mathbf{P}$                    |
+| Column profiles               | $\tilde{c}_{ij} = P_{ij}/c_j$ --- column of $\mathbf{D}_c^{-1}\mathbf{P}'$                |
+| Independence model            | $\mathbf{P}_\text{ind} = \mathbf{r}\mathbf{c}'$                                           |
+| Standardised residuals        | $\mathbf{S} = \mathbf{D}_r^{-1/2}(\mathbf{P} - \mathbf{r}\mathbf{c}')\mathbf{D}_c^{-1/2}$ |
+| $\chi^2$ distance (rows)      | $\sum_j (\tilde{r}_{ij} - \tilde{r}_{i'j})^2 / c_j$                                       |
+| Total inertia                 | $\chi^2/n = \text{tr}[\mathbf{S}\mathbf{S}'] = \sum_k \lambda_k^2$                        |
+| Row principal coords          | $\mathbf{F} = \mathbf{D}_r^{-1/2}\mathbf{U}\mathbf{\Lambda}$                              |
+| Col principal coords          | $\mathbf{G} = \mathbf{D}_c^{-1/2}\mathbf{V}\mathbf{\Lambda}$                              |
+| Row standard coords           | $\mathbf{D}_r^{-1/2}\mathbf{U}$                                                           |
+| Col standard coords           | $\mathbf{D}_c^{-1/2}\mathbf{V}$                                                           |
+| Proportion inertia (rank $s$) | $\sum_{k=1}^s \lambda_k^2 \;/\; \sum_k \lambda_k^2$                                       |

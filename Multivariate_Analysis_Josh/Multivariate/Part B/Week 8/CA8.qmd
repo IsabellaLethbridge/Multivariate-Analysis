@@ -1,0 +1,271 @@
+---
+title: "CA8"
+format: html
+---
+```{r}
+library(knitr)
+library(pls)
+```
+
+```{r}
+if (!requireNamespace("DataTidy23RodoSTA2005SAssignment", quietly = TRUE)) {
+if (!requireNamespace("remotes", quietly = TRUE)) {
+utils::install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoSTA2005SAssignment")
+}
+if (!requireNamespace("tibble", quietly = TRUE)) {
+install.packages("tibble")
+}
+library(tibble) # ensures dataframes print more informatively and concisely than standard met
+data("data_tidy_yield", package = "DataTidyRodoSTA2005S")
+```
+
+# Question 1
+## a)
+```{r}
+ols <- function(X, y){
+  ans = solve(t(X) %*% X) %*% t(X) %*% y
+  return(ans)
+}
+
+n = nrow(data_tidy_yield)
+one = matrix(1, n, 1)
+ph = as.matrix(data_tidy_yield$SoilPH)
+dw = as.matrix(data_tidy_yield$DistanceToWater)
+maize = as.matrix(data_tidy_yield$CropYield)
+sunlight = as.matrix(data_tidy_yield$Sunlight)
+
+#a
+#i)
+X1 = cbind(one, ph, dw)
+y1 = maize
+coeff1 = ols(X1, y1)
+df1 = data.frame("Intercept" = coeff1[1,],
+                 "soil_pH" = coeff1[2,],
+                 "dist_water" = coeff1[3,])
+kable(df1, caption = "Regression coefficients for 
+      Maize ~ Soil_ph and dist_water")
+
+#ii)
+X2 = cbind(one, ph, dw)
+y2 = sunlight
+coeff2= ols(X2, y2)
+df2 = data.frame("Intercept" = coeff2[1,],
+                 "soil_pH" = coeff2[2,],
+                 "dist_water" = coeff2[3,])
+kable(df2, caption = "Regression coefficients for 
+      Sunlight ~ Soil_ph and dist_water")
+
+#iii)
+Y = cbind(y1, y2)
+B = ols(X1, Y)
+df2 = data.frame("Intercept" = B[1,],
+                 "soil_pH" = B[2,],
+                 "dist_water" = B[3,])
+rownames(df2) = c("Maize Yield", "Sunlight")
+kable(df2, caption = "Regression coefficients for 
+      for above using Multivariate regression")
+```
+
+##b)
+
+```{r}
+p = ncol(X1)
+predicted = X1 %*% coeff2
+resid = y2 - predicted
+RSS = t(resid) %*% resid
+S2 = RSS/(n-p)
+XtXinv = solve(t(X1) %*% X1)
+se_pH  = sqrt(S2 * XtXinv[2, 2])
+beta_ph = coeff2[2,1]
+t_crit  = qt(0.975, df = n - p)
+
+t_upp = beta_ph + t_crit * se_pH
+t_low = beta_ph - t_crit * se_pH
+df_ci = data.frame("CI_lower" = t_low, 
+                "CI_Upper" = t_upp)
+kable(df_ci, caption = "95% CI for effect of Soil pH on Sunlight")
+```
+
+##c)
+
+```{r}
+p = ncol(X1)
+C11 = XtXinv[2:3, 2:3]
+betas = coeff1[2:3, ,drop = FALSE]
+q = length(betas)
+
+# Calc sigma
+predicted = X1 %*% coeff1
+resid = y1 - predicted
+RSS = t(resid) %*% resid
+S2 = RSS/(n-p)
+
+f_stat = (t(betas) %*% solve(C11) %*% betas) / (q * S2)
+p_val  = pf(f_stat, df1 = q, df2 = n - p, lower.tail = FALSE)
+df_f = data.frame("F_statistic" = as.numeric(f_stat),
+                  "df1" = q, "df2" = n - p,
+                  "p_value" = as.numeric(p_val))
+kable(df_f, caption = "F-test for Soil pH and Distance to Water on Maize Yield")
+
+```
+The p value of basically 0 means that we should reject the null hypothesis and conclude that there is indeed a strong effect from atleast one of our predictors, soil_ph or distance to water on the maize yield.
+
+##d)
+
+```{r}
+# Full model defined above
+# X1 = intercept, soil_ph, dist_water
+# Restricted
+X_r = cbind(one, dw)
+
+# Find coeffs for full and restricted
+B_full = ols(X1, Y)
+B_reduced = ols(X_r, Y)
+
+r = ncol(Y)
+k = ncol(X1)
+p = k - 1
+q = k - ncol(X_r)
+
+#Sigmas
+predicted_full = X1 %*% B_full
+resid_full = Y - predicted_full
+Sigma_full = (t(resid_full) %*% resid_full) / n
+
+predicted_r = X_r %*% B_reduced
+resid_r = Y - predicted_r
+Sigma_r = (t(resid_r) %*% resid_r) / n
+
+# test stat and pval
+test_stat = - (n - k - 0.5 * (r - p + q + 1)) * log(det(Sigma_full) / det(Sigma_r))
+p_val = pchisq(test_stat, df = r * q, lower.tail = FALSE)
+
+df_lrt = data.frame("Test_statistic" = test_stat,
+                    "p_value" = p_val)
+kable(df_lrt, caption = "LRT for effect of Soil pH on Maize Yield and Sunlight")
+```
+Owing to the very low p-value of essentially 0, we can reject the null hypothesis and conclude that Soil ph does has a significant effect on atleast one of the predictors Maize yield or sunlight. The likelihood of observing data this extreme, if soil pH truly had no effect on either response, is essentially zero.
+
+# Question 2
+```{r}
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+
+```
+## MLR
+```{r}
+mali = na.omit(data_tidy_mali)
+y_mali = mali$cotton
+X_mali = as.matrix(mali[, names(mali) != "cotton"])
+n_m = nrow(X_mali)
+one_m = matrix(1, n_m, 1)
+
+X_mlr = cbind(one_m, X_mali)
+beta_mlr = solve(t(X_mlr) %*% X_mlr) %*% t(X_mlr) %*% y_mali
+
+yhat_mlr = X_mlr %*% beta_mlr
+SSE_mlr  = sum((y_mali - yhat_mlr)^2)
+SST      = sum((y_mali - mean(y_mali))^2)
+R2_mlr   = 1 - SSE_mlr / SST
+
+df_mlr = data.frame("Coefficient" = beta_mlr)
+kable(df_mlr, caption = "Multiple Regression Coefficients")
+
+```
+
+## PCR
+
+```{r}
+# Standardise predictors (mean 0, variance 1)
+X_mean = colMeans(X_mali)
+X_sd   = apply(X_mali, 2, sd)
+X_std  = scale(X_mali, center = X_mean, scale = X_sd)
+
+# Perform PCA
+S     = (t(X_std) %*% X_std) / (n_m - 1) # corr matrix
+eig   = eigen(S) 
+V     = eig$vectors          
+vars  = eig$values
+
+# Scree plot to select number of components
+prop_var = vars / sum(vars)
+plot(prop_var, type = "b", 
+     ylab = "proportion of variance", 
+     xlab = "Index of PCs",
+     main = "Scree plot")
+```
+From the scree plot above we have decided to use a cut off of 3 PCs as this will cover most of the variance within our dataset.
+
+```{r}
+# Fit regression model on PCs
+m = 3 # number of PC components chosen
+Z_pc = X_std %*% V[, 1:m]
+
+X_pcr  = cbind(one_m, Z_pc)
+beta_pcr = solve(t(X_pcr) %*% X_pcr) %*% t(X_pcr) %*% y_mali
+
+yhat_pcr = X_pcr %*% beta_pcr
+SSE_pcr  = sum((y_mali - yhat_pcr)^2)
+R2_pcr   = 1 - SSE_pcr / SST
+
+df_pcr = data.frame(
+  "Component"   = c("Intercept", paste0("PC", 1:m)),
+  "Coefficient" = beta_pcr
+)
+kable(df_pcr, caption = "PCR Regression Coefficients")
+
+
+```
+
+## PLS
+
+```{r}
+mali_df = as.data.frame(mali)
+
+pls_fit = plsr(cotton ~ ., 
+               data = mali_df, 
+               validation = "CV",
+               scale = TRUE)
+
+validationplot(pls_fit, val.type = "MSEP", 
+               main = "PLS CV Error by Components",
+               legend = FALSE)
+```
+The validation plot shows the CV and adjusted CV MSEP for each number of PLS components. We are not too concerned with the adjust CV MSEP, which adjusts for bias from CV and is very close to the black line. The CV error drops sharply from 0 to 1 component and levels off after 2 components, suggesting that 2 components is a reasonable choice. 
+```{r}
+# regression coeffs
+best_ncomp = 2
+
+pls_coef = coef(pls_fit, ncomp = best_ncomp, intercept = TRUE)
+
+df_pls_coef = data.frame(
+  "Variable"    = rownames(pls_coef),
+  "Coefficient" = as.numeric(pls_coef)
+)
+kable(df_pls_coef, caption = "PLS Coefficients (2 components)", row.names = FALSE)
+
+# R^2
+yhat_pls = predict(pls_fit, ncomp = best_ncomp, newdata = mali_df)
+SSE_pls  = sum((y_mali - yhat_pls)^2)
+R2_pls   = 1 - SSE_pls / SST
+```
+Now we compare all the models $R^2$ to assess which model has the best fit.
+```{r}
+
+df_R2_all = data.frame(
+  "Method"     = c("MLR", "PCR", "PLS"),
+  "R2"         = round(c(R2_mlr, R2_pcr, R2_pls), 4)
+)
+kable(df_R2_all, col.names = c("Method", "R²"),
+      caption = "R² comparison across MLR, PCR and PLS")
+
+```
+MLR achieved the highest $R^2$ of 0.7739, meaning that 77.39% of the variance in cotton planted is explained by the model. However, MLR uses all predictors directly, which can cause problems when predictors are correlated with each other.
+PCR achieved an $R^2$ of 0.7034 using 3 components. This is slightly lower than MLR, but PCR handles correlated predictors better by combining them into a smaller set of uncorrelated components. The small drop in R² is the price paid for a simpler and more stable model.
+PLS achieved an $R^2$ of 0.7450 using only 2 components, which is better than PCR despite using fewer components. This is because PLS builds its components with the response variable in mind, making it better at predicting cotton yield than PCR.
+Overall, MLR explains the most variance but struggles when predictors are correlated. PLS gives a good balance between predictive performance and simplicity, and performs better than PCR here because its components are built to be useful for prediction rather than just summarising the predictors.

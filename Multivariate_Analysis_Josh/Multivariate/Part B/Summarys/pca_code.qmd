@@ -1,0 +1,205 @@
+---
+title: "PCA – Code Walkthrough"
+format: pdf
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# PCA Code Walkthrough
+
+## 1. Loading the data
+
+```{r}
+#| message: false
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024", quiet = TRUE)
+
+data("data_tidy_turtle", package = "DataTidy23RodoHonsMult")
+head(data_tidy_turtle)
+```
+
+49 observations with `gender`, `length`, `width`, and `height`. The
+measurements are on similar scales and highly correlated, making PCA
+appropriate. We log-transform to linearise relationships between
+morphological measurements.
+
+------------------------------------------------------------------------
+
+## 2. PCA using `prcomp`
+
+```{r}
+pr_obj <- prcomp(
+  ~ log(length) + log(width) + log(height),
+  data = data_tidy_turtle,
+  retx = TRUE
+)
+pr_obj
+```
+
+-   The formula specifies which variables to include and applies
+    `log()`.
+-   `retx = TRUE` returns the PC scores, stored in `pr_obj$x`.
+-   Under the hood, `prcomp` centres the data and applies the SVD.
+
+The output shows:
+
+-   **Standard deviations** — $\sqrt{\lambda_k}$ for each component.
+-   **Rotation** — the loading matrix $\mathbf{V}$; each column is a
+    loading vector $\mathbf{a}_k$.
+
+PC1 has roughly equal loadings across all three variables, so it acts as
+a general size index: larger turtles score higher on PC1.
+
+------------------------------------------------------------------------
+
+## 3. Inspecting the output
+
+### Proportion of variance
+
+```{r}
+summary(pr_obj)
+```
+
+-   **Standard deviation** — $\sqrt{\lambda_k}$.
+-   **Proportion of Variance** — $\lambda_k / \sum_i \lambda_i$, i.e.
+    how much of the total variance each component explains.
+-   **Cumulative Proportion** — running total of the above.
+
+PC1 explains about 97.5% of total variance. Retaining just one component
+is clearly sufficient here.
+
+### Scree plot
+
+```{r}
+plot(pr_obj, main = "Scree plot – Painted Turtles")
+```
+
+Plots the raw eigenvalues $\lambda_k$ against component number. Look for
+an elbow — the point after which eigenvalues drop off sharply. Here the
+drop after PC1 makes the choice obvious.
+
+### Scores
+
+```{r}
+head(pr_obj$x)
+```
+
+`pr_obj$x` contains the PC scores $\mathbf{Y} = \mathbf{X}\mathbf{V}$ —
+each row is one observation's coordinates in the PC space.
+
+------------------------------------------------------------------------
+
+## 4. From first principles using the SVD
+
+### Step 1: Prepare the data matrix
+
+```{r}
+data_turtle_mat <- data_tidy_turtle |>
+  dplyr::select(-gender) |>
+  dplyr::mutate(dplyr::across(dplyr::everything(), log)) |>
+  dplyr::mutate(dplyr::across(dplyr::everything(),
+                               function(x) x - mean(x))) |>
+  as.matrix()
+
+head(round(data_turtle_mat, 4))
+```
+
+We manually do what `prcomp` does internally:
+
+1.  Remove the non-numeric `gender` column.
+2.  Log-transform all variables.
+3.  Centre each variable by subtracting its mean.
+
+### Step 2: SVD
+
+```{r}
+svd_obj <- svd(data_turtle_mat)
+```
+
+This returns:
+
+-   `svd_obj$d` — singular values $d_1 \geq d_2 \geq \cdots \geq d_p$.
+-   `svd_obj$u` — left singular vectors ($n \times p$).
+-   `svd_obj$v` — right singular vectors ($p \times p$), these are the
+    **loading vectors**.
+
+### Step 3: Eigenvalues of the covariance matrix
+
+The eigenvalues of $\mathbf{S} = \mathbf{X}'\mathbf{X}/(n-1)$ are
+
+$$\lambda_k = d_k^2 / (n - 1).$$
+
+```{r}
+n <- nrow(data_turtle_mat)
+eigenvalues <- svd_obj$d^2 / (n - 1)
+round(eigenvalues, 4)
+```
+
+### Step 4: Loading vectors
+
+```{r}
+# Columns of V are the loading vectors a_1, a_2, ..., a_p
+round(svd_obj$v, 4)
+```
+
+These match `pr_obj$rotation` up to possible sign flips (the sign of an
+eigenvector is arbitrary).
+
+### Step 5: PC scores
+
+```{r}
+# Y = XV
+scores <- data_turtle_mat %*% svd_obj$v
+head(round(scores, 4))
+```
+
+Compare with `pr_obj$x` — identical up to sign flips.
+
+### Step 6: Proportion of variance explained
+
+```{r}
+prop_var <- eigenvalues / sum(eigenvalues)
+round(prop_var, 4)
+
+## Alternative scree plot (hsowing prop var)
+plot(prop_var, type = 'b')
+
+cumsum(round(prop_var, 4))
+```
+
+------------------------------------------------------------------------
+
+## 5. Biplot
+
+```{r}
+biplot(pr_obj, main = "Biplot – Painted Turtles")
+```
+
+`biplot()` takes the `prcomp` object directly and plots:
+
+-   **Points** — observations (rows of $\mathbf{Y}$, the scores).
+-   **Arrows** — variables (columns of $\mathbf{V}$, the loadings).
+
+Two rules for interpretation:
+
+1.  An observation near the **tip of a variable's arrow** is above
+    average on that variable.
+2.  Variables with arrows pointing in **similar directions** are
+    correlated; arrows that are **orthogonal** indicate uncorrelated
+    variables.
+
+Here all three arrows point in roughly the same direction, confirming
+the high correlations. PC1 separates small turtles (left) from large
+ones (right).
+
+------------------------------------------------------------------------
+
+## Summary of key objects
+
+| Object | What it is | How to get it |
+|----|----|----|
+| $\mathbf{V}$ | Loading matrix | `pr_obj$rotation` or `svd_obj$v` |
+| $\lambda_k$ | Eigenvalues | `pr_obj$sdev^2` or `svd_obj$d^2 / (n-1)` |
+| $\mathbf{Y}$ | Scores | `pr_obj$x` or `data_mat %*% svd_obj$v` |
+| $\hat{\mathbf{X}}$ | Rank-$s$ approximation | `scores[,1:s] %*% t(svd_obj$v[,1:s])` |

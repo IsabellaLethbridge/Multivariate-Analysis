@@ -1,0 +1,75 @@
+---
+title: "Demonstrating saving images from matrices"
+format: pdf
+---
+
+```{r}
+save_img <- function(x, file) {
+  # x: matrix of pixel values (0-1)
+  # file: path to save the image (e.g., "reconstructed_image.jpg").
+  #       Must specify file extension as .jpg, .png or .pdf.
+  if (grepl("\\.jpg$", file)) {
+    save_func <- jpeg::writeJPEG
+  } else if (grepl("\\.png$", file)) {
+    save_func <- png::writePNG
+  } else if (grepl("\\.pdf$", file)) {
+      save_func <- function(x, file) {
+        pdf(file, width = ncol(x)/100, height = nrow(x)/100)
+        par(mar = c(0, 0, 0, 0))
+        plot(NA, NA, xlim = c(0, ncol(x)), ylim = c(0, nrow(x)), axes = FALSE, xlab = "", ylab = "")
+        rasterImage(x, 0, 0, ncol(x), nrow(x))
+        dev.off()
+      }
+  } else {
+    stop("Unsupported file format. Use .jpg or .png")
+  }
+  for (j in seq_len(ncol(x))) {
+    x[, j] <- pmax(pmin(1, x[, j]), 0)
+  }
+  save_func(
+    x,
+    file
+  )
+  file
+}
+```
+
+```{r}
+# "data" specifying image,
+# where each element is the darkness of a pixel
+# with 0 being black and 1 being white.
+# here I made up a matrix, where the first
+# n_row rows are just black,
+# the next n_row rows are all white,
+# the next n_row rows range from black to white,
+# and the final n_row rows are random
+n_col <- 2000
+n_row <- 150
+img_mat <- rbind(
+  lapply(seq_len(n_row), function(x) rep(0,n_col)) |> unlist() |> matrix(ncol = n_col),
+  lapply(seq_len(n_row), function(x) rep(1,n_col)) |> unlist() |> matrix(ncol = n_col),
+  lapply(seq_len(n_row), function(x) seq(0, 1, length.out = n_col)) |> unlist() |> matrix(ncol = n_col, byrow = TRUE),
+  lapply(seq_len(n_row), function(x) runif(n_col)) |> unlist() |> matrix(ncol = n_col, byrow = TRUE)
+)
+```
+
+```{r}
+# where you want to save the image
+# (include image extension, e.g. png or jpg or pdf).
+# when you're rending to pdf, make the extension pdf,
+# but when you're rendering to html, use png or jpg
+path_img <- "photo_of_the_year.pdf"
+# save the image, where the first argument
+# is the matrix of pixel darkness values
+# and the second argument is the path
+# to save the image to
+save_img(img_mat, path_img)
+```
+
+```{r, results="asis"}
+# display the image, which has been saved 
+# to file, in the rendered document
+knitr::include_graphics(path_img)
+```
+
+The whole goal in the PCA question is to come up with the appropriate matrices to pass to `save_img`.

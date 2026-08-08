@@ -1,0 +1,208 @@
+---
+title: "Continuous Assessment 7"
+author: "Liam Kilian, Joshua Orelowitz and Keeran Moodley"
+format:
+  pdf:
+    fig-pos: "C"
+    fig-align: center
+    pdf-engine: pdflatex
+    latex-auto-install: true
+    include-in-header:
+      - file: preamble.tex
+    toc: true
+    number-sections: false
+    colorlinks: false
+mainfont: LMRoman9-Regular
+execute: 
+  echo: false
+  eval: true
+  output: true
+  warning: false
+filters:
+  - parse-latex
+
+knitr:
+  opts_chunk:
+    fig-align: center
+    out-width: "90%"
+---
+
+\newpage
+
+```{r}
+library(tidyverse)
+library(readr)
+if (!requireNamespace("remotes", quietly = TRUE)) {
+install.packages("remotes")
+}
+# be sure to install from `2024` branch (code below does this)
+remotes::install_github("MiguelRodo/DataTidy23RodoHonsMult@2024")
+data("data_tidy_mali", package = "DataTidy23RodoHonsMult")
+
+data <- data_tidy_mali
+
+
+```
+
+# Question 1
+
+```{r}
+par(mfrow = c(1, 2))
+plot(data$family~data$dist_rd, 
+     pch = 16,
+     main = "Family Size vs 
+     Distance to Road",
+     xlab = "Distance to Road",
+     ylab = "Family Size")
+
+plot(data$dist_rd~data$cattle, 
+     pch = 16,
+     main = "Distance to Road vs 
+     Cattle",
+     xlab = "Number of Cattle",
+     ylab = "Distance to Road")
+
+data <- data[-which.max(data$family), ]
+data <- data[-which.max(data$dist_rd), ]
+data <- data[-which.max(data$dist_rd), ]
+data <- data[-which.max(data$cattle), ]
+```
+After removing the outlier the graphs look like this.
+
+```{r}
+par(mfrow = c(1, 2))
+plot(data$family~data$dist_rd, 
+     pch = 16,
+     main = "Family Size vs 
+     Distance to Road",
+     xlab = "Distance to Road",
+     ylab = "Family Size")
+
+plot(data$dist_rd~data$cattle, 
+     pch = 16,
+     main = "Distance to Road vs 
+     Cattle",
+     xlab = "Number of Cattle",
+     ylab = "Distance to Road")
+```
+
+# Question 2
+We need to standardise the data prior to preforming PCA as the variables in this data set are all measured in very different units and on different scales. Once we standardise the data it ensures that no single variable dominates the PCA owing to its scale rather than its underlying variation.
+
+```{r}
+data <- scale(data)
+```
+
+
+# Question 3
+We now perform PCA using the eigen decomposition of the covariance matrix. We first calculate the covariance matrix of the data, then we perform the eigen decomposition to obtain the eigenvalues and eigenvectors. The eigenvalues represent the amount of variance explained by each principal component, and the eigenvectors represent the direction of the principal components in the original variable space. We report the first two principal components, which capture the most variance in the data.
+
+```{r}
+eigen_data <- eigen(cov(data))
+
+props <- eigen_data$values/sum(eigen_data$values)
+
+# report the first two principal components scores
+pc1 <- data %*% eigen_data$vectors[,1]
+pc2 <- data %*% eigen_data$vectors[,2]
+
+# Store scores
+pc_eigen <- data.frame(PC1 = pc1, PC2 = pc2)
+
+```
+We now look at the scree plot to determine how many principal components to retain. The scree plot shows the proportion of variance explained by each principal component, we see that the first two principal components explain a significant amount of variance in the data. The remaining components each contribute negligibly and are therefore discarded. We retain two principal components to summarise the data
+```{r}
+
+# Create a scree plot
+scree_data <- data.frame(PC = 1:length(props), Variance_Explained = props)
+ggplot(scree_data, aes(x = PC, y = Variance_Explained)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Scree Plot", x = "Principal Component", y = "Proportion of Variance Explained") +
+  theme_minimal()
+```
+
+# Question 4
+We now perform PCA using an SVD approach. We first need to standardise the data, then we can perform the SVD and extract the principal components.
+
+```{r}
+# Standardise the data
+df_scaled <- data 
+
+# Perform SVD
+svd_result <- svd(df_scaled)
+# Extract the principal component scores
+pc <- svd_result$u %*% diag(svd_result$d)
+
+# Extract the loadings (eigenvectors)
+
+
+```
+
+We will only report the scores for the first two principal components, which capture the most variance in the data though we have verified that the all the PCs match between the two methods.
+
+```{r}
+# Extract the scores for the first two principal components
+pc1 <- pc[,1]
+pc2 <- pc[,2]
+
+# store scores
+pc_svd <- data.frame(PC1 = pc1, PC2 = pc2)
+
+
+#Comapre the scores from the eigen decomposition and SVD methods
+comparison <- data.frame(PC1_Eigen = pc_eigen$PC1, PC2_Eigen = pc_eigen$PC2,
+                         PC1_SVD = pc_svd$PC1, PC2_SVD = pc_svd$PC2)
+knitr::kable(comparison, caption = "Comparison of Principal Component Scores from Eigen Decomposition and SVD Methods", digits = 3)
+```
+
+We also check that the scree plot matches the one obtained from the eigen decomposition method.
+
+```{r}
+# Calculate the proportion of variance explained by each principal component
+variance_explained <- svd_result$d^2 / sum(svd_result$d^2)
+# Create a scree plot
+scree_data <- data.frame(PC = 1:length(variance_explained), Variance_Explained = variance_explained)
+ggplot(scree_data, aes(x = PC, y = Variance_Explained)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Scree Plot", x = "Principal Component", y = "Proportion of Variance Explained") +
+  theme_minimal()
+```
+
+# Question 5
+This is what our loadings look like for PC1 and PC2
+```{r}
+loading1 <- eigen_data$vectors[,1]
+loading2 <- eigen_data$vectors[,2]
+df = data.frame(Variable = colnames(data), loadingPC1 = loading1, loadingPC2 = loading2)
+knitr::kable(df, caption = "A table showing the different loadings for the first 2 principle components", digits = 3)
+```
+PC1 can be interpreted as a general measure of household wealth, as it loads heavily on cotton (0.446), bull (0.445), and family (0.434) and is positive across all variables, it barely has a loading for distance to the road which means that house hold wealth is not dependent on a households distance to a road (geographical location). 
+
+PC2 contrasts subsistence-oriented farming (sorghum and millet loading positively) against market integration and geographic accessibility (distance to road, maize and cattle loading negatively). The dist_rd could indicate market integration as being closer to a road allows for easier access to market stalls and transportation of crops. Thus a small distance would increase a households food security.
+
+# Question 6
+We now compute the correlation between the original variables and the first principal component scores. This will help us understand which original variables contribute most to the first principal component.
+
+```{r}
+# Calculate the correlation between original variables and the first principal component scores
+correlations <- cor(df_scaled, pc1)
+correlation_df <- data.frame(Variable = colnames(df_scaled), Correlation_with_PC1 = correlations)
+knitr::kable(correlation_df, caption = "Correlation between Original Variables and the First Principal Component")
+```
+The correlations between PC1 and the original variables closely 
+mirror the PC1 loadings. Variables with large positive loadings (cotton, bull, family) show the highest correlations with PC1, while variables with low loadings (dist_rd) have the lowest correlations.
+
+# Question 7
+We now produce a biplot of the first two principal components. 
+```{r}
+# data is already standardised in Q2, so scale. = FALSE
+pca_scaled <- prcomp(data, scale. = FALSE)
+
+biplot(pca_scaled, choices = c(1, 2),
+       xlab = "PC1", ylab = "PC2",
+       main = "Biplot of First Two Principal Components",
+       xlabs = rep("•", nrow(data)))  # fixed: replaces cluttered row labels with points
+```
+The biplot above shows that most (excluding distrd) of the variables point in the same positive direction of PC1 and thus are correlated. Along PC2 sorg and millet point upwards while cattle, maize and distrd all point downwards. the other variables are quite uncorrelated and thus orthogonal to PC2. This creates two groups one for positive (subsistence) and one negative (market integration). The observations are heavily clustered near the origin, suggesting that most households in the Sikasso region are relatively homogeneous. There are a few outliers especially for PC2.
