@@ -153,6 +153,7 @@ cos_theta <- (t(D1)%*%D3)/(Len_D1*Len_D3)
 r_cos_theta <- round(cos_theta, 2)
 angle <- round(acos(cos_theta), 3)
 
+
 ```
 
 $\cos(\theta) = `r cos_theta`$\
